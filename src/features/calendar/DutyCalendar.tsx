@@ -36,6 +36,7 @@ export function DutyCalendar({
       locale={ru}
       month={month}
       onMonthChange={onMonthChange}
+      navLayout="around"
       showOutsideDays
       className="duty-calendar"
       modifiers={{
