@@ -1,3 +1,5 @@
+import type { User } from '@/shared/api/types';
+
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api';
 
 let accessToken: string | null = localStorage.getItem('accessToken');
@@ -17,12 +19,9 @@ export function getAccessToken() {
 
 type RequestOptions = RequestInit & { skipAuth?: boolean };
 
-export async function apiRequest<T>(
-  path: string,
-  options: RequestOptions = {},
-): Promise<T> {
+async function fetchWithAuth(path: string, options: RequestOptions = {}): Promise<Response> {
   const headers = new Headers(options.headers);
-  if (!headers.has('Content-Type') && options.body) {
+  if (!headers.has('Content-Type') && options.body && !(options.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
   }
 
@@ -48,6 +47,10 @@ export async function apiRequest<T>(
     }
   }
 
+  return response;
+}
+
+async function parseResponse<T>(response: Response): Promise<T> {
   if (response.status === 204) {
     return undefined as T;
   }
@@ -59,6 +62,32 @@ export async function apiRequest<T>(
   }
 
   return data as T;
+}
+
+export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const response = await fetchWithAuth(path, options);
+  return parseResponse<T>(response);
+}
+
+export async function apiUpload<T>(
+  path: string,
+  fieldName: string,
+  file: File,
+): Promise<T> {
+  const form = new FormData();
+  form.append(fieldName, file);
+  const response = await fetchWithAuth(path, { method: 'POST', body: form });
+  return parseResponse<T>(response);
+}
+
+export async function uploadAvatar(file: File): Promise<User> {
+  const data = await apiUpload<{ user: User }>('/auth/me/avatar', 'avatar', file);
+  return data.user;
+}
+
+export async function deleteAvatar(): Promise<User> {
+  const data = await apiRequest<{ user: User }>('/auth/me/avatar', { method: 'DELETE' });
+  return data.user;
 }
 
 async function tryRefresh(): Promise<boolean> {

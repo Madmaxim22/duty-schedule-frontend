@@ -1,25 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { apiRequest } from '@/shared/api/client';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { apiRequest, deleteAvatar, uploadAvatar } from '@/shared/api/client';
 import type { MonthSchedule } from '@/shared/api/types';
 import { DutyCalendar } from '@/features/calendar/DutyCalendar';
 import { DayDetailModal } from '@/features/day-detail/DayDetailModal';
 import { useAuth } from '@/features/auth/AuthContext';
 import menuIcon from '@/shared/assets/icons/fi_menu.svg';
 import { SideMenu } from '@/shared/ui/SideMenu';
-
-function getInitials(fullName: string): string {
-  const parts = fullName.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '?';
-  if (parts.length === 1) return parts[0]![0]!.toUpperCase();
-  return (parts[0]![0]! + parts[1]![0]!).toUpperCase();
-}
+import { Avatar } from '@/shared/ui/Avatar';
 
 export function HomePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+  const avatarMenuRef = useRef<HTMLDivElement>(null);
+  const [avatarVersion, setAvatarVersion] = useState(0);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
   const [month, setMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -37,13 +36,79 @@ export function HomePage() {
       apiRequest<MonthSchedule>(`/schedule/month?year=${year}&month=${monthNum}`),
   });
 
-  const closeMenu = () => setMenuOpen(false);
+  const avatarUploadMutation = useMutation({
+    mutationFn: uploadAvatar,
+    onSuccess: async () => {
+      setAvatarError(null);
+      setAvatarVersion(Date.now());
+      await refreshUser();
+    },
+    onError: (err: Error) => setAvatarError(err.message),
+  });
+
+  const avatarDeleteMutation = useMutation({
+    mutationFn: deleteAvatar,
+    onSuccess: async () => {
+      setAvatarError(null);
+      setAvatarVersion(Date.now());
+      await refreshUser();
+    },
+    onError: (err: Error) => setAvatarError(err.message),
+  });
+
+  const isAvatarBusy = avatarUploadMutation.isPending || avatarDeleteMutation.isPending;
+
+  const closeMenu = () => {
+    setMenuOpen(false);
+    setAvatarMenuOpen(false);
+  };
+
+  useEffect(() => {
+    if (!avatarMenuOpen) return;
+
+    function handlePointerDown(e: PointerEvent) {
+      if (avatarMenuRef.current?.contains(e.target as Node)) return;
+      setAvatarMenuOpen(false);
+    }
+
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setAvatarMenuOpen(false);
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [avatarMenuOpen]);
 
   const handleLogout = async () => {
     closeMenu();
     await logout();
     navigate('/login');
   };
+
+  function openAvatarPicker() {
+    setAvatarError(null);
+    setAvatarMenuOpen(false);
+    fileInputRef.current?.click();
+  }
+
+  function handleDeleteAvatar() {
+    setAvatarMenuOpen(false);
+    avatarDeleteMutation.mutate();
+  }
+
+  function handleAvatarFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    avatarUploadMutation.mutate(file);
+  }
+
+  const displayName = user?.fullName ?? '';
+  const avatarCacheBust = avatarVersion || undefined;
 
   return (
     <div className="home-page">
@@ -57,10 +122,25 @@ export function HomePage() {
         >
           <img src={menuIcon} alt="" width={33} height={33} aria-hidden />
         </button>
-        <span className="home-page__avatar" aria-label={user?.fullName}>
-          {user?.fullName ? getInitials(user.fullName) : '?'}
-        </span>
+        {displayName ? (
+          <Avatar
+            fullName={displayName}
+            avatarUrl={user?.avatarUrl}
+            cacheBust={avatarCacheBust}
+            className="home-page__header-avatar"
+          />
+        ) : (
+          <span className="avatar avatar--sm avatar--initials">?</span>
+        )}
       </header>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="visually-hidden"
+        onChange={handleAvatarFileChange}
+      />
 
       {isLoading ? <p className="page-loading">Загрузка календаря…</p> : null}
 
@@ -84,12 +164,56 @@ export function HomePage() {
 
       <SideMenu open={menuOpen} onClose={closeMenu}>
         <div className="side-menu__user">
-          <span className="side-menu__avatar">
-            {user?.fullName ? getInitials(user.fullName) : '?'}
-          </span>
+          <div ref={avatarMenuRef} className="side-menu__avatar-wrap">
+            <button
+              type="button"
+              className="side-menu__avatar-btn"
+              disabled={isAvatarBusy}
+              aria-label="Меню фото профиля"
+              aria-expanded={avatarMenuOpen}
+              aria-haspopup="menu"
+              onClick={() => setAvatarMenuOpen((open) => !open)}
+            >
+              <Avatar
+                fullName={displayName || '?'}
+                avatarUrl={user?.avatarUrl}
+                size="md"
+                cacheBust={avatarCacheBust}
+              />
+            </button>
+            {avatarMenuOpen ? (
+              <div className="side-menu__avatar-menu" role="menu">
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="side-menu__avatar-menu-item"
+                  disabled={isAvatarBusy}
+                  onClick={openAvatarPicker}
+                >
+                  {isAvatarBusy ? 'Загрузка…' : user?.avatarUrl ? 'Сменить фото' : 'Добавить фото'}
+                </button>
+                {user?.avatarUrl ? (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="side-menu__avatar-menu-item side-menu__avatar-menu-item--danger"
+                    disabled={isAvatarBusy}
+                    onClick={handleDeleteAvatar}
+                  >
+                    Удалить фото
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
           <div>
             <p className="side-menu__name">{user?.fullName}</p>
             <p className="side-menu__email">{user?.email}</p>
+            {avatarError ? (
+              <p className="form-message form-message--error side-menu__avatar-error">
+                {avatarError}
+              </p>
+            ) : null}
           </div>
         </div>
         <ul className="side-menu__links">

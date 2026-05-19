@@ -7,6 +7,7 @@ export type User = {
   fullName: string;
   role: UserRole;
   status: UserStatus;
+  avatarUrl: string | null;
 };
 
 export type MonthDay = {

@@ -230,17 +230,37 @@ body {
   cursor: pointer;
 }
 
-.home-page__avatar {
+.avatar {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
   border-radius: 50%;
   background: var(--color-darkest);
   color: #fff;
-  font-size: 0.875rem;
   font-weight: 600;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.avatar--sm {
+  width: 40px;
+  height: 40px;
+  font-size: 0.875rem;
+}
+
+.avatar--md {
+  width: 48px;
+  height: 48px;
+  font-size: 1rem;
+}
+
+.avatar--image {
+  object-fit: cover;
+  padding: 0;
+  background: transparent;
+}
+
+.home-page__header-avatar {
   flex-shrink: 0;
 }
 
@@ -290,18 +310,79 @@ body {
   border-bottom: 1px solid #e0e0e0;
 }
 
-.side-menu__avatar {
+.side-menu__avatar-btn {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
   border-radius: 50%;
-  background: var(--color-darkest);
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 600;
   flex-shrink: 0;
+}
+
+.side-menu__avatar-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.side-menu__avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.side-menu__avatar-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 1;
+  min-width: 168px;
+  padding: 4px 0;
+  background: var(--color-surface);
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.side-menu__avatar-menu-item {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  color: var(--color-text, #1a1a1a);
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.side-menu__avatar-menu-item:hover:not(:disabled) {
+  background: #f5f5f5;
+}
+
+.side-menu__avatar-menu-item--danger {
+  color: #c62828;
+}
+
+.side-menu__avatar-menu-item:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.side-menu__avatar-error {
+  margin: 8px 0 0;
+  font-size: 0.8125rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .side-menu__name {
