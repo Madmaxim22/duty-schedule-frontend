@@ -96,7 +96,7 @@ export function HomePage() {
           {isAdmin ? (
             <li>
               <Link to="/admin/users" className="side-menu__link" onClick={closeMenu}>
-                Модерация регистраций
+                Пользователи
               </Link>
             </li>
           ) : null}
