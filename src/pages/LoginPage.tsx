@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/AuthContext';
 import { Input } from '@/shared/ui/Input';
+import { PasswordInput } from '@/shared/ui/PasswordInput';
 import { Button } from '@/shared/ui/Button';
 import { useState } from 'react';
 
@@ -43,9 +44,8 @@ export function LoginPage() {
       <h1 className="auth-page__title">Вход</h1>
       <form className="auth-form" onSubmit={onSubmit}>
         <Input label="Email" type="email" autoComplete="email" {...register('email')} error={errors.email?.message} />
-        <Input
+        <PasswordInput
           label="Пароль"
-          type="password"
           autoComplete="current-password"
           {...register('password')}
           error={errors.password?.message}

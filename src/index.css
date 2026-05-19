@@ -1,6 +1,8 @@
 :root {
-  --color-bg: #f0f4f8;
+  --color-bg: #ffffff;
   --color-surface: #ffffff;
+  --color-darkest: #006ffd;
+  --color-darkest-hover: #0056d4;
   --color-primary: #1e3a5f;
   --color-primary-hover: #2a5082;
   --color-duty: #2e7d32;
@@ -65,12 +67,12 @@ body {
 }
 
 .btn--primary {
-  background: var(--color-primary);
+  background: var(--color-darkest);
   color: #fff;
 }
 
 .btn--primary:hover:not(:disabled) {
-  background: var(--color-primary-hover);
+  background: var(--color-darkest-hover);
 }
 
 .btn--secondary {
@@ -114,11 +116,52 @@ body {
   border: 1px solid #cfd8dc;
   border-radius: var(--radius);
   font-size: 1rem;
+  transition: border-color 0.15s;
+}
+
+.field__input:hover:not(:disabled):not(:focus) {
+  border-color: var(--color-darkest);
 }
 
 .field__input:focus {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-darkest);
   outline-offset: 1px;
+  border-color: var(--color-darkest);
+}
+
+.field__password-wrap {
+  position: relative;
+}
+
+.field__input--password {
+  width: 100%;
+  padding-right: 48px;
+}
+
+.field__password-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-muted);
+  cursor: pointer;
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.field__password-toggle:hover {
+  color: var(--color-darkest);
+}
+
+.field__password-toggle:focus-visible {
+  outline: 2px solid var(--color-darkest);
+  outline-offset: -2px;
 }
 
 .field__error {
