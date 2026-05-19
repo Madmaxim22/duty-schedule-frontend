@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import arrowLeftIcon from '@/shared/assets/icons/Arrow Left.svg';
 import { apiRequest } from '@/shared/api/client';
 import type { DaySchedule } from '@/shared/api/types';
 import { DUTY_SECTIONS } from '@/shared/constants/offices';
@@ -16,7 +17,11 @@ export function EditDayPage() {
   const queryClient = useQueryClient();
   const [slots, setSlots] = useState<SlotValue[]>([]);
 
-  const { data: dayData, isLoading } = useQuery({
+  const {
+    data: dayData,
+    isLoading,
+    error: dayError,
+  } = useQuery({
     queryKey: ['schedule', 'day', date],
     queryFn: () => apiRequest<DaySchedule>(`/schedule/day/${date}`),
     enabled: Boolean(date),
@@ -73,49 +78,54 @@ export function EditDayPage() {
   return (
     <div className="edit-day-page">
       <header className="edit-day-page__header">
-        <Link to="/" className="edit-day-page__back">
-          ← Календарь
+        <Link to="/" className="edit-day-page__back" aria-label="Назад к календарю">
+          <img src={arrowLeftIcon} alt="" width={24} height={24} aria-hidden />
         </Link>
         <h1 className="edit-day-page__title">Назначения на {title}</h1>
       </header>
 
-      {isLoading ? <p>Загрузка…</p> : null}
+      {isLoading ? <p className="page-loading">Загрузка…</p> : null}
+      {dayError ? (
+        <p className="form-message form-message--error">{(dayError as Error).message}</p>
+      ) : null}
 
-      {DUTY_SECTIONS.map((section) => (
-        <section key={section.id} className="edit-day-page__section">
-          <h2>{section.label}</h2>
-          <ul className="edit-day-page__list">
-            {section.offices.map((office) => {
-              const slot = slots.find(
-                (s) => s.section === section.id && s.office === office.code,
-              );
-              return (
-                <li key={office.code} className="edit-day-page__row">
-                  <label className="edit-day-page__label">Каб. {office.code}</label>
-                  <select
-                    className="edit-day-page__select"
-                    value={slot?.userId ?? ''}
-                    onChange={(e) =>
-                      updateSlot(
-                        section.id,
-                        office.code,
-                        e.target.value ? e.target.value : null,
-                      )
-                    }
-                  >
-                    <option value="">— Не назначен —</option>
-                    {usersData?.users.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.fullName}
-                      </option>
-                    ))}
-                  </select>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ))}
+      {!isLoading && !dayError
+        ? DUTY_SECTIONS.map((section) => (
+            <section key={section.id} className="edit-day-page__section">
+              <h2>{section.label}</h2>
+              <ul className="edit-day-page__list">
+                {section.offices.map((office) => {
+                  const slot = slots.find(
+                    (s) => s.section === section.id && s.office === office.code,
+                  );
+                  return (
+                    <li key={office.code} className="edit-day-page__row">
+                      <label className="edit-day-page__label">Каб. {office.code}</label>
+                      <select
+                        className="edit-day-page__select"
+                        value={slot?.userId ?? ''}
+                        onChange={(e) =>
+                          updateSlot(
+                            section.id,
+                            office.code,
+                            e.target.value ? e.target.value : null,
+                          )
+                        }
+                      >
+                        <option value="">— Не назначен —</option>
+                        {usersData?.users.map((u) => (
+                          <option key={u.id} value={u.id}>
+                            {u.fullName}
+                          </option>
+                        ))}
+                      </select>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ))
+        : null}
 
       {saveMutation.error ? (
         <p className="form-message form-message--error">
@@ -125,7 +135,7 @@ export function EditDayPage() {
 
       <Button
         className="edit-day-page__save"
-        disabled={saveMutation.isPending || slots.length === 0}
+        disabled={saveMutation.isPending || isLoading || Boolean(dayError) || slots.length === 0}
         onClick={() => saveMutation.mutate()}
       >
         {saveMutation.isPending ? 'Сохранение…' : 'Сохранить'}
