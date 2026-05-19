@@ -1,15 +1,25 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/shared/api/client';
 import type { MonthSchedule } from '@/shared/api/types';
 import { DutyCalendar } from '@/features/calendar/DutyCalendar';
 import { DayDetailModal } from '@/features/day-detail/DayDetailModal';
 import { useAuth } from '@/features/auth/AuthContext';
-import { Link } from 'react-router-dom';
-import { Button } from '@/shared/ui/Button';
+import menuIcon from '@/shared/assets/icons/fi_menu.svg';
+import { SideMenu } from '@/shared/ui/SideMenu';
+
+function getInitials(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0]![0]!.toUpperCase();
+  return (parts[0]![0]! + parts[1]![0]!).toUpperCase();
+}
 
 export function HomePage() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
   const [month, setMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -27,28 +37,30 @@ export function HomePage() {
       apiRequest<MonthSchedule>(`/schedule/month?year=${year}&month=${monthNum}`),
   });
 
-  const monthLabel = month.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+  const closeMenu = () => setMenuOpen(false);
+
+  const handleLogout = async () => {
+    closeMenu();
+    await logout();
+    navigate('/login');
+  };
 
   return (
     <div className="home-page">
       <header className="home-page__header">
-        <div>
-          <h1 className="home-page__title">График дежурств</h1>
-          <p className="home-page__user">{user?.fullName}</p>
-        </div>
-        <div className="home-page__actions">
-          {user?.role === 'admin' ? (
-            <Link to="/admin/users" className="home-page__link">
-              Модерация
-            </Link>
-          ) : null}
-          <Button variant="ghost" onClick={() => logout()}>
-            Выйти
-          </Button>
-        </div>
+        <button
+          type="button"
+          className="home-page__menu-btn"
+          aria-label="Меню"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(true)}
+        >
+          <img src={menuIcon} alt="" width={33} height={33} aria-hidden />
+        </button>
+        <span className="home-page__avatar" aria-label={user?.fullName}>
+          {user?.fullName ? getInitials(user.fullName) : '?'}
+        </span>
       </header>
-
-      <p className="home-page__month">{monthLabel}</p>
 
       {isLoading ? <p className="page-loading">Загрузка календаря…</p> : null}
 
@@ -69,6 +81,30 @@ export function HomePage() {
           </span>
         ) : null}
       </p>
+
+      <SideMenu open={menuOpen} onClose={closeMenu}>
+        <div className="side-menu__user">
+          <span className="side-menu__avatar">
+            {user?.fullName ? getInitials(user.fullName) : '?'}
+          </span>
+          <div>
+            <p className="side-menu__name">{user?.fullName}</p>
+            <p className="side-menu__email">{user?.email}</p>
+          </div>
+        </div>
+        <ul className="side-menu__links">
+          {isAdmin ? (
+            <li>
+              <Link to="/admin/users" className="side-menu__link" onClick={closeMenu}>
+                Модерация регистраций
+              </Link>
+            </li>
+          ) : null}
+        </ul>
+        <button type="button" className="side-menu__logout" onClick={handleLogout}>
+          Выйти
+        </button>
+      </SideMenu>
 
       <DayDetailModal date={selectedDate} onClose={() => setSelectedDate(null)} />
     </div>

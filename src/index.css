@@ -39,7 +39,7 @@ body {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100dvh;
-  padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px env(safe-area-inset-bottom, 0px);
 }
 
 .app-shell__main {
@@ -216,42 +216,140 @@ body {
 .home-page__header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 8px;
+  align-items: center;
+  margin-bottom: 40px;
 }
 
-.home-page__title {
+.home-page__menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.home-page__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-darkest);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.side-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+}
+
+.side-menu__overlay {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+
+.side-menu__panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(280px, 85vw);
+  display: flex;
+  flex-direction: column;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  background: var(--color-surface);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  animation: slideInLeft 0.2s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.side-menu__user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 20px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.side-menu__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-darkest);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.side-menu__name {
   margin: 0;
-  font-size: 1.25rem;
+  font-weight: 600;
   color: var(--color-primary);
 }
 
-.home-page__user {
+.side-menu__email {
   margin: 4px 0 0;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   color: var(--color-muted);
 }
 
-.home-page__actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
+.side-menu__links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
 }
 
-.home-page__link {
-  font-size: 0.875rem;
+.side-menu__link {
+  display: block;
+  padding: 14px 0;
   color: var(--color-primary);
   font-weight: 600;
   text-decoration: none;
 }
 
-.home-page__month {
-  text-align: center;
+.side-menu__link:hover {
+  color: var(--color-darkest);
+}
+
+.side-menu__logout {
+  margin-top: auto;
+  width: 100%;
+  min-height: 44px;
+  border: none;
+  border-radius: var(--radius);
+  background: #e8eef5;
+  color: var(--color-primary);
+  font-size: 1rem;
   font-weight: 600;
-  text-transform: capitalize;
-  margin: 0 0 12px;
+  cursor: pointer;
+}
+
+.side-menu__logout:hover {
+  background: #dce6f2;
 }
 
 .duty-calendar {
