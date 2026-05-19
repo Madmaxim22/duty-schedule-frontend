@@ -7,6 +7,7 @@ import { apiRequest } from '@/shared/api/client';
 import type { UserRole, UserStatus } from '@/shared/api/types';
 import { useAuth } from '@/features/auth/AuthContext';
 import { Button } from '@/shared/ui/Button';
+import { Modal } from '@/shared/ui/Modal';
 
 type PendingUser = {
   id: string;
@@ -43,6 +44,7 @@ function formatDate(iso: string) {
 
 export function AdminUsersPage() {
   const [tab, setTab] = useState<Tab>('pending');
+  const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
   const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
 
@@ -73,6 +75,7 @@ export function AdminUsersPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => apiRequest(`/admin/users/${id}`, { method: 'DELETE' }),
     onSuccess: () => {
+      setUserToDelete(null);
       queryClient.invalidateQueries({ queryKey: ['admin', 'all'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'pending'] });
       queryClient.invalidateQueries({ queryKey: ['users', 'approved'] });
@@ -83,10 +86,9 @@ export function AdminUsersPage() {
   const error = tab === 'pending' ? pendingQuery.error : allQuery.error;
   const isBusy = statusMutation.isPending || deleteMutation.isPending;
 
-  function handleDelete(user: AdminUser) {
-    const message = `Удалить учётную запись «${user.fullName}» (${user.email})? Это действие нельзя отменить.`;
-    if (!window.confirm(message)) return;
-    deleteMutation.mutate(user.id);
+  function confirmDelete() {
+    if (!userToDelete) return;
+    deleteMutation.mutate(userToDelete.id);
   }
 
   return (
@@ -191,7 +193,7 @@ export function AdminUsersPage() {
                       className="admin-page__delete"
                       disabled={isBusy}
                       aria-label={`Удалить ${u.fullName}`}
-                      onClick={() => handleDelete(u)}
+                      onClick={() => setUserToDelete(u)}
                     >
                       <img src={deleteIcon} alt="" width={24} height={24} aria-hidden />
                     </button>
@@ -202,6 +204,35 @@ export function AdminUsersPage() {
           </ul>
         </>
       )}
+
+      <Modal
+        open={userToDelete !== null}
+        title="Удалить учётную запись?"
+        onClose={() => {
+          if (!deleteMutation.isPending) setUserToDelete(null);
+        }}
+        footer={
+          <div className="modal__footer-actions">
+            <Button
+              variant="secondary"
+              disabled={deleteMutation.isPending}
+              onClick={() => setUserToDelete(null)}
+            >
+              Отмена
+            </Button>
+            <Button variant="danger" disabled={deleteMutation.isPending} onClick={confirmDelete}>
+              {deleteMutation.isPending ? 'Удаление…' : 'Удалить'}
+            </Button>
+          </div>
+        }
+      >
+        {userToDelete ? (
+          <p>
+            Учётная запись «<strong>{userToDelete.fullName}</strong>» ({userToDelete.email}) будет
+            удалена без возможности восстановления.
+          </p>
+        ) : null}
+      </Modal>
     </div>
   );
 }

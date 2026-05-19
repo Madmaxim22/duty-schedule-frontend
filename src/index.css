@@ -487,6 +487,16 @@ body {
   width: 100%;
 }
 
+.modal__footer-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.modal__footer-actions .btn {
+  flex: 1;
+  width: auto;
+}
+
 .day-detail__section {
   margin-bottom: 20px;
 }
