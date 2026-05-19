@@ -31,7 +31,7 @@ export type DaySlot = {
   section: 'A' | 'B';
   office: string;
   mandatory: boolean;
-  user: { id: string; fullName: string } | null;
+  user: { id: string; fullName: string; avatarUrl: string | null } | null;
 };
 
 export type DaySchedule = {

@@ -70,11 +70,6 @@ export function EditDayPage() {
     );
   }
 
-  function isMandatory(sectionId: 'A' | 'B', officeCode: string) {
-    const section = DUTY_SECTIONS.find((s) => s.id === sectionId);
-    return section?.offices.find((o) => o.code === officeCode)?.mandatory ?? false;
-  }
-
   return (
     <div className="edit-day-page">
       <header className="edit-day-page__header">
@@ -96,16 +91,7 @@ export function EditDayPage() {
               );
               return (
                 <li key={office.code} className="edit-day-page__row">
-                  <label className="edit-day-page__label">
-                    Каб. {office.code}
-                    {isMandatory(section.id, office.code) ? (
-                      <span className="day-detail__badge day-detail__badge--required">
-                        обяз.
-                      </span>
-                    ) : (
-                      <span className="day-detail__badge">необяз.</span>
-                    )}
-                  </label>
+                  <label className="edit-day-page__label">Каб. {office.code}</label>
                   <select
                     className="edit-day-page__select"
                     value={slot?.userId ?? ''}
