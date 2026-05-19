@@ -563,7 +563,14 @@ body {
   margin-bottom: 20px;
 }
 
-.admin-page__back,
+.admin-page__back {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 8px;
+  text-decoration: none;
+  line-height: 0;
+}
+
 .edit-day-page__back {
   display: inline-block;
   margin-bottom: 8px;
@@ -575,6 +582,7 @@ body {
 .admin-page__title,
 .edit-day-page__title {
   margin: 0;
+  text-align: center;
   font-size: 1.2rem;
   color: var(--color-primary);
 }

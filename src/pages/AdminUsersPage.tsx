@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import arrowLeftIcon from '@/shared/assets/icons/Arrow Left.svg';
 import { apiRequest } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
 
@@ -32,8 +33,8 @@ export function AdminUsersPage() {
   return (
     <div className="admin-page">
       <header className="admin-page__header">
-        <Link to="/" className="admin-page__back">
-          ← Календарь
+        <Link to="/" className="admin-page__back" aria-label="Назад к календарю">
+          <img src={arrowLeftIcon} alt="" width={24} height={24} aria-hidden />
         </Link>
         <h1 className="admin-page__title">Модерация регистраций</h1>
       </header>
