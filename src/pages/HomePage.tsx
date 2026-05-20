@@ -11,7 +11,7 @@ import { SideMenu } from '@/shared/ui/SideMenu';
 import { Avatar } from '@/shared/ui/Avatar';
 
 export function HomePage() {
-  const { user, logout, refreshUser } = useAuth();
+  const { user, logout, setUser } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -38,20 +38,20 @@ export function HomePage() {
 
   const avatarUploadMutation = useMutation({
     mutationFn: uploadAvatar,
-    onSuccess: async () => {
+    onSuccess: (updatedUser) => {
       setAvatarError(null);
       setAvatarVersion(Date.now());
-      await refreshUser();
+      setUser(updatedUser);
     },
     onError: (err: Error) => setAvatarError(err.message),
   });
 
   const avatarDeleteMutation = useMutation({
     mutationFn: deleteAvatar,
-    onSuccess: async () => {
+    onSuccess: (updatedUser) => {
       setAvatarError(null);
       setAvatarVersion(Date.now());
-      await refreshUser();
+      setUser(updatedUser);
     },
     onError: (err: Error) => setAvatarError(err.message),
   });

@@ -17,6 +17,7 @@ type AuthContextValue = {
   register: (email: string, password: string, fullName: string) => Promise<string>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  setUser: (user: User) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -80,9 +81,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const setUserFromClient = useCallback((next: User) => {
+    setUser(next);
+  }, []);
+
   const value = useMemo(
-    () => ({ user, isLoading, login, register, logout, refreshUser }),
-    [user, isLoading, login, register, logout, refreshUser],
+    () => ({ user, isLoading, login, register, logout, refreshUser, setUser: setUserFromClient }),
+    [user, isLoading, login, register, logout, refreshUser, setUserFromClient],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

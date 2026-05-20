@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { resolveAvatarUrl } from '@/shared/lib/avatarUrl';
 
 function getInitials(fullName: string): string {
@@ -19,6 +19,10 @@ type AvatarProps = {
 export function Avatar({ fullName, avatarUrl, size = 'sm', cacheBust, className }: AvatarProps) {
   const [broken, setBroken] = useState(false);
   const src = resolveAvatarUrl(avatarUrl, cacheBust);
+
+  useEffect(() => {
+    setBroken(false);
+  }, [src]);
   const classes = [
     'avatar',
     size === 'md' ? 'avatar--md' : 'avatar--sm',
