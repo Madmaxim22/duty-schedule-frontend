@@ -16,12 +16,14 @@ import { useAuth } from '@/features/auth/AuthContext';
 import menuIcon from '@/shared/assets/icons/fi_menu.svg';
 import { SideMenu } from '@/shared/ui/SideMenu';
 import { Avatar } from '@/shared/ui/Avatar';
+import { SettingsModal } from '@/features/settings/SettingsModal';
 
 export function HomePage() {
   const { user, logout, setUser } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const avatarMenuRef = useRef<HTMLDivElement>(null);
   const [avatarVersion, setAvatarVersion] = useState(0);
@@ -97,6 +99,11 @@ export function HomePage() {
     navigate('/login');
   };
 
+  const openSettings = () => {
+    closeMenu();
+    setSettingsOpen(true);
+  };
+
   function openAvatarPicker() {
     setAvatarError(null);
     setAvatarMenuOpen(false);
@@ -169,6 +176,7 @@ export function HomePage() {
           month={month}
           onMonthChange={(m) => setMonth(new Date(m.getFullYear(), m.getMonth(), 1))}
           days={data?.days ?? []}
+          highlightMyDuty={!isAdmin}
           incompleteDates={isAdmin ? data?.monthCoverage?.incompleteDates : undefined}
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
@@ -180,6 +188,7 @@ export function HomePage() {
           month={month}
           onMonthChange={setMonth}
           days={data?.days ?? []}
+          highlightMyDuty={!isAdmin}
           incompleteDates={isAdmin ? data?.monthCoverage?.incompleteDates : undefined}
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
@@ -187,12 +196,13 @@ export function HomePage() {
       ) : null}
 
       <p className="home-page__legend">
-        <span className="home-page__legend-item home-page__legend-item--my">Мои дежурства</span>
-        {isAdmin ? (
+        {!isAdmin ? (
+          <span className="home-page__legend-item home-page__legend-item--my">Мои дежурства</span>
+        ) : (
           <span className="home-page__legend-item home-page__legend-item--incomplete">
             Не заполнен
           </span>
-        ) : null}
+        )}
       </p>
 
       <SideMenu open={menuOpen} onClose={closeMenu}>
@@ -249,19 +259,32 @@ export function HomePage() {
             ) : null}
           </div>
         </div>
-        <ul className="side-menu__links">
+        <div className="side-menu__nav">
           {isAdmin ? (
-            <li>
-              <Link to="/admin/users" className="side-menu__link" onClick={closeMenu}>
-                Пользователи
-              </Link>
-            </li>
+            <ul className="side-menu__actions">
+              <li>
+                <Link to="/admin/users" className="side-menu__action" onClick={closeMenu}>
+                  Пользователи
+                </Link>
+              </li>
+            </ul>
           ) : null}
-        </ul>
-        <button type="button" className="side-menu__logout" onClick={handleLogout}>
-          Выйти
-        </button>
+          <ul className="side-menu__actions side-menu__actions--footer">
+            <li>
+              <button type="button" className="side-menu__action" onClick={openSettings}>
+                Настройки
+              </button>
+            </li>
+            <li>
+              <button type="button" className="side-menu__action" onClick={handleLogout}>
+                Выйти
+              </button>
+            </li>
+          </ul>
+        </div>
       </SideMenu>
+
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
       <DayDetailModal date={selectedDate} onClose={() => setSelectedDate(null)} />
     </div>

@@ -7,6 +7,7 @@ type Props = {
   month: Date;
   onMonthChange: (month: Date) => void;
   days: MonthDay[];
+  highlightMyDuty?: boolean;
   incompleteDates?: string[];
   selectedDate: string | null;
   onSelectDate: (date: string) => void;
@@ -23,11 +24,14 @@ export function DutyCalendar({
   month,
   onMonthChange,
   days,
+  highlightMyDuty = true,
   incompleteDates,
   selectedDate,
   onSelectDate,
 }: Props) {
-  const myDutySet = new Set(days.filter((d) => d.isMyDuty).map((d) => d.date));
+  const myDutySet = new Set(
+    highlightMyDuty ? days.filter((d) => d.isMyDuty).map((d) => d.date) : [],
+  );
   const incompleteSet = new Set(incompleteDates ?? []);
 
   return (
@@ -40,11 +44,13 @@ export function DutyCalendar({
       showOutsideDays
       className="duty-calendar"
       modifiers={{
-        myDuty: (date) => myDutySet.has(toDateKey(date)),
+        ...(highlightMyDuty
+          ? { myDuty: (date) => myDutySet.has(toDateKey(date)) }
+          : {}),
         incomplete: (date) => incompleteSet.has(toDateKey(date)),
       }}
       modifiersClassNames={{
-        myDuty: 'duty-calendar__day--my',
+        ...(highlightMyDuty ? { myDuty: 'duty-calendar__day--my' } : {}),
         incomplete: 'duty-calendar__day--incomplete',
       }}
       selected={selectedDate ? new Date(`${selectedDate}T12:00:00`) : undefined}

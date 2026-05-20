@@ -3,9 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#1e3a5f" />
+    <meta name="theme-color" content="#4f46e5" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>График дежурств</title>
+    <script>
+      (function () {
+        var k = 'duty-schedule-theme';
+        var t = ['indigo', 'teal', 'cyan', 'violet', 'forest', 'dark'];
+        var theme = 'indigo';
+        try {
+          var s = localStorage.getItem(k);
+          if (s && t.indexOf(s) >= 0) theme = s;
+        } catch (e) {}
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

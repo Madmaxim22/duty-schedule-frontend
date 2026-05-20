@@ -53,7 +53,7 @@ export function DayDetailModal({ date, onClose }: Props) {
     >
       {isLoading ? <p>Загрузка…</p> : null}
       {error ? <p className="form-message form-message--error">{(error as Error).message}</p> : null}
-      {data ? <DayDetailContent data={data} /> : null}
+      {data ? <DayDetailContent data={data} isAdmin={user?.role === 'admin'} /> : null}
     </Modal>
   );
 }

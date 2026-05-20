@@ -4,26 +4,39 @@ import { Avatar } from '@/shared/ui/Avatar';
 
 type Props = {
   data: DaySchedule;
+  isAdmin?: boolean;
 };
 
-function itemClassName(mandatory: boolean, filled: boolean) {
+function itemClassName(isAdmin: boolean, mandatory: boolean, filled: boolean) {
+  if (!isAdmin) return 'day-detail__item day-detail__item--filled';
   if (!mandatory) return 'day-detail__item';
   return filled
     ? 'day-detail__item day-detail__item--filled'
     : 'day-detail__item day-detail__item--empty';
 }
 
-export function DayDetailContent({ data }: Props) {
+export function DayDetailContent({ data, isAdmin = false }: Props) {
+  const sections = data.sections
+    .map((section) => ({
+      ...section,
+      offices: isAdmin ? section.offices : section.offices.filter((office) => office.user),
+    }))
+    .filter((section) => section.offices.length > 0);
+
+  if (sections.length === 0) {
+    return <p className="day-detail__empty">На этот день дежурств не назначено</p>;
+  }
+
   return (
     <div className="day-detail">
-      {data.sections.map((section) => (
-        <section key={section.id} className="day-detail__section">
-          <h3 className="day-detail__section-title">{section.label}</h3>
+      {sections.map((section, index) => (
+        <div key={section.id} className="day-detail__section">
+          {index > 0 ? <div className="day-detail__divider" role="separator" /> : null}
           <ul className="day-detail__list">
             {section.offices.map((office) => (
               <li
                 key={`${section.id}-${office.office}`}
-                className={itemClassName(office.mandatory, Boolean(office.user))}
+                className={itemClassName(isAdmin, office.mandatory, Boolean(office.user))}
               >
                 <span className="day-detail__office">Каб. {office.office}</span>
                 <span className="day-detail__person">
@@ -43,7 +56,7 @@ export function DayDetailContent({ data }: Props) {
               </li>
             ))}
           </ul>
-        </section>
+        </div>
       ))}
     </div>
   );

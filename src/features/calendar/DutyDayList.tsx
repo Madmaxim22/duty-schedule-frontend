@@ -8,6 +8,7 @@ type Props = {
   month: Date;
   onMonthChange: (month: Date) => void;
   days: MonthDay[];
+  highlightMyDuty?: boolean;
   incompleteDates?: string[];
   selectedDate: string | null;
   onSelectDate: (date: string) => void;
@@ -17,6 +18,7 @@ export function DutyDayList({
   month,
   onMonthChange,
   days,
+  highlightMyDuty = true,
   incompleteDates,
   selectedDate,
   onSelectDate,
@@ -33,7 +35,7 @@ export function DutyDayList({
         {rows.map((row) => {
           const rowClass = [
             'duty-day-list__row',
-            row.isMyDuty ? 'duty-day-list__row--my' : '',
+            highlightMyDuty && row.isMyDuty ? 'duty-day-list__row--my' : '',
             row.isIncomplete ? 'duty-day-list__row--incomplete' : '',
             selectedDate === row.date ? 'duty-day-list__row--selected' : '',
           ]
