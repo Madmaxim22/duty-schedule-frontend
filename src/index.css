@@ -679,14 +679,18 @@ body {
 }
 
 .duty-day-list__shift {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--color-text);
 }
 
 .duty-day-list__office {
-  margin-left: 6px;
+  margin-left: auto;
+  text-align: right;
+  flex-shrink: 0;
   font-size: 0.8rem;
   font-weight: 500;
   color: var(--color-muted);
