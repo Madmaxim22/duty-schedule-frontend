@@ -1126,6 +1126,20 @@ body {
     inset 0 0 0 4px var(--color-darkest) !important;
 }
 
+.duty-calendar__day--absent:not(.duty-calendar__day--my) .rdp-day_button {
+  background: var(--color-muted-bg, #e8e8e8) !important;
+  color: var(--color-muted) !important;
+  border-color: transparent !important;
+}
+
+.duty-calendar__day--absent.duty-calendar__day--my .rdp-day_button {
+  box-shadow: inset 0 0 0 2px var(--color-muted) !important;
+}
+
+.duty-day-list__row--absent {
+  border-left: 3px solid var(--color-muted);
+}
+
 .home-page__legend {
   display: flex;
   justify-content: center;
@@ -1161,6 +1175,21 @@ body {
 .home-page__legend-item--incomplete::before {
   background: var(--color-status-pending-bg);
   border: 2px solid var(--color-status-pending-text);
+}
+
+.home-page__legend-item--absent::before {
+  background: var(--color-muted-bg, #e8e8e8);
+  border: 1px solid var(--color-muted);
+}
+
+.day-detail__absence-banner {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--color-muted-bg, #f0f0f0);
+  color: var(--color-text);
+  font-weight: 600;
+  text-align: center;
 }
 
 .modal {
@@ -1562,4 +1591,148 @@ body {
 .edit-day-page__save {
   width: 100%;
   margin-top: 8px;
+}
+
+.admin-import-page,
+.admin-changes-page {
+  padding: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.admin-import-page__header,
+.admin-changes-page__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-import-page__back,
+.admin-changes-page__back {
+  display: flex;
+  padding: 8px;
+  margin: -8px;
+}
+
+.admin-import-page__title,
+.admin-changes-page__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.admin-import-page__hint {
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  margin-bottom: 16px;
+  line-height: 1.45;
+}
+
+.admin-import-page__file-label {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border: 1px dashed var(--color-input-border);
+  border-radius: var(--radius);
+  text-align: center;
+  cursor: pointer;
+  background: var(--color-surface);
+}
+
+.admin-import-page__file-text {
+  font-size: 0.95rem;
+}
+
+.admin-import-page__meta {
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+
+.admin-import-page__range {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-import-page__result {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-input-border);
+}
+
+.admin-import-page__result h2 {
+  font-size: 1.1rem;
+  margin: 0 0 12px;
+}
+
+.admin-import-page__stats {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+}
+
+.admin-import-page__warnings {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  padding-left: 1.2rem;
+}
+
+.admin-import-page__changes-link {
+  display: inline-block;
+  margin-top: 12px;
+  font-weight: 600;
+  color: var(--color-darkest);
+}
+
+.admin-changes-page__empty {
+  color: var(--color-muted);
+  text-align: center;
+  margin-top: 24px;
+}
+
+.admin-changes-page__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.admin-changes-page__item {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-input-border);
+}
+
+.admin-changes-page__desc {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.admin-changes-page__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+.admin-changes-page__badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  background: var(--color-secondary-bg);
+  color: var(--color-darkest);
+}
+
+.admin-changes-page__badge--manual {
+  background: var(--color-status-pending-bg);
+  color: var(--color-status-pending-text);
+}
+
+.admin-changes-page__more {
+  width: 100%;
+  margin-top: 16px;
 }

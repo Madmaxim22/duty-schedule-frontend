@@ -32,6 +32,7 @@ export function DutyCalendar({
   const myDutySet = new Set(
     highlightMyDuty ? days.filter((d) => d.isMyDuty).map((d) => d.date) : [],
   );
+  const absentSet = new Set(days.filter((d) => d.isAbsent).map((d) => d.date));
   const incompleteSet = new Set(incompleteDates ?? []);
 
   return (
@@ -48,10 +49,12 @@ export function DutyCalendar({
           ? { myDuty: (date) => myDutySet.has(toDateKey(date)) }
           : {}),
         incomplete: (date) => incompleteSet.has(toDateKey(date)),
+        absent: (date) => absentSet.has(toDateKey(date)),
       }}
       modifiersClassNames={{
         ...(highlightMyDuty ? { myDuty: 'duty-calendar__day--my' } : {}),
         incomplete: 'duty-calendar__day--incomplete',
+        absent: 'duty-calendar__day--absent',
       }}
       selected={selectedDate ? new Date(`${selectedDate}T12:00:00`) : undefined}
       onDayClick={(day) => onSelectDate(toDateKey(day))}

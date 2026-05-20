@@ -36,6 +36,7 @@ export function DutyDayList({
           const rowClass = [
             'duty-day-list__row',
             highlightMyDuty && row.isMyDuty ? 'duty-day-list__row--my' : '',
+            row.isAbsent ? 'duty-day-list__row--absent' : '',
             row.isIncomplete ? 'duty-day-list__row--incomplete' : '',
             selectedDate === row.date ? 'duty-day-list__row--selected' : '',
           ]

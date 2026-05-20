@@ -7,6 +7,8 @@ export type MonthRow = {
   isMyDuty: boolean;
   duties: MonthDay['duties'];
   isIncomplete: boolean;
+  isAbsent: boolean;
+  absenceType?: string;
 };
 
 export function buildMonthRows(
@@ -32,6 +34,8 @@ export function buildMonthRows(
       isMyDuty: meta?.isMyDuty ?? false,
       duties: meta?.duties ?? [],
       isIncomplete: incompleteSet.has(date),
+      isAbsent: meta?.isAbsent ?? false,
+      absenceType: meta?.absenceType,
     };
   });
 }

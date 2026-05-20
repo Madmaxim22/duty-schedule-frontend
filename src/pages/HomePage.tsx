@@ -197,7 +197,14 @@ export function HomePage() {
 
       <p className="home-page__legend">
         {!isAdmin ? (
-          <span className="home-page__legend-item home-page__legend-item--my">Мои дежурства</span>
+          <>
+            <span className="home-page__legend-item home-page__legend-item--my">
+              Мои дежурства
+            </span>
+            <span className="home-page__legend-item home-page__legend-item--absent">
+              Отсутствие
+            </span>
+          </>
         ) : (
           <span className="home-page__legend-item home-page__legend-item--incomplete">
             Не заполнен
@@ -265,6 +272,16 @@ export function HomePage() {
               <li>
                 <Link to="/admin/users" className="side-menu__action" onClick={closeMenu}>
                   Пользователи
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/import" className="side-menu__action" onClick={closeMenu}>
+                  Импорт графика
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/changes" className="side-menu__action" onClick={closeMenu}>
+                  Изменения дежурств
                 </Link>
               </li>
             </ul>

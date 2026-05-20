@@ -29,6 +29,11 @@ export function DayDetailContent({ data, isAdmin = false }: Props) {
 
   return (
     <div className="day-detail">
+      {data.myAbsence ? (
+        <p className="day-detail__absence-banner" role="status">
+          {data.myAbsence.type}
+        </p>
+      ) : null}
       {sections.map((section, index) => (
         <div key={section.id} className="day-detail__section">
           {index > 0 ? <div className="day-detail__divider" role="separator" /> : null}

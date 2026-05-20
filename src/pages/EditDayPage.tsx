@@ -3,11 +3,9 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import arrowLeftIcon from '@/shared/assets/icons/Arrow Left.svg';
 import { apiRequest } from '@/shared/api/client';
-import type { DaySchedule } from '@/shared/api/types';
+import type { ApprovedUserForAssign, DaySchedule } from '@/shared/api/types';
 import { DUTY_SECTIONS } from '@/shared/constants/offices';
 import { Button } from '@/shared/ui/Button';
-
-type ApprovedUser = { id: string; fullName: string; email: string };
 
 type SlotValue = { section: 'A' | 'B'; office: string; userId: string | null };
 
@@ -28,8 +26,9 @@ export function EditDayPage() {
   });
 
   const { data: usersData } = useQuery({
-    queryKey: ['users', 'approved'],
-    queryFn: () => apiRequest<{ users: ApprovedUser[] }>('/users'),
+    queryKey: ['users', 'approved', date],
+    queryFn: () => apiRequest<{ users: ApprovedUserForAssign[] }>(`/users?date=${date}`),
+    enabled: Boolean(date),
   });
 
   useEffect(() => {
@@ -70,6 +69,10 @@ export function EditDayPage() {
   });
 
   function updateSlot(section: 'A' | 'B', office: string, userId: string | null) {
+    if (userId) {
+      const user = usersData?.users.find((u) => u.id === userId);
+      if (user?.isAbsent) return;
+    }
     setSlots((prev) =>
       prev.map((s) => (s.section === section && s.office === office ? { ...s, userId } : s)),
     );
@@ -114,8 +117,17 @@ export function EditDayPage() {
                       >
                         <option value="">— Не назначен —</option>
                         {usersData?.users.map((u) => (
-                          <option key={u.id} value={u.id}>
+                          <option
+                            key={u.id}
+                            value={u.id}
+                            disabled={u.isAbsent}
+                          >
                             {u.fullName}
+                            {u.isAbsent && u.absenceType
+                              ? ` (${u.absenceType})`
+                              : u.isAbsent
+                                ? ' (отсутствует)'
+                                : ''}
                           </option>
                         ))}
                       </select>

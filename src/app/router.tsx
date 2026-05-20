@@ -8,6 +8,8 @@ import { RegisterPage } from '@/pages/RegisterPage';
 import { HomePage } from '@/pages/HomePage';
 import { AdminUsersPage } from '@/pages/AdminUsersPage';
 import { EditDayPage } from '@/pages/EditDayPage';
+import { AdminImportPage } from '@/pages/AdminImportPage';
+import { AdminChangesPage } from '@/pages/AdminChangesPage';
 
 export function AppRouter() {
   return (
@@ -21,6 +23,8 @@ export function AppRouter() {
               <Route path="/" element={<HomePage />} />
               <Route element={<AdminRoute />}>
                 <Route path="/admin/users" element={<AdminUsersPage />} />
+                <Route path="/admin/import" element={<AdminImportPage />} />
+                <Route path="/admin/changes" element={<AdminChangesPage />} />
                 <Route path="/admin/schedule/:date" element={<EditDayPage />} />
               </Route>
             </Route>
