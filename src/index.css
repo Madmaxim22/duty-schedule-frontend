@@ -36,6 +36,8 @@ body {
 }
 
 .app-shell {
+  display: flex;
+  flex-direction: column;
   max-width: 480px;
   margin: 0 auto;
   min-height: 100dvh;
@@ -43,7 +45,16 @@ body {
 }
 
 .app-shell__main {
+  flex: 1;
   padding-bottom: 24px;
+}
+
+.app-shell__footer {
+  margin-top: auto;
+  padding-top: 16px;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-muted);
 }
 
 .page-loading {
@@ -448,6 +459,11 @@ body {
   min-height: 0;
   overflow: hidden;
   padding-bottom: 0;
+}
+
+.app-shell:has(.home-page--list) .app-shell__footer {
+  flex-shrink: 0;
+  padding-top: 8px;
 }
 
 .home-page--list {

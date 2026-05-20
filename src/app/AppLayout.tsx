@@ -6,6 +6,9 @@ export function AppLayout() {
       <main className="app-shell__main">
         <Outlet />
       </main>
+      <footer className="app-shell__footer">
+        Copyright © 2026 Muhomedyarov
+      </footer>
     </div>
   );
 }
