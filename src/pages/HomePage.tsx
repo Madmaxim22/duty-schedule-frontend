@@ -4,6 +4,13 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest, deleteAvatar, uploadAvatar } from '@/shared/api/client';
 import type { MonthSchedule } from '@/shared/api/types';
 import { DutyCalendar } from '@/features/calendar/DutyCalendar';
+import { DutyDayList } from '@/features/calendar/DutyDayList';
+import {
+  loadScheduleView,
+  saveScheduleView,
+  ScheduleViewToggle,
+  type ScheduleView,
+} from '@/features/calendar/ScheduleViewToggle';
 import { DayDetailModal } from '@/features/day-detail/DayDetailModal';
 import { useAuth } from '@/features/auth/AuthContext';
 import menuIcon from '@/shared/assets/icons/fi_menu.svg';
@@ -24,6 +31,7 @@ export function HomePage() {
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [scheduleView, setScheduleView] = useState<ScheduleView>(loadScheduleView);
 
   const year = month.getFullYear();
   const monthNum = month.getMonth() + 1;
@@ -110,8 +118,10 @@ export function HomePage() {
   const displayName = user?.fullName ?? '';
   const avatarCacheBust = avatarVersion || undefined;
 
+  const isListView = scheduleView === 'list';
+
   return (
-    <div className="home-page">
+    <div className={isListView ? 'home-page home-page--list' : 'home-page'}>
       <header className="home-page__header">
         <button
           type="button"
@@ -142,16 +152,39 @@ export function HomePage() {
         onChange={handleAvatarFileChange}
       />
 
+      <div className="home-page__schedule-toolbar">
+        <ScheduleViewToggle
+          view={scheduleView}
+          onChange={(view) => {
+            setScheduleView(view);
+            saveScheduleView(view);
+          }}
+        />
+      </div>
+
       {isLoading ? <p className="page-loading">Загрузка календаря…</p> : null}
 
-      <DutyCalendar
-        month={month}
-        onMonthChange={(m) => setMonth(new Date(m.getFullYear(), m.getMonth(), 1))}
-        days={data?.days ?? []}
-        incompleteDates={isAdmin ? data?.monthCoverage?.incompleteDates : undefined}
-        selectedDate={selectedDate}
-        onSelectDate={setSelectedDate}
-      />
+      {!isLoading && scheduleView === 'grid' ? (
+        <DutyCalendar
+          month={month}
+          onMonthChange={(m) => setMonth(new Date(m.getFullYear(), m.getMonth(), 1))}
+          days={data?.days ?? []}
+          incompleteDates={isAdmin ? data?.monthCoverage?.incompleteDates : undefined}
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+        />
+      ) : null}
+
+      {!isLoading && scheduleView === 'list' ? (
+        <DutyDayList
+          month={month}
+          onMonthChange={setMonth}
+          days={data?.days ?? []}
+          incompleteDates={isAdmin ? data?.monthCoverage?.incompleteDates : undefined}
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+        />
+      ) : null}
 
       <p className="home-page__legend">
         <span className="home-page__legend-item home-page__legend-item--my">Мои дежурства</span>

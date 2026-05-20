@@ -433,6 +433,254 @@ body {
   background: #dce6f2;
 }
 
+.app-shell:has(.home-page--list) {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.app-shell:has(.home-page--list) .app-shell__main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding-bottom: 0;
+}
+
+.home-page--list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.home-page--list .home-page__header {
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.home-page--list .home-page__schedule-toolbar {
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.home-page--list .home-page__legend {
+  flex-shrink: 0;
+  margin-top: 0;
+  padding: 10px 0 4px;
+  border-top: 1px solid #e8eef5;
+  background: var(--color-bg);
+}
+
+.home-page--list .page-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.home-page__schedule-toolbar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.schedule-view-toggle {
+  display: inline-flex;
+  padding: 4px;
+  gap: 4px;
+  background: #e8eef5;
+  border-radius: var(--radius);
+}
+
+.schedule-view-toggle__btn {
+  min-height: 36px;
+  padding: 0 16px;
+  border: none;
+  border-radius: calc(var(--radius) - 4px);
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.schedule-view-toggle__btn--active {
+  background: var(--color-surface);
+  color: var(--color-darkest);
+  box-shadow: 0 1px 4px rgba(30, 58, 95, 0.15);
+}
+
+.schedule-month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.schedule-month-nav__label {
+  flex: 1;
+  text-align: center;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: capitalize;
+}
+
+.schedule-month-nav__btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--radius);
+  background: #e8eef5;
+  color: var(--color-primary);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.schedule-month-nav__btn:hover {
+  background: #dce6f2;
+}
+
+.duty-day-list {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 12px;
+  box-shadow: var(--shadow);
+}
+
+.home-page--list .duty-day-list {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  margin-inline: 0;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  background: var(--color-surface);
+  padding: 12px;
+  overflow: hidden;
+}
+
+.home-page--list .schedule-month-nav {
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin-bottom: 0;
+  padding: 4px 0 10px;
+  background: var(--color-surface);
+}
+
+.duty-day-list__scroll {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.home-page--list .duty-day-list__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.duty-day-list__row {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 12px;
+  align-items: start;
+  width: 100%;
+  padding: 10px 8px;
+  border: none;
+  border-radius: calc(var(--radius) - 4px);
+  background: #f5f8fb;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.duty-day-list__row:hover {
+  background: #eef3f8;
+}
+
+.duty-day-list__row--selected {
+  background: #e8f4fd;
+}
+
+.duty-day-list__row--my {
+  background: var(--color-duty-bg);
+}
+
+.duty-day-list__row--my.duty-day-list__row--selected {
+  box-shadow: inset 0 0 0 2px var(--color-darkest);
+}
+
+.duty-day-list__row--incomplete:not(.duty-day-list__row--my) {
+  background: var(--color-incomplete-bg);
+}
+
+.duty-day-list__row--incomplete.duty-day-list__row--my {
+  box-shadow: inset 0 0 0 2px var(--color-incomplete);
+}
+
+.duty-day-list__date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.duty-day-list__day-num {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.duty-day-list__weekday {
+  font-size: 0.7rem;
+  color: var(--color-muted);
+  text-transform: lowercase;
+}
+
+.duty-day-list__shifts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 2px;
+}
+
+.duty-day-list__shift {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.duty-day-list__office {
+  margin-left: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-muted);
+}
+
+.duty-day-list__empty {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
 .duty-calendar {
   --rdp-accent-color: var(--color-primary);
   width: fit-content;

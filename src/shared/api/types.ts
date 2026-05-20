@@ -10,9 +10,16 @@ export type User = {
   avatarUrl: string | null;
 };
 
+export type MonthDayDuty = {
+  section: 'A' | 'B';
+  office: string;
+  fullName: string;
+};
+
 export type MonthDay = {
   date: string;
   isMyDuty: boolean;
+  duties: MonthDayDuty[];
 };
 
 export type MonthCoverage = {
