@@ -1,3 +1,6 @@
+import { formatScheduleMonthCaption } from '@/shared/lib/formatMonthCaption';
+import { MonthNavChevron } from './MonthNavChevron';
+
 type Props = {
   month: Date;
   onMonthChange: (month: Date) => void;
@@ -8,7 +11,7 @@ function shiftMonth(month: Date, delta: number) {
 }
 
 export function ScheduleMonthNav({ month, onMonthChange }: Props) {
-  const label = month.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+  const label = formatScheduleMonthCaption(month);
 
   return (
     <div className="schedule-month-nav">
@@ -18,7 +21,7 @@ export function ScheduleMonthNav({ month, onMonthChange }: Props) {
         aria-label="Предыдущий месяц"
         onClick={() => onMonthChange(shiftMonth(month, -1))}
       >
-        ‹
+        <MonthNavChevron orientation="left" className="schedule-month-nav__chevron" />
       </button>
       <span className="schedule-month-nav__label">{label}</span>
       <button
@@ -27,7 +30,7 @@ export function ScheduleMonthNav({ month, onMonthChange }: Props) {
         aria-label="Следующий месяц"
         onClick={() => onMonthChange(shiftMonth(month, 1))}
       >
-        ›
+        <MonthNavChevron orientation="right" className="schedule-month-nav__chevron" />
       </button>
     </div>
   );

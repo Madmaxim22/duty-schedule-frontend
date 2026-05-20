@@ -830,6 +830,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  min-height: 2.75rem;
   margin-bottom: 12px;
 }
 
@@ -838,23 +839,38 @@ body {
   text-align: center;
   font-weight: 700;
   color: var(--color-primary);
-  text-transform: capitalize;
 }
 
-.schedule-month-nav__btn {
-  width: 40px;
-  height: 40px;
+.schedule-month-nav__btn,
+.duty-calendar .rdp-button_next,
+.duty-calendar .rdp-button_previous {
+  width: 2.25rem;
+  height: 2.25rem;
   border: none;
   border-radius: var(--radius);
-  background: var(--color-secondary-bg);
-  color: var(--color-primary);
-  font-size: 1.25rem;
-  line-height: 1;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  font: inherit;
+  color: var(--color-primary);
+  appearance: none;
+  -webkit-appearance: none;
 }
 
-.schedule-month-nav__btn:hover {
-  background: var(--color-secondary-hover);
+.schedule-month-nav__btn:hover:not(:disabled),
+.duty-calendar .rdp-button_next:hover:not(:disabled):not([aria-disabled='true']),
+.duty-calendar .rdp-button_previous:hover:not(:disabled):not([aria-disabled='true']) {
+  background: var(--color-secondary-bg);
+}
+
+.schedule-month-nav__chevron,
+.duty-calendar .rdp-chevron {
+  display: inline-block;
+  fill: var(--color-darkest);
 }
 
 .duty-day-list {
@@ -1046,21 +1062,6 @@ body {
 
 .duty-calendar .rdp-day_button:hover:not(:disabled) {
   background: var(--color-muted-bg);
-}
-
-.duty-calendar .rdp-button_next,
-.duty-calendar .rdp-button_previous {
-  border-radius: var(--radius);
-  color: var(--color-primary);
-}
-
-.duty-calendar .rdp-button_next:hover:not(:disabled):not([aria-disabled='true']),
-.duty-calendar .rdp-button_previous:hover:not(:disabled):not([aria-disabled='true']) {
-  background: var(--color-secondary-bg);
-}
-
-.duty-calendar .rdp-chevron {
-  fill: var(--color-darkest);
 }
 
 .duty-calendar .rdp-outside .rdp-day_button {
