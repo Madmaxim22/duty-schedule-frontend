@@ -1,4 +1,4 @@
-import type { User } from '@/shared/api/types';
+import type { AvatarLikeStatus, User } from '@/shared/api/types';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api';
 
@@ -88,6 +88,18 @@ export async function uploadAvatar(file: File): Promise<User> {
 export async function deleteAvatar(): Promise<User> {
   const data = await apiRequest<{ user: User }>('/auth/me/avatar', { method: 'DELETE' });
   return data.user;
+}
+
+export function getAvatarLikeStatus(targetUserId: string): Promise<AvatarLikeStatus> {
+  return apiRequest<AvatarLikeStatus>(`/avatar-likes/${targetUserId}`);
+}
+
+export function likeAvatar(targetUserId: string): Promise<AvatarLikeStatus> {
+  return apiRequest<AvatarLikeStatus>(`/avatar-likes/${targetUserId}`, { method: 'POST' });
+}
+
+export function unlikeAvatar(targetUserId: string): Promise<AvatarLikeStatus> {
+  return apiRequest<AvatarLikeStatus>(`/avatar-likes/${targetUserId}`, { method: 'DELETE' });
 }
 
 async function tryRefresh(): Promise<boolean> {

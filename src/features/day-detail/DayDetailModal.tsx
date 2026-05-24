@@ -74,6 +74,8 @@ export function DayDetailModal({ date, onClose }: Props) {
       </Modal>
       <AvatarPreviewModal
         open={Boolean(previewUser)}
+        targetUserId={previewUser?.targetUserId}
+        currentUserId={user?.id}
         fullName={previewUser?.fullName ?? ''}
         avatarUrl={previewUser?.avatarUrl ?? null}
         onClose={() => setPreviewUser(null)}

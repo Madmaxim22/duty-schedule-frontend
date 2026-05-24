@@ -91,3 +91,9 @@ export type DutyChangesResponse = {
   changes: DutyAssignmentChangeItem[];
   nextCursor: string | null;
 };
+
+export type AvatarLikeStatus = {
+  likeCount: number;
+  likedByMe: boolean;
+  canLike: boolean;
+};

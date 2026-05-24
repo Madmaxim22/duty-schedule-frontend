@@ -3,6 +3,7 @@ import { formatSurnameWithInitials } from '@/shared/lib/formatName';
 import { Avatar } from '@/shared/ui/Avatar';
 
 export type AvatarPreviewUser = {
+  targetUserId: string;
   fullName: string;
   avatarUrl: string;
 };
@@ -60,6 +61,7 @@ export function DayDetailContent({ data, isAdmin = false, onAvatarPreview }: Pro
                           aria-label={`Показать фото: ${office.user.fullName}`}
                           onClick={() =>
                             onAvatarPreview({
+                              targetUserId: office.user!.id,
                               fullName: office.user!.fullName,
                               avatarUrl: office.user!.avatarUrl!,
                             })
