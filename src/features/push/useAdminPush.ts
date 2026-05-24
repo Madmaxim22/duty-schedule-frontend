@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useAuth } from '@/features/auth/AuthContext';
 import {
   getPushVapidPublicKey,
   subscribePush,
@@ -7,7 +6,7 @@ import {
 } from '@/shared/api/push';
 import { serializePushSubscription, urlBase64ToUint8Array } from './pushSubscription';
 
-export type AdminPushStatus =
+export type PushStatus =
   | 'loading'
   | 'unsupported'
   | 'server_disabled'
@@ -16,14 +15,9 @@ export type AdminPushStatus =
   | 'denied'
   | 'error';
 
-/** Почему push недоступен (только при status === 'unsupported'). */
-export type AdminPushUnsupportedReason =
-  | 'not_admin'
-  | 'insecure'
-  | 'missing_apis'
-  | 'no_push_manager';
+export type PushUnsupportedReason = 'insecure' | 'missing_apis' | 'no_push_manager';
 
-function detectUnsupportedReason(): AdminPushUnsupportedReason | null {
+function detectUnsupportedReason(): PushUnsupportedReason | null {
   if (typeof window === 'undefined') {
     return 'missing_apis';
   }
@@ -36,24 +30,13 @@ function detectUnsupportedReason(): AdminPushUnsupportedReason | null {
   return null;
 }
 
-export function useAdminPush() {
-  const { user } = useAuth();
-  const [status, setStatus] = useState<AdminPushStatus>('loading');
-  const [unsupportedReason, setUnsupportedReason] = useState<AdminPushUnsupportedReason | null>(
-    null,
-  );
+export function useBrowserPush() {
+  const [status, setStatus] = useState<PushStatus>('loading');
+  const [unsupportedReason, setUnsupportedReason] = useState<PushUnsupportedReason | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const isAdmin = user?.role === 'admin';
-
   const refresh = useCallback(async () => {
-    if (!isAdmin) {
-      setUnsupportedReason('not_admin');
-      setStatus('unsupported');
-      return;
-    }
-
     const unsupported = detectUnsupportedReason();
     if (unsupported) {
       setUnsupportedReason(unsupported);
@@ -84,14 +67,14 @@ export function useAdminPush() {
 
     const existing = await registration.pushManager.getSubscription();
     setStatus(existing ? 'subscribed' : 'idle');
-  }, [isAdmin]);
+  }, []);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
 
   const enable = useCallback(async () => {
-    if (!isAdmin || detectUnsupportedReason()) return;
+    if (detectUnsupportedReason()) return;
 
     setBusy(true);
     setErrorMessage(null);
@@ -122,10 +105,10 @@ export function useAdminPush() {
     } finally {
       setBusy(false);
     }
-  }, [isAdmin]);
+  }, []);
 
   const disable = useCallback(async () => {
-    if (!isAdmin || detectUnsupportedReason()) return;
+    if (detectUnsupportedReason()) return;
 
     setBusy(true);
     setErrorMessage(null);
@@ -145,7 +128,7 @@ export function useAdminPush() {
     } finally {
       setBusy(false);
     }
-  }, [isAdmin]);
+  }, []);
 
   return {
     status,
@@ -155,6 +138,5 @@ export function useAdminPush() {
     enable,
     disable,
     refresh,
-    isAdmin,
   };
 }

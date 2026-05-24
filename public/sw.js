@@ -2,7 +2,7 @@ self.addEventListener('push', (event) => {
   let data = {
     title: 'График дежурств',
     body: 'Новое уведомление',
-    url: '/admin/users',
+    url: '/notifications',
   };
 
   try {
@@ -27,7 +27,7 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = event.notification.data?.url || '/admin/users';
+  const url = event.notification.data?.url || '/notifications';
   const target = new URL(url, self.location.origin).href;
 
   event.waitUntil(

@@ -9,7 +9,7 @@ import {
 } from '@/shared/api/notifications';
 import type { NotificationItem } from '@/shared/api/types';
 import { useAuth } from '@/features/auth/AuthContext';
-import { AdminPushBanner } from '@/features/push/AdminPushBanner';
+import { PushBanner } from '@/features/push/AdminPushBanner';
 import { Avatar } from '@/shared/ui/Avatar';
 import { Button } from '@/shared/ui/Button';
 import { formatChangeSource } from '@/shared/lib/formatDutyChange';
@@ -175,14 +175,18 @@ export function NotificationsPage() {
         </Button>
       ) : null}
 
-      {isAdmin ? (
-        <section className="notifications-page__push" aria-labelledby="push-settings-title">
-          <h2 id="push-settings-title" className="notifications-page__push-title">
-            Push в браузере
-          </h2>
-          <AdminPushBanner />
-        </section>
-      ) : null}
+      <section className="notifications-page__push" aria-labelledby="push-settings-title">
+        <h2 id="push-settings-title" className="notifications-page__push-title">
+          Push в браузере
+        </h2>
+        <PushBanner
+          description={
+            isAdmin
+              ? 'Получать push о новых заявках, изменениях графика и других событиях.'
+              : 'Получать push об изменении вашего графика, лайках фото и других событиях.'
+          }
+        />
+      </section>
     </div>
   );
 }

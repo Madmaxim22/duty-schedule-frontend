@@ -1,9 +1,14 @@
 import { Button } from '@/shared/ui/Button';
-import { getAdminPushUnsupportedMessage } from './adminPushUnsupportedMessage';
-import { useAdminPush } from './useAdminPush';
+import { getPushUnsupportedMessage } from './adminPushUnsupportedMessage';
+import { useBrowserPush } from './useAdminPush';
 
-export function AdminPushBanner() {
-  const { status, unsupportedReason, errorMessage, busy, enable, disable } = useAdminPush();
+type Props = {
+  description: string;
+  ariaLabel?: string;
+};
+
+export function PushBanner({ description, ariaLabel = 'Push-уведомления' }: Props) {
+  const { status, unsupportedReason, errorMessage, busy, enable, disable } = useBrowserPush();
 
   if (status === 'loading') {
     return null;
@@ -12,7 +17,7 @@ export function AdminPushBanner() {
   if (status === 'unsupported') {
     return (
       <div className="admin-push admin-push--muted" role="status">
-        <p className="admin-push__text">{getAdminPushUnsupportedMessage(unsupportedReason)}</p>
+        <p className="admin-push__text">{getPushUnsupportedMessage(unsupportedReason)}</p>
       </div>
     );
   }
@@ -26,10 +31,8 @@ export function AdminPushBanner() {
   }
 
   return (
-    <div className="admin-push" role="region" aria-label="Уведомления о заявках">
-      <p className="admin-push__text">
-        Получать push при новой регистрации на сайте.
-      </p>
+    <div className="admin-push" role="region" aria-label={ariaLabel}>
+      <p className="admin-push__text">{description}</p>
       {status === 'denied' ? (
         <p className="admin-push__hint">
           Уведомления заблокированы в настройках браузера — разрешите их для этого сайта.
@@ -48,5 +51,15 @@ export function AdminPushBanner() {
         )}
       </div>
     </div>
+  );
+}
+
+/** @deprecated Use PushBanner */
+export function AdminPushBanner() {
+  return (
+    <PushBanner
+      description="Получать push при новой регистрации на сайте."
+      ariaLabel="Уведомления о заявках"
+    />
   );
 }

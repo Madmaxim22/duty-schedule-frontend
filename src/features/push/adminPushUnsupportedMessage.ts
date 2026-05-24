@@ -1,6 +1,6 @@
-import type { AdminPushUnsupportedReason } from './useAdminPush';
+import type { PushUnsupportedReason } from './useAdminPush';
 
-export function getAdminPushUnsupportedMessage(reason: AdminPushUnsupportedReason | null): string {
+export function getPushUnsupportedMessage(reason: PushUnsupportedReason | null): string {
   switch (reason) {
     case 'insecure':
       return (
@@ -14,8 +14,6 @@ export function getAdminPushUnsupportedMessage(reason: AdminPushUnsupportedReaso
         'Этот браузер не поддерживает Web Push (или функция отключена). ' +
         'На Android попробуйте Chrome; в Яндекс.Браузере push может быть недоступен — откройте тот же сайт в Chrome.'
       );
-    case 'not_admin':
-      return 'Уведомления о заявках доступны только администратору.';
     default:
       return (
         'Push недоступен в этом браузере. На iPhone: Safari 16.4+, сайт на экран «Домой». ' +
