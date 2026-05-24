@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { fetchUnreadNotificationsCount } from '@/shared/api/notifications';
 import { apiRequest } from '@/shared/api/client';
 import type { MonthSchedule } from '@/shared/api/types';
 import { DutyCalendar } from '@/features/calendar/DutyCalendar';
@@ -49,9 +50,12 @@ function MenuIcon() {
   );
 }
 
+type HomeLocationState = { selectedDate?: string };
+
 export function HomePage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [avatarVersion, setAvatarVersion] = useState(0);
@@ -74,6 +78,20 @@ export function HomePage() {
     queryFn: () =>
       apiRequest<MonthSchedule>(`/schedule/month?year=${year}&month=${monthNum}`),
   });
+
+  const unreadNotifications = useQuery({
+    queryKey: ['notifications', 'unread-count'],
+    queryFn: fetchUnreadNotificationsCount,
+  });
+
+  useEffect(() => {
+    const date = (location.state as HomeLocationState | null)?.selectedDate;
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
+    const [y, m] = date.split('-').map(Number);
+    setMonth(new Date(y, m - 1, 1));
+    setSelectedDate(date);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.state, location.pathname, navigate]);
 
   const closeMenu = () => setMenuOpen(false);
 
@@ -235,6 +253,18 @@ export function HomePage() {
             </ul>
           ) : null}
           <ul className="side-menu__actions side-menu__actions--footer">
+            <li>
+              <Link to="/notifications" className="side-menu__action" onClick={closeMenu}>
+                Оповещения
+                {(unreadNotifications.data?.count ?? 0) > 0 ? (
+                  <span className="side-menu__badge">
+                    {unreadNotifications.data!.count > 99
+                      ? '99+'
+                      : unreadNotifications.data!.count}
+                  </span>
+                ) : null}
+              </Link>
+            </li>
             <li>
               <button type="button" className="side-menu__action" onClick={openProfile}>
                 Профиль

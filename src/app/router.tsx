@@ -10,6 +10,7 @@ import { AdminUsersPage } from '@/pages/AdminUsersPage';
 import { EditDayPage } from '@/pages/EditDayPage';
 import { AdminImportPage } from '@/pages/AdminImportPage';
 import { AdminChangesPage } from '@/pages/AdminChangesPage';
+import { NotificationsPage } from '@/pages/NotificationsPage';
 
 export function AppRouter() {
   return (
@@ -21,6 +22,7 @@ export function AppRouter() {
             <Route path="/register" element={<RegisterPage />} />
             <Route element={<PrivateRoute />}>
               <Route path="/" element={<HomePage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
               <Route element={<AdminRoute />}>
                 <Route path="/admin/users" element={<AdminUsersPage />} />
                 <Route path="/admin/import" element={<AdminImportPage />} />

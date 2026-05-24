@@ -137,3 +137,34 @@ export type UploadPhotoResponse = {
 
 /** @deprecated Use PhotoLikeStatus */
 export type AvatarLikeStatus = PhotoLikeStatus;
+
+export type NotificationType = 'photo_like' | 'duty_change' | 'user_registration';
+
+export type NotificationPayload = {
+  dutyDate?: string;
+  section?: 'A' | 'B';
+  office?: string;
+  changeType?: DutyChangeType;
+  source?: DutyChangeSource;
+  photoId?: string;
+  userId?: string;
+};
+
+export type NotificationItem = {
+  id: string;
+  type: NotificationType;
+  body: string;
+  readAt: string | null;
+  createdAt: string;
+  payload: NotificationPayload | null;
+  actor: {
+    id: string;
+    fullName: string;
+    avatarUrl: string | null;
+  } | null;
+};
+
+export type NotificationsResponse = {
+  notifications: NotificationItem[];
+  nextCursor: string | null;
+};
