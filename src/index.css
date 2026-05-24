@@ -423,6 +423,7 @@ body {
 }
 
 .home-page__menu-btn {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -431,6 +432,22 @@ body {
   background: transparent;
   color: var(--color-primary);
   cursor: pointer;
+}
+
+.home-page__menu-badge {
+  position: absolute;
+  top: -2px;
+  right: -6px;
+  min-width: 1.125rem;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  pointer-events: none;
 }
 
 .home-page__menu-btn:focus-visible {

@@ -127,6 +127,7 @@ export function HomePage() {
 
   const displayName = user?.fullName ?? '';
   const avatarCacheBust = avatarVersion || undefined;
+  const unreadCount = unreadNotifications.data?.count ?? 0;
 
   const isListView = scheduleView === 'list';
 
@@ -136,11 +137,18 @@ export function HomePage() {
         <button
           type="button"
           className="home-page__menu-btn"
-          aria-label="Меню"
+          aria-label={
+            unreadCount > 0 ? `Меню, непрочитанных оповещений: ${unreadCount}` : 'Меню'
+          }
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen(true)}
         >
           <MenuIcon />
+          {unreadCount > 0 ? (
+            <span className="home-page__menu-badge" aria-hidden="true">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          ) : null}
         </button>
         {displayName && user?.avatarUrl && user.currentPhotoId && user.id ? (
           <button
@@ -291,11 +299,9 @@ export function HomePage() {
             <li>
               <Link to="/notifications" className="side-menu__action" onClick={closeMenu}>
                 Оповещения
-                {(unreadNotifications.data?.count ?? 0) > 0 ? (
+                {unreadCount > 0 ? (
                   <span className="side-menu__badge">
-                    {unreadNotifications.data!.count > 99
-                      ? '99+'
-                      : unreadNotifications.data!.count}
+                    {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 ) : null}
               </Link>
