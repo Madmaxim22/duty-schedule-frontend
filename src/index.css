@@ -1865,7 +1865,7 @@ body {
   left: 50%;
   bottom: calc(100% + 2px);
   width: 0;
-  height: 96px;
+  height: 128px;
   transform: translateX(-50%);
   pointer-events: none;
   overflow: visible;
@@ -1876,22 +1876,22 @@ body {
   position: absolute;
   bottom: 0;
   left: calc(50% + var(--heart-offset, 0px));
-  font-size: 1.1rem;
+  font-size: 1.75rem;
   line-height: 1;
   color: var(--color-danger);
   opacity: 0;
-  animation: avatar-like-heart-rise 1s ease-out forwards;
+  animation: avatar-like-heart-rise 1.1s ease-out forwards;
   transform: translateX(calc(-50% + var(--heart-drift, 0px)));
 }
 
 @keyframes avatar-like-heart-rise {
   0% {
     opacity: 1;
-    transform: translateX(calc(-50% + var(--heart-drift, 0px))) translateY(0) scale(0.8);
+    transform: translateX(calc(-50% + var(--heart-drift, 0px))) translateY(0) scale(0.95);
   }
   100% {
     opacity: 0;
-    transform: translateX(calc(-50% + var(--heart-drift, 0px))) translateY(-96px) scale(1.2);
+    transform: translateX(calc(-50% + var(--heart-drift, 0px))) translateY(-128px) scale(1.55);
   }
 }
 

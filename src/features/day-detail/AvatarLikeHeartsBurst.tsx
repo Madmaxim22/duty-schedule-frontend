@@ -7,7 +7,7 @@ type Particle = {
   drift: number;
 };
 
-const PARTICLE_COUNT = 8;
+const PARTICLE_COUNT = 16;
 
 function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -21,16 +21,16 @@ export function useAvatarLikeHeartsBurst() {
 
     const batch = Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
       id: Date.now() + i,
-      offset: (Math.random() - 0.5) * 20,
-      delay: Math.random() * 0.15,
-      drift: (Math.random() - 0.5) * 28,
+      offset: (Math.random() - 0.5) * 36,
+      delay: Math.random() * 0.2,
+      drift: (Math.random() - 0.5) * 48,
     }));
 
     setParticles((prev) => [...prev, ...batch]);
 
     window.setTimeout(() => {
       setParticles((prev) => prev.filter((p) => !batch.some((b) => b.id === p.id)));
-    }, 1200);
+    }, 1400);
   }, []);
 
   return { particles, burst };
