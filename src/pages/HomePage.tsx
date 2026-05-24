@@ -318,6 +318,11 @@ export function HomePage() {
                   Изменения дежурств
                 </Link>
               </li>
+              <li>
+                <Link to="/admin/statistics" className="side-menu__action" onClick={closeMenu}>
+                  Статистика
+                </Link>
+              </li>
             </ul>
           ) : null}
           <ul className="side-menu__actions side-menu__actions--footer">

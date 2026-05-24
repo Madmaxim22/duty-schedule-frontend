@@ -108,6 +108,7 @@ npm run dev
 | `/admin/users` | admin | Заявки, список учётных записей, удаление; **Web Push** о новых заявках |
 | `/admin/import` | admin | Импорт графика из JSON |
 | `/admin/changes` | admin | Журнал последних изменений дежурств |
+| `/admin/statistics` | admin | Статистика дежурств и отсутствий по пользователям (месяц / год) |
 | `/admin/schedule/:date` | admin | Назначение дежурных на дату (`YYYY-MM-DD`) |
 
 ### Календарь

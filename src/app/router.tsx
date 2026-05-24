@@ -10,6 +10,7 @@ import { AdminUsersPage } from '@/pages/AdminUsersPage';
 import { EditDayPage } from '@/pages/EditDayPage';
 import { AdminImportPage } from '@/pages/AdminImportPage';
 import { AdminChangesPage } from '@/pages/AdminChangesPage';
+import { AdminStatisticsPage } from '@/pages/AdminStatisticsPage';
 import { NotificationsPage } from '@/pages/NotificationsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 
@@ -29,6 +30,7 @@ export function AppRouter() {
                 <Route path="/admin/users" element={<AdminUsersPage />} />
                 <Route path="/admin/import" element={<AdminImportPage />} />
                 <Route path="/admin/changes" element={<AdminChangesPage />} />
+                <Route path="/admin/statistics" element={<AdminStatisticsPage />} />
                 <Route path="/admin/schedule/:date" element={<EditDayPage />} />
               </Route>
             </Route>

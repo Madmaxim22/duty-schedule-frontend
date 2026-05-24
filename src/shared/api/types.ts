@@ -109,6 +109,30 @@ export type DutyChangesResponse = {
   nextCursor: string | null;
 };
 
+export type AbsenceStatsByType = {
+  type: string;
+  count: number;
+  dates: string[];
+};
+
+export type AdminStatisticsUser = {
+  id: string;
+  fullName: string;
+  duties: { month: number; year: number };
+  absences: {
+    month: number;
+    year: number;
+    monthByType: AbsenceStatsByType[];
+    yearByType: AbsenceStatsByType[];
+  };
+};
+
+export type AdminStatisticsResponse = {
+  year: number;
+  month: number;
+  users: AdminStatisticsUser[];
+};
+
 export type PhotoLikeStatus = {
   likeCount: number;
   likedByMe: boolean;
