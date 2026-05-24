@@ -1,4 +1,4 @@
-import { useMemo, type MouseEvent } from 'react';
+import { useLayoutEffect, useMemo, useRef, type MouseEvent } from 'react';
 import type { MonthDay, MonthDayDuty } from '@/shared/api/types';
 import {
   toAvatarPreviewUser,
@@ -21,6 +21,13 @@ type Props = {
   onDutyProfile?: (target: DutyProfileTarget) => void;
   onAvatarPreview?: (user: AvatarPreviewUser) => void;
 };
+
+function toDateKey(date: Date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
 function DutyPerson({
   duty,
@@ -105,10 +112,21 @@ export function DutyDayList({
   onDutyProfile,
   onAvatarPreview,
 }: Props) {
+  const todayRef = useRef<HTMLLIElement>(null);
   const rows = useMemo(
     () => buildMonthRows(month, days, incompleteDates),
     [month, days, incompleteDates],
   );
+
+  const todayKey = toDateKey(new Date());
+  const isCurrentMonth =
+    month.getFullYear() === new Date().getFullYear() &&
+    month.getMonth() === new Date().getMonth();
+
+  useLayoutEffect(() => {
+    if (!isCurrentMonth) return;
+    todayRef.current?.scrollIntoView({ block: 'center' });
+  }, [isCurrentMonth, month]);
 
   return (
     <section className="duty-day-list" aria-label="Расписание по дням">
@@ -126,7 +144,7 @@ export function DutyDayList({
             .join(' ');
 
           return (
-            <li key={row.date}>
+            <li key={row.date} ref={row.date === todayKey ? todayRef : undefined}>
               <button
                 type="button"
                 className={rowClass}
