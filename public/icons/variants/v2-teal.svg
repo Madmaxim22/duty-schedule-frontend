@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d9488"/>
+      <stop offset="100%" stop-color="#0891b2"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <!-- рамка календаря (как v1: 96+320×120+280) -->
+  <rect x="96" y="120" width="320" height="280" rx="24" fill="none" stroke="#ffffff" stroke-width="12"/>
+  <line x1="96" y1="180" x2="416" y2="180" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="160" cy="150" r="12" fill="#ffffff"/>
+  <circle cx="352" cy="150" r="12" fill="#ffffff"/>
+  <!-- сетка внутри контура: 3×3, отступы 32px -->
+  <rect x="128" y="192" width="64" height="48" rx="8" fill="#ffffff" opacity="0.95"/>
+  <rect x="224" y="192" width="64" height="48" rx="8" fill="#ccfbf1" opacity="0.9"/>
+  <rect x="320" y="192" width="64" height="48" rx="8" fill="#ccfbf1" opacity="0.9"/>
+  <rect x="128" y="272" width="64" height="48" rx="8" fill="#5eead4"/>
+  <rect x="224" y="272" width="64" height="48" rx="8" fill="#ccfbf1" opacity="0.85"/>
+  <rect x="320" y="272" width="64" height="48" rx="8" fill="#ccfbf1" opacity="0.85"/>
+  <rect x="128" y="352" width="64" height="48" rx="8" fill="#ccfbf1" opacity="0.8"/>
+  <rect x="224" y="352" width="64" height="48" rx="8" fill="#ccfbf1" opacity="0.8"/>
+  <rect x="320" y="352" width="64" height="48" rx="8" fill="#ccfbf1" opacity="0.8"/>
+</svg>

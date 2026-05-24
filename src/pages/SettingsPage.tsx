@@ -3,18 +3,33 @@ import { Link } from 'react-router-dom';
 import arrowLeftIcon from '@/shared/assets/icons/Arrow Left.svg';
 import { useAuth } from '@/features/auth/AuthContext';
 import { ThemePicker } from '@/features/settings/ThemePicker';
+import { IconPicker } from '@/features/settings/IconPicker';
+import { PwaInstallSection } from '@/features/settings/PwaInstallSection';
 import { applyTheme, loadTheme, saveTheme, type AppTheme } from '@/features/settings/theme';
+import {
+  applyPwaIcon,
+  loadPwaIcon,
+  savePwaIcon,
+  type PwaIconId,
+} from '@/features/settings/pwa-icon';
 import { PushBanner } from '@/features/push/AdminPushBanner';
 
 export function SettingsPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const [theme, setTheme] = useState<AppTheme>(() => loadTheme());
+  const [pwaIcon, setPwaIcon] = useState<PwaIconId>(() => loadPwaIcon());
 
   function handleThemeChange(next: AppTheme) {
     setTheme(next);
     saveTheme(next);
     applyTheme(next);
+  }
+
+  function handlePwaIconChange(next: PwaIconId) {
+    setPwaIcon(next);
+    savePwaIcon(next);
+    applyPwaIcon(next);
   }
 
   return (
@@ -34,6 +49,18 @@ export function SettingsPage() {
           Цветовая палитра интерфейса. Сохраняется на этом устройстве.
         </p>
         <ThemePicker theme={theme} onChange={handleThemeChange} />
+      </section>
+
+      <section className="settings-page__section" aria-labelledby="settings-pwa-title">
+        <h2 id="settings-pwa-title" className="settings-page__section-title">
+          Рабочий стол
+        </h2>
+        <p className="settings-page__section-hint">
+          Иконка ярлыка при «Добавить на экран». Сохраняется на этом устройстве; для смены уже
+          установленного ярлыка переустановите приложение.
+        </p>
+        <IconPicker iconId={pwaIcon} onChange={handlePwaIconChange} />
+        <PwaInstallSection />
       </section>
 
       <section className="settings-page__section" aria-labelledby="settings-notifications-title">

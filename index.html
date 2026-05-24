@@ -6,8 +6,9 @@
     <meta name="theme-color" content="#4f46e5" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="icon" href="/icons/icon-192.png" type="image/png" />
+    <link rel="manifest" href="/manifests/v1-calendar.webmanifest" />
+    <link rel="icon" href="/icons/variants/generated/v1-calendar/icon-192.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/icons/variants/generated/v1-calendar/apple-touch-icon.png" />
     <title>График дежурств</title>
     <script>
       (function () {
@@ -19,6 +20,21 @@
           if (s && t.indexOf(s) >= 0) theme = s;
         } catch (e) {}
         document.documentElement.setAttribute('data-theme', theme);
+
+        var ik = 'duty-schedule-pwa-icon';
+        var icons = ['v1-calendar', 'v2-teal', 'v3-dark', 'v4-shield', 'v5-monogram'];
+        var icon = 'v1-calendar';
+        try {
+          var si = localStorage.getItem(ik);
+          if (si && icons.indexOf(si) >= 0) icon = si;
+        } catch (e) {}
+        var base = '/icons/variants/generated/' + icon;
+        var manifest = document.querySelector('link[rel="manifest"]');
+        if (manifest) manifest.href = '/manifests/' + icon + '.webmanifest';
+        var favicon = document.querySelector('link[rel="icon"]');
+        if (favicon) favicon.href = base + '/icon-192.png';
+        var apple = document.querySelector('link[rel="apple-touch-icon"]');
+        if (apple) apple.href = base + '/apple-touch-icon.png';
       })();
     </script>
   </head>

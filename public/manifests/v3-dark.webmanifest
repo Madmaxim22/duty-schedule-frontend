@@ -5,23 +5,23 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f8fafc",
-  "theme_color": "#4f46e5",
+  "theme_color": "#0f172a",
   "lang": "ru",
   "icons": [
     {
-      "src": "/icons/variants/generated/v1-calendar/icon-192.png",
+      "src": "/icons/variants/generated/v3-dark/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/variants/generated/v1-calendar/icon-512.png",
+      "src": "/icons/variants/generated/v3-dark/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/variants/generated/v1-calendar/icon-512-maskable.png",
+      "src": "/icons/variants/generated/v3-dark/icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Варианты иконок PWA — Дежурства</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --card: #fff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 1.5rem;
+      line-height: 1.5;
+    }
+    h1 { font-size: 1.35rem; margin: 0 0 0.25rem; }
+    p.lead { color: var(--muted); margin: 0 0 1.5rem; font-size: 0.95rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+    .card h2 { font-size: 1rem; margin: 0 0 0.75rem; }
+    .card p { font-size: 0.8rem; color: var(--muted); margin: 0 0 1rem; }
+    .icons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+    figure { margin: 0; text-align: center; }
+    figure img {
+      display: block;
+      border-radius: 22%;
+      box-shadow: 0 4px 12px rgb(15 23 42 / 12%);
+    }
+  .ios img { border-radius: 22%; }
+  .android img { border-radius: 18%; }
+  .mask img { border-radius: 50%; }
+    figcaption {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+    }
+    .sizes { font-size: 0.75rem; color: var(--muted); margin-top: 0.75rem; }
+    code { font-size: 0.72rem; background: #f1f5f9; padding: 0.1em 0.35em; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Варианты иконок «Добавить на экран»</h1>
+  <p class="lead">
+    iOS — скругление задаёт система (~180px). Android — круг/сквош для maskable.
+    После выбора: <code>npm run icons:generate</code>, скопируйте PNG в <code>public/icons/</code>.
+  </p>
+  <div class="grid" id="grid"></div>
+  <script>
+    const variants = [
+      { id: 'v1-calendar', title: '1. Календарь-сетка', desc: 'Текущий стиль: indigo, ячейки дежурств' },
+      { id: 'v2-teal', title: '2. Бирюзовый контур', desc: 'Градиент teal/cyan, outline-календарь' },
+      { id: 'v3-dark', title: '3. Тёмная тема', desc: 'Slate + акцент indigo на активной ячейке' },
+      { id: 'v4-shield', title: '4. Щит + галочка', desc: 'Дежурство как ответственность' },
+      { id: 'v5-monogram', title: '5. Монограмма «Д»', desc: 'Минимализм, узнаваемое имя' },
+    ];
+    const base = './generated';
+    const grid = document.getElementById('grid');
+    for (const v of variants) {
+      const dir = base + '/' + v.id;
+      const card = document.createElement('article');
+      card.className = 'card';
+      card.innerHTML = `
+        <h2>${v.title}</h2>
+        <p>${v.desc}</p>
+        <div class="icons">
+          <figure class="ios">
+            <img src="${dir}/apple-touch-icon.png" width="90" height="90" alt="" />
+            <figcaption>iOS 180</figcaption>
+          </figure>
+          <figure class="android">
+            <img src="${dir}/icon-192.png" width="72" height="72" alt="" />
+            <figcaption>Android 192</figcaption>
+          </figure>
+          <figure class="android">
+            <img src="${dir}/icon-512.png" width="96" height="96" alt="" />
+            <figcaption>Android 512</figcaption>
+          </figure>
+          <figure class="mask">
+            <img src="${dir}/icon-512-maskable.png" width="96" height="96" alt="" />
+            <figcaption>Maskable</figcaption>
+          </figure>
+        </div>
+        <p class="sizes">SVG: <code>variants/${v.id}.svg</code></p>
+      `;
+      grid.appendChild(card);
+    }
+  </script>
+</body>
+</html>

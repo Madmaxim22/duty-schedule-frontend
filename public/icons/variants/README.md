@@ -1,0 +1,54 @@
+# Варианты иконок PWA («Добавить на экран»)
+
+[![Документация](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://madmaxim22.github.io/duty-schedule-frontend/)
+
+## Варианты
+
+| ID | Файл | Описание |
+|----|------|----------|
+| **v1-calendar** | `v1-calendar.svg` | Календарь-сетка на indigo (как в production) |
+| **v2-teal** | `v2-teal.svg` | Бирюзовый градиент, контурный календарь |
+| **v3-dark** | `v3-dark.svg` | Тёмный фон, акцент на активном дне |
+| **v4-shield** | `v4-shield.svg` | Щит + мини-календарь + галочка |
+| **v5-monogram** | `v5-monogram.svg` | Буква «Д» (Дежурства) |
+
+## Размеры по платформам
+
+| Файл | Размер | Платформа |
+|------|--------|-----------|
+| `apple-touch-icon.png` | 180×180 | **iOS** — «На экран Домой» |
+| `icon-192.png` | 192×192 | **Android** — manifest |
+| `icon-512.png` | 512×512 | **Android** — splash / install |
+| `icon-512-maskable.png` | 512×512 | **Android** — adaptive icon (safe zone 66%) |
+
+## Генерация PNG
+
+```bash
+cd duty-schedule-frontend
+npm install
+npm run icons:generate
+```
+
+Результат: `public/icons/variants/generated/<variant-id>/`.
+
+Превью в браузере (при запущенном `npm run dev`):
+
+`http://localhost:5173/icons/variants/preview.html`
+
+## Подключение выбранного варианта
+
+1. Скопировать из `generated/vX-.../` в `public/icons/`:
+   - `icon-192.png`, `icon-512.png`
+   - для iOS добавить в `index.html`:
+     ```html
+     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+     ```
+2. В `manifest.webmanifest` при необходимости добавить maskable:
+   ```json
+   {
+     "src": "/icons/icon-512-maskable.png",
+     "sizes": "512x512",
+     "type": "image/png",
+     "purpose": "maskable"
+   }
+   ```

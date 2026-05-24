@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#f8fafc"/>
+  <rect x="32" y="32" width="448" height="448" rx="80" fill="#4f46e5"/>
+  <!-- Stylized «D» without font dependency (librsvg-safe) -->
+  <path
+    fill="#ffffff"
+    d="M168 148 H272 C332 148 376 192 376 256 C376 320 332 364 272 364 H168 Z M224 204 V308 H268 C296 308 316 288 316 256 C316 224 296 204 268 204 Z"
+  />
+  <rect x="156" y="388" width="200" height="12" rx="6" fill="#818cf8"/>
+  <rect x="196" y="412" width="120" height="8" rx="4" fill="#a5b4fc"/>
+</svg>

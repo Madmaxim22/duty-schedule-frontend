@@ -2586,3 +2586,126 @@ body {
 .settings-page .admin-push {
   margin-top: 0;
 }
+
+.icon-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.icon-picker__option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.icon-picker__option:hover {
+  border-color: var(--color-darkest);
+  background: var(--color-muted-bg);
+}
+
+.icon-picker__option--active {
+  border-color: var(--color-darkest);
+  background: var(--color-muted-bg);
+}
+
+.icon-picker__option:focus-visible {
+  outline: 2px solid var(--color-darkest);
+  outline-offset: 2px;
+}
+
+.icon-picker__check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  color: var(--color-darkest);
+  background: var(--color-surface);
+  border-radius: 50%;
+}
+
+.icon-picker__preview {
+  width: 56px;
+  height: 56px;
+  border-radius: 22%;
+  box-shadow: var(--shadow-toggle);
+}
+
+.icon-picker__label {
+  font-size: 0.75rem;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--color-text);
+}
+
+.pwa-install {
+  margin-top: 4px;
+}
+
+.pwa-install__btn {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-darkest);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pwa-install__btn:hover {
+  background: var(--color-darkest-hover);
+}
+
+.pwa-install__btn:focus-visible {
+  outline: 2px solid var(--color-darkest);
+  outline-offset: 2px;
+}
+
+.pwa-install__hint {
+  margin: 12px 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--color-muted);
+}
+
+.pwa-install__hint--muted {
+  margin-top: 8px;
+  font-size: 0.75rem;
+}
+
+.pwa-install__status {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--color-muted);
+}
+
+.pwa-install__status--success {
+  color: var(--color-duty);
+}
+
+.pwa-install__steps {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--color-text);
+}
+
+.pwa-install__steps li + li {
+  margin-top: 8px;
+}
+
+.pwa-install__ios-icon {
+  font-size: 1.1em;
+}
