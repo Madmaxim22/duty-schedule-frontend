@@ -417,7 +417,14 @@ body {
   padding: 0;
   border: none;
   background: transparent;
+  color: var(--color-primary);
   cursor: pointer;
+}
+
+.home-page__menu-btn:focus-visible {
+  outline: 2px solid var(--color-darkest);
+  outline-offset: 2px;
+  border-radius: var(--radius);
 }
 
 .avatar {

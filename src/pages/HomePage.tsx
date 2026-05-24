@@ -13,10 +13,37 @@ import {
 } from '@/features/calendar/ScheduleViewToggle';
 import { DayDetailModal } from '@/features/day-detail/DayDetailModal';
 import { useAuth } from '@/features/auth/AuthContext';
-import menuIcon from '@/shared/assets/icons/fi_menu.svg';
 import { SideMenu } from '@/shared/ui/SideMenu';
 import { Avatar } from '@/shared/ui/Avatar';
 import { ProfileModal } from '@/features/settings/ProfileModal';
+
+function MenuIcon() {
+  return (
+    <svg width="33" height="33" viewBox="0 0 33 33" fill="none" aria-hidden>
+      <path
+        d="M4.125 24.75H20.625"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4.125 16.5H28.875"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4.125 8.25H28.875"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 export function HomePage() {
   const { user, logout } = useAuth();
@@ -70,7 +97,7 @@ export function HomePage() {
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen(true)}
         >
-          <img src={menuIcon} alt="" width={33} height={33} aria-hidden />
+          <MenuIcon />
         </button>
         {displayName ? (
           <Avatar
