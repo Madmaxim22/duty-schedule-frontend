@@ -2538,14 +2538,51 @@ body {
   margin-top: 16px;
 }
 
-.notifications-page__push {
-  margin-top: 32px;
-  padding-top: 20px;
+.settings-page {
+  padding: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100%;
+}
+
+.settings-page__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.settings-page__back {
+  display: flex;
+  padding: 8px;
+  margin: -8px;
+}
+
+.settings-page__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.settings-page__section + .settings-page__section {
+  margin-top: 28px;
+  padding-top: 28px;
   border-top: 1px solid var(--color-input-border);
 }
 
-.notifications-page__push-title {
+.settings-page__section-title {
+  margin: 0 0 8px;
   font-size: 1rem;
   font-weight: 600;
-  margin: 0 0 12px;
+}
+
+.settings-page__section-hint {
+  margin: 0 0 16px;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--color-muted);
+}
+
+.settings-page .admin-push {
+  margin-top: 0;
 }

@@ -125,7 +125,7 @@ npm run dev
 
 ## Web Push (админ)
 
-В боковом меню: **Оповещения** (`/notifications`) — лента событий; внизу страницы **Включить уведомления** (push в браузере) для всех пользователей. Нужны VAPID-ключи в backend `.env` и HTTPS (production). Service worker: `public/sw.js`, manifest: `public/manifest.webmanifest`.
+В меню: **Оповещения** — лента событий; **Настройки** — тема оформления и push-уведомления. Нужны VAPID-ключи в backend `.env` и HTTPS (production). Service worker: `public/sw.js`, manifest: `public/manifest.webmanifest`.
 
 Подробнее: [корневой README — Web Push](../README.md#web-push-для-администратора).
 

@@ -1,16 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/features/auth/AuthContext';
 import type { UserRole } from '@/shared/api/types';
 import { Modal } from '@/shared/ui/Modal';
 import { Avatar } from '@/shared/ui/Avatar';
-import { ThemePicker } from '@/features/settings/ThemePicker';
 import { PhotoGalleryModal } from '@/features/settings/PhotoGalleryModal';
-import {
-  applyTheme,
-  loadTheme,
-  saveTheme,
-  type AppTheme,
-} from '@/features/settings/theme';
 
 type Props = {
   open: boolean;
@@ -25,20 +18,8 @@ const ROLE_LABELS: Record<UserRole, string> = {
 
 export function ProfileModal({ open, onClose, onAvatarUpdated }: Props) {
   const { user } = useAuth();
-  const [theme, setTheme] = useState<AppTheme>(loadTheme);
   const [avatarVersion, setAvatarVersion] = useState(0);
   const [galleryOpen, setGalleryOpen] = useState(false);
-
-  useEffect(() => {
-    if (!open) return;
-    setTheme(loadTheme());
-  }, [open]);
-
-  function handleThemeChange(next: AppTheme) {
-    setTheme(next);
-    saveTheme(next);
-    applyTheme(next);
-  }
 
   function handleGalleryUserUpdated() {
     setAvatarVersion(Date.now());
@@ -95,15 +76,6 @@ export function ProfileModal({ open, onClose, onAvatarUpdated }: Props) {
           onUserUpdated={handleGalleryUserUpdated}
         />
 
-        <section className="profile-modal__section" aria-labelledby="profile-theme-heading">
-          <h3 id="profile-theme-heading" className="profile-modal__section-title">
-            Тема оформления
-          </h3>
-          <p className="profile-modal__section-hint">
-            Цветовая палитра интерфейса. Сохраняется на этом устройстве.
-          </p>
-          <ThemePicker theme={theme} onChange={handleThemeChange} />
-        </section>
       </div>
     </Modal>
   );

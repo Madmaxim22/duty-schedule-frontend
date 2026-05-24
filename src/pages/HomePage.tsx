@@ -266,6 +266,11 @@ export function HomePage() {
               </Link>
             </li>
             <li>
+              <Link to="/settings" className="side-menu__action" onClick={closeMenu}>
+                Настройки
+              </Link>
+            </li>
+            <li>
               <button type="button" className="side-menu__action" onClick={openProfile}>
                 Профиль
               </button>
