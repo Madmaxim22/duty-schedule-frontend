@@ -233,6 +233,25 @@ export function HomePage() {
           </div>
         </button>
         <div className="side-menu__nav">
+          <ul className="side-menu__actions">
+            <li>
+              <button type="button" className="side-menu__action" onClick={openProfile}>
+                Профиль
+              </button>
+            </li>
+            <li>
+              <Link to="/notifications" className="side-menu__action" onClick={closeMenu}>
+                Оповещения
+                {(unreadNotifications.data?.count ?? 0) > 0 ? (
+                  <span className="side-menu__badge">
+                    {unreadNotifications.data!.count > 99
+                      ? '99+'
+                      : unreadNotifications.data!.count}
+                  </span>
+                ) : null}
+              </Link>
+            </li>
+          </ul>
           {isAdmin ? (
             <ul className="side-menu__actions">
               <li>
@@ -254,26 +273,9 @@ export function HomePage() {
           ) : null}
           <ul className="side-menu__actions side-menu__actions--footer">
             <li>
-              <Link to="/notifications" className="side-menu__action" onClick={closeMenu}>
-                Оповещения
-                {(unreadNotifications.data?.count ?? 0) > 0 ? (
-                  <span className="side-menu__badge">
-                    {unreadNotifications.data!.count > 99
-                      ? '99+'
-                      : unreadNotifications.data!.count}
-                  </span>
-                ) : null}
-              </Link>
-            </li>
-            <li>
               <Link to="/settings" className="side-menu__action" onClick={closeMenu}>
                 Настройки
               </Link>
-            </li>
-            <li>
-              <button type="button" className="side-menu__action" onClick={openProfile}>
-                Профиль
-              </button>
             </li>
             <li>
               <button type="button" className="side-menu__action" onClick={handleLogout}>
