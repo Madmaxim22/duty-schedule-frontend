@@ -11,7 +11,7 @@ function getInitials(fullName: string): string {
 type AvatarProps = {
   fullName: string;
   avatarUrl?: string | null;
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'lg';
   cacheBust?: number;
   className?: string;
 };
@@ -23,13 +23,9 @@ export function Avatar({ fullName, avatarUrl, size = 'sm', cacheBust, className 
   useEffect(() => {
     setBroken(false);
   }, [src]);
-  const classes = [
-    'avatar',
-    size === 'md' ? 'avatar--md' : 'avatar--sm',
-    className,
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const sizeClass =
+    size === 'lg' ? 'avatar--lg' : size === 'md' ? 'avatar--md' : 'avatar--sm';
+  const classes = ['avatar', sizeClass, className].filter(Boolean).join(' ');
 
   if (src && !broken) {
     return (
