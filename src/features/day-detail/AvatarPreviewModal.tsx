@@ -85,9 +85,13 @@ export function AvatarPreviewModal({
   );
   const showLikeButton = Boolean(photoId && targetUserId);
   const showOwnerActions = isOwnPhoto && Boolean(onSetAsAvatar && onDeletePhoto);
+  const likeCount = likeStatus?.likeCount ?? 0;
   const likeDisabled = isOwnPhoto || !(likeStatus?.canLike ?? false);
+  const heartFilled = isOwnPhoto ? likeCount > 0 : localLiked;
   const likeLabel = isOwnPhoto
-    ? 'Нельзя лайкнуть своё фото'
+    ? likeCount > 0
+      ? `На ваше фото поставили ${likeCount} лайк(ов)`
+      : 'Нельзя лайкнуть своё фото'
     : localLiked
       ? `Убрать лайк с фото ${fullName}`
       : `Нравится фото ${fullName}`;
@@ -120,16 +124,18 @@ export function AvatarPreviewModal({
           </button>
         </header>
         <div className="avatar-preview__body">
-          <AvatarLikeHeartsOverlay particles={particles} />
           <img src={src} alt={fullName} className="avatar-preview__image" />
           <div className="avatar-preview__actions">
             {showLikeButton ? (
-              <AvatarLikeButton
-                liked={localLiked}
-                label={likeLabel}
-                onClick={toggleLike}
-                disabled={likeDisabled}
-              />
+              <div className="avatar-preview__like-wrap">
+                <AvatarLikeHeartsOverlay particles={particles} />
+                <AvatarLikeButton
+                  liked={heartFilled}
+                  label={likeLabel}
+                  onClick={toggleLike}
+                  disabled={likeDisabled}
+                />
+              </div>
             ) : null}
             {!likesLoading && displayCount > 0 ? (
               <span className="avatar-preview__like-count" aria-live="polite">

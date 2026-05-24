@@ -13,6 +13,9 @@ import {
 } from '@/features/calendar/ScheduleViewToggle';
 import { DayDetailModal } from '@/features/day-detail/DayDetailModal';
 import { AvatarPreviewModal } from '@/features/day-detail/AvatarPreviewModal';
+import type { AvatarPreviewUser } from '@/features/day-detail/avatarPreviewUser';
+import type { DutyProfileTarget } from '@/features/profile/dutyProfileTarget';
+import { UserProfileModal } from '@/features/profile/UserProfileModal';
 import { useAuth } from '@/features/auth/AuthContext';
 import { SideMenu } from '@/shared/ui/SideMenu';
 import { Avatar } from '@/shared/ui/Avatar';
@@ -57,7 +60,8 @@ export function HomePage() {
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<AvatarPreviewUser | null>(null);
+  const [viewedProfile, setViewedProfile] = useState<DutyProfileTarget | null>(null);
   const [scheduleView, setScheduleView] = useState<ScheduleView>(loadScheduleView);
 
   const year = month.getFullYear();
@@ -84,6 +88,14 @@ export function HomePage() {
     setProfileOpen(true);
   };
 
+  function handleDutyProfile(target: DutyProfileTarget) {
+    if (target.userId === user?.id) {
+      setProfileOpen(true);
+      return;
+    }
+    setViewedProfile(target);
+  }
+
   const displayName = user?.fullName ?? '';
   const avatarCacheBust = avatarVersion || undefined;
 
@@ -106,7 +118,14 @@ export function HomePage() {
             type="button"
             className="home-page__header-avatar-btn"
             aria-label={`Показать фото: ${displayName}`}
-            onClick={() => setAvatarPreviewOpen(true)}
+            onClick={() =>
+              setAvatarPreview({
+                targetUserId: user.id,
+                photoId: user.currentPhotoId!,
+                fullName: displayName,
+                avatarUrl: user.avatarUrl!,
+              })
+            }
           >
             <Avatar
               fullName={displayName}
@@ -160,6 +179,7 @@ export function HomePage() {
           incompleteDates={isAdmin ? data?.monthCoverage?.incompleteDates : undefined}
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
+          onDutyProfile={handleDutyProfile}
         />
       ) : null}
 
@@ -234,17 +254,28 @@ export function HomePage() {
         onAvatarUpdated={() => setAvatarVersion(Date.now())}
       />
 
-      <DayDetailModal date={selectedDate} onClose={() => setSelectedDate(null)} />
+      <DayDetailModal
+        date={selectedDate}
+        onClose={() => setSelectedDate(null)}
+        onUserProfile={handleDutyProfile}
+      />
+
+      <UserProfileModal
+        target={viewedProfile}
+        onClose={() => setViewedProfile(null)}
+      />
 
       <AvatarPreviewModal
-        open={avatarPreviewOpen}
-        photoId={user?.currentPhotoId ?? undefined}
-        targetUserId={user?.id}
+        open={Boolean(avatarPreview)}
+        photoId={avatarPreview?.photoId}
+        targetUserId={avatarPreview?.targetUserId}
         currentUserId={user?.id}
-        fullName={displayName}
-        avatarUrl={user?.avatarUrl ?? null}
-        avatarCacheBust={avatarCacheBust}
-        onClose={() => setAvatarPreviewOpen(false)}
+        fullName={avatarPreview?.fullName ?? ''}
+        avatarUrl={avatarPreview?.avatarUrl ?? null}
+        avatarCacheBust={
+          avatarPreview?.targetUserId === user?.id ? avatarCacheBust : undefined
+        }
+        onClose={() => setAvatarPreview(null)}
       />
     </div>
   );

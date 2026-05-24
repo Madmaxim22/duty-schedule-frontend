@@ -94,6 +94,10 @@ export function listMyPhotos(): Promise<UserPhotosResponse> {
   return apiRequest<UserPhotosResponse>('/users/me/photos');
 }
 
+export function listUserPhotos(userId: string): Promise<UserPhotosResponse> {
+  return apiRequest<UserPhotosResponse>(`/users/${userId}/photos`);
+}
+
 export async function uploadPhoto(file: File, setAsCurrent = true): Promise<UploadPhotoResponse> {
   const form = new FormData();
   form.append('photo', file);

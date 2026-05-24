@@ -1,18 +1,16 @@
 import type { DaySchedule } from '@/shared/api/types';
 import { formatSurnameWithInitials } from '@/shared/lib/formatName';
 import { Avatar } from '@/shared/ui/Avatar';
+import type { DutyProfileTarget } from '@/features/profile/dutyProfileTarget';
+import { toAvatarPreviewUser, type AvatarPreviewUser } from './avatarPreviewUser';
 
-export type AvatarPreviewUser = {
-  targetUserId: string;
-  photoId: string;
-  fullName: string;
-  avatarUrl: string;
-};
+export type { AvatarPreviewUser };
 
 type Props = {
   data: DaySchedule;
   isAdmin?: boolean;
   onAvatarPreview?: (user: AvatarPreviewUser) => void;
+  onUserProfile?: (target: DutyProfileTarget) => void;
 };
 
 function itemClassName(isAdmin: boolean, mandatory: boolean, filled: boolean) {
@@ -23,7 +21,65 @@ function itemClassName(isAdmin: boolean, mandatory: boolean, filled: boolean) {
     : 'day-detail__item day-detail__item--empty';
 }
 
-export function DayDetailContent({ data, isAdmin = false, onAvatarPreview }: Props) {
+function DutyPerson({
+  user,
+  onAvatarPreview,
+  onUserProfile,
+}: {
+  user: NonNullable<DaySchedule['sections'][number]['offices'][number]['user']>;
+  onAvatarPreview?: (user: AvatarPreviewUser) => void;
+  onUserProfile?: (target: DutyProfileTarget) => void;
+}) {
+  const preview = toAvatarPreviewUser(user);
+  const openPreview = () => {
+    if (preview && onAvatarPreview) onAvatarPreview(preview);
+  };
+  const openProfile = () => {
+    if (onUserProfile) {
+      onUserProfile({
+        userId: user.id,
+        fullName: user.fullName,
+        avatarUrl: user.avatarUrl,
+        currentPhotoId: user.currentPhotoId,
+      });
+    }
+  };
+  const name = formatSurnameWithInitials(user.fullName);
+
+  return (
+    <>
+      {preview && onAvatarPreview ? (
+        <button
+          type="button"
+          className="day-detail__avatar-btn"
+          aria-label={`Показать фото: ${user.fullName}`}
+          onClick={openPreview}
+        >
+          <Avatar
+            fullName={user.fullName}
+            avatarUrl={user.avatarUrl}
+            className="day-detail__avatar"
+          />
+        </button>
+      ) : (
+        <Avatar
+          fullName={user.fullName}
+          avatarUrl={user.avatarUrl}
+          className="day-detail__avatar"
+        />
+      )}
+      {onUserProfile ? (
+        <button type="button" className="day-detail__name-btn" onClick={openProfile}>
+          {name}
+        </button>
+      ) : (
+        name
+      )}
+    </>
+  );
+}
+
+export function DayDetailContent({ data, isAdmin = false, onAvatarPreview, onUserProfile }: Props) {
   const sections = data.sections
     .map((section) => ({
       ...section,
@@ -54,38 +110,11 @@ export function DayDetailContent({ data, isAdmin = false, onAvatarPreview }: Pro
                 <span className="day-detail__office">Каб. {office.office}</span>
                 <span className="day-detail__person">
                   {office.user ? (
-                    <>
-                      {office.user.avatarUrl &&
-                      office.user.currentPhotoId &&
-                      onAvatarPreview ? (
-                        <button
-                          type="button"
-                          className="day-detail__avatar-btn"
-                          aria-label={`Показать фото: ${office.user.fullName}`}
-                          onClick={() =>
-                            onAvatarPreview({
-                              targetUserId: office.user!.id,
-                              photoId: office.user!.currentPhotoId!,
-                              fullName: office.user!.fullName,
-                              avatarUrl: office.user!.avatarUrl!,
-                            })
-                          }
-                        >
-                          <Avatar
-                            fullName={office.user.fullName}
-                            avatarUrl={office.user.avatarUrl}
-                            className="day-detail__avatar"
-                          />
-                        </button>
-                      ) : (
-                        <Avatar
-                          fullName={office.user.fullName}
-                          avatarUrl={office.user.avatarUrl}
-                          className="day-detail__avatar"
-                        />
-                      )}
-                      {formatSurnameWithInitials(office.user.fullName)}
-                    </>
+                    <DutyPerson
+                      user={office.user}
+                      onAvatarPreview={onAvatarPreview}
+                      onUserProfile={onUserProfile}
+                    />
                   ) : (
                     'Не назначен'
                   )}

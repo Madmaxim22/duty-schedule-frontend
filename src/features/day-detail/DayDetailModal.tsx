@@ -7,11 +7,14 @@ import { Modal } from '@/shared/ui/Modal';
 import { Button } from '@/shared/ui/Button';
 import { AvatarPreviewModal } from './AvatarPreviewModal';
 import { DayDetailContent, type AvatarPreviewUser } from './DayDetailContent';
+import { UserProfileModal } from '@/features/profile/UserProfileModal';
+import type { DutyProfileTarget } from '@/features/profile/dutyProfileTarget';
 import { useAuth } from '@/features/auth/AuthContext';
 
 type Props = {
   date: string | null;
   onClose: () => void;
+  onUserProfile?: (target: DutyProfileTarget) => void;
 };
 
 function formatTitle(dateStr: string) {
@@ -23,14 +26,26 @@ function formatTitle(dateStr: string) {
   });
 }
 
-export function DayDetailModal({ date, onClose }: Props) {
+export function DayDetailModal({ date, onClose, onUserProfile }: Props) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [previewUser, setPreviewUser] = useState<AvatarPreviewUser | null>(null);
+  const [profileTarget, setProfileTarget] = useState<DutyProfileTarget | null>(null);
 
   useEffect(() => {
-    if (!date) setPreviewUser(null);
+    if (!date) {
+      setPreviewUser(null);
+      setProfileTarget(null);
+    }
   }, [date]);
+
+  function handleUserProfile(target: DutyProfileTarget) {
+    if (target.userId === user?.id) {
+      onUserProfile?.(target);
+      return;
+    }
+    setProfileTarget(target);
+  }
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['schedule', 'day', date],
@@ -57,7 +72,7 @@ export function DayDetailModal({ date, onClose }: Props) {
         open={Boolean(date)}
         title={date ? formatTitle(date) : ''}
         onClose={onClose}
-        closeOnEscape={!previewUser}
+        closeOnEscape={!previewUser && !profileTarget}
         footer={footer}
       >
         {isLoading ? <p>Загрузка…</p> : null}
@@ -69,6 +84,7 @@ export function DayDetailModal({ date, onClose }: Props) {
             data={data}
             isAdmin={user?.role === 'admin'}
             onAvatarPreview={setPreviewUser}
+            onUserProfile={handleUserProfile}
           />
         ) : null}
       </Modal>
@@ -80,6 +96,10 @@ export function DayDetailModal({ date, onClose }: Props) {
         fullName={previewUser?.fullName ?? ''}
         avatarUrl={previewUser?.avatarUrl ?? null}
         onClose={() => setPreviewUser(null)}
+      />
+      <UserProfileModal
+        target={profileTarget}
+        onClose={() => setProfileTarget(null)}
       />
     </>
   );

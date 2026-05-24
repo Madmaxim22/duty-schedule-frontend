@@ -11,10 +11,21 @@ export type User = {
   currentPhotoId: string | null;
 };
 
+export type PublicUserProfile = {
+  id: string;
+  fullName: string;
+  role: UserRole;
+  avatarUrl: string | null;
+  currentPhotoId: string | null;
+};
+
 export type MonthDayDuty = {
   section: 'A' | 'B';
   office: string;
+  userId: string;
   fullName: string;
+  avatarUrl: string | null;
+  currentPhotoId: string | null;
 };
 
 export type MonthDay = {

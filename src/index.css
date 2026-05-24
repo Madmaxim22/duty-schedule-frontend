@@ -1150,6 +1150,31 @@ body {
   color: var(--color-text);
 }
 
+.duty-day-list__name-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition: text-decoration-color 0.15s ease;
+}
+
+.duty-day-list__name-btn:hover {
+  text-decoration-color: currentColor;
+}
+
+.duty-day-list__name-btn:focus-visible {
+  outline: 2px solid var(--color-darkest);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 .duty-day-list__office {
   margin-left: auto;
   text-align: right;
@@ -1568,6 +1593,30 @@ body {
   outline-offset: 2px;
 }
 
+.day-detail__name-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition: text-decoration-color 0.15s ease;
+}
+
+.day-detail__name-btn:hover {
+  text-decoration-color: currentColor;
+}
+
+.day-detail__name-btn:focus-visible {
+  outline: 2px solid var(--color-darkest);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 .day-detail__avatar-btn:focus-visible {
   outline: 2px solid var(--color-darkest);
   outline-offset: 2px;
@@ -1774,9 +1823,9 @@ body {
 .avatar-preview__hearts {
   position: absolute;
   left: 50%;
-  bottom: 100%;
+  bottom: calc(100% + 2px);
   width: 0;
-  height: 110px;
+  height: 96px;
   transform: translateX(-50%);
   pointer-events: none;
   overflow: visible;

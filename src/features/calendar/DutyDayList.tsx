@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
-import type { MonthDay } from '@/shared/api/types';
+import type { MonthDay, MonthDayDuty } from '@/shared/api/types';
 import { formatSurnameWithInitials } from '@/shared/lib/formatName';
+import type { DutyProfileTarget } from '@/features/profile/dutyProfileTarget';
 import { buildMonthRows } from './buildMonthRows';
 import { ScheduleMonthNav } from './ScheduleMonthNav';
 
@@ -12,7 +13,41 @@ type Props = {
   incompleteDates?: string[];
   selectedDate: string | null;
   onSelectDate: (date: string) => void;
+  onDutyProfile?: (target: DutyProfileTarget) => void;
 };
+
+function DutyName({
+  duty,
+  onDutyProfile,
+}: {
+  duty: MonthDayDuty;
+  onDutyProfile?: (target: DutyProfileTarget) => void;
+}) {
+  const label = formatSurnameWithInitials(duty.fullName);
+
+  if (!onDutyProfile) {
+    return <span className="duty-day-list__name">{label}</span>;
+  }
+
+  return (
+    <button
+      type="button"
+      className="duty-day-list__name-btn"
+      aria-label={`Профиль: ${duty.fullName}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onDutyProfile({
+          userId: duty.userId,
+          fullName: duty.fullName,
+          avatarUrl: duty.avatarUrl,
+          currentPhotoId: duty.currentPhotoId,
+        });
+      }}
+    >
+      {label}
+    </button>
+  );
+}
 
 export function DutyDayList({
   month,
@@ -22,6 +57,7 @@ export function DutyDayList({
   incompleteDates,
   selectedDate,
   onSelectDate,
+  onDutyProfile,
 }: Props) {
   const rows = useMemo(
     () => buildMonthRows(month, days, incompleteDates),
@@ -64,7 +100,7 @@ export function DutyDayList({
                         key={`${duty.section}-${duty.office}`}
                         className="duty-day-list__shift"
                       >
-                        {formatSurnameWithInitials(duty.fullName)}
+                        <DutyName duty={duty} onDutyProfile={onDutyProfile} />
                         <span className="duty-day-list__office">каб. {duty.office}</span>
                       </span>
                     ))

@@ -45,8 +45,8 @@ export function useDebouncedLikeSync({
 
   const displayCount = Math.max(
     0,
-    serverRef.current.count +
-      (localLiked === serverRef.current.liked ? 0 : localLiked ? 1 : -1),
+    serverCount +
+      (localLiked === serverLiked ? 0 : localLiked ? 1 : -1),
   );
 
   const flush = useCallback(async () => {
