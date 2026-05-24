@@ -6,6 +6,7 @@ import deleteIcon from '@/shared/assets/icons/Delete.svg';
 import { apiRequest } from '@/shared/api/client';
 import type { UserRole, UserStatus } from '@/shared/api/types';
 import { useAuth } from '@/features/auth/AuthContext';
+import { AdminPushBanner } from '@/features/push/AdminPushBanner';
 import { Button } from '@/shared/ui/Button';
 import { Modal } from '@/shared/ui/Modal';
 
@@ -99,6 +100,8 @@ export function AdminUsersPage() {
         </Link>
         <h1 className="admin-page__title">Пользователи</h1>
       </header>
+
+      <AdminPushBanner />
 
       <div className="admin-page__tabs" role="tablist">
         <button

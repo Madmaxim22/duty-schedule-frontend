@@ -2104,6 +2104,41 @@ body {
   padding: 32px;
 }
 
+.admin-push {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.admin-push--muted {
+  opacity: 0.9;
+}
+
+.admin-push__text {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.admin-push__hint {
+  margin: 0 0 8px;
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+}
+
+.admin-push__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-push__actions .btn {
+  flex: 1;
+  min-width: 160px;
+}
+
 .admin-page__tabs {
   display: flex;
   gap: 8px;

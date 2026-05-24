@@ -105,7 +105,7 @@ npm run dev
 | `/login` | все | Вход |
 | `/register` | все | Регистрация |
 | `/` | авторизован | Календарь + модалка дня |
-| `/admin/users` | admin | Заявки, список учётных записей, удаление |
+| `/admin/users` | admin | Заявки, список учётных записей, удаление; **Web Push** о новых заявках |
 | `/admin/import` | admin | Импорт графика из JSON |
 | `/admin/changes` | admin | Журнал последних изменений дежурств |
 | `/admin/schedule/:date` | admin | Назначение дежурных на дату (`YYYY-MM-DD`) |
@@ -122,6 +122,12 @@ npm run dev
 
 **Секция 1:** 51, 52 (обяз.), 53, 54 (необяз.)  
 **Секция 2:** 31, 32, 33 (обяз.), 34 (необяз.)
+
+## Web Push (админ)
+
+На `/admin/users` — кнопка **Включить уведомления**. Нужны VAPID-ключи в backend `.env` и HTTPS (production). Service worker: `public/sw.js`, manifest: `public/manifest.webmanifest`.
+
+Подробнее: [корневой README — Web Push](../README.md#web-push-для-администратора).
 
 ## Доступ с телефона
 
