@@ -162,7 +162,11 @@ export type UploadPhotoResponse = {
 /** @deprecated Use PhotoLikeStatus */
 export type AvatarLikeStatus = PhotoLikeStatus;
 
-export type NotificationType = 'photo_like' | 'duty_change' | 'user_registration';
+export type NotificationType =
+  | 'photo_like'
+  | 'duty_change'
+  | 'user_registration'
+  | 'support_message';
 
 export type NotificationPayload = {
   dutyDate?: string;
@@ -172,6 +176,61 @@ export type NotificationPayload = {
   source?: DutyChangeSource;
   photoId?: string;
   userId?: string;
+  threadId?: string;
+};
+
+export type SupportThreadStatus = 'open' | 'closed';
+
+export type SupportThreadSummary = {
+  id: string;
+  status: SupportThreadStatus;
+  createdAt: string;
+  updatedAt: string;
+  author: {
+    id: string;
+    fullName: string;
+    avatarUrl: string | null;
+  };
+  lastMessagePreview: string | null;
+  lastMessageAt: string | null;
+};
+
+export type SupportMessageAuthor = {
+  id: string;
+  fullName: string;
+  avatarUrl: string | null;
+  role: UserRole;
+};
+
+export type SupportMessage = {
+  id: string;
+  body: string;
+  createdAt: string;
+  author: SupportMessageAuthor;
+};
+
+export type SupportThreadDetail = {
+  id: string;
+  status: SupportThreadStatus;
+  createdAt: string;
+  updatedAt: string;
+  author: SupportMessageAuthor;
+};
+
+export type SupportThreadsResponse = {
+  threads: SupportThreadSummary[];
+};
+
+export type SupportThreadResponse = {
+  thread: SupportThreadDetail;
+  messages: SupportMessage[];
+};
+
+export type CreateSupportThreadResponse = {
+  thread: Omit<SupportThreadDetail, 'author'> & {
+    author: { id: string; fullName: string; avatarUrl: string | null };
+  };
+  messages: SupportMessage[];
 };
 
 export type NotificationItem = {

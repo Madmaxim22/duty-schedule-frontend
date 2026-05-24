@@ -306,9 +306,21 @@ export function HomePage() {
                 ) : null}
               </Link>
             </li>
+            {!isAdmin ? (
+              <li>
+                <Link to="/support" className="side-menu__action" onClick={closeMenu}>
+                  Обращения
+                </Link>
+              </li>
+            ) : null}
           </ul>
           {isAdmin ? (
             <ul className="side-menu__actions">
+              <li>
+                <Link to="/admin/support" className="side-menu__action" onClick={closeMenu}>
+                  Обращения пользователей
+                </Link>
+              </li>
               <li>
                 <Link to="/admin/users" className="side-menu__action" onClick={closeMenu}>
                   Пользователи

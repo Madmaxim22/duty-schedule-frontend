@@ -3165,3 +3165,240 @@ body {
 .pwa-install__ios-icon {
   font-size: 1.1em;
 }
+
+.support-page {
+  padding: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100%;
+}
+
+.support-page__toolbar {
+  margin-bottom: 16px;
+}
+
+.support-page__toolbar .btn {
+  width: 100%;
+}
+
+.support-page__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.support-page__card {
+  display: block;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  border: 1px solid var(--color-input-border);
+  text-decoration: none;
+  color: inherit;
+}
+
+.support-page__card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+}
+
+.support-page__card-head--admin {
+  align-items: flex-start;
+}
+
+.support-page__card-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.support-page__author-name {
+  margin: 0 0 4px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.support-page__preview {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.support-page__empty {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+
+.support-page__status {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.support-page__status--open {
+  background: var(--color-status-approved-bg);
+  color: var(--color-status-approved-text);
+}
+
+.support-page__status--closed {
+  background: var(--color-muted-bg);
+  color: var(--color-muted);
+}
+
+.support-page__create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.support-page__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.support-page__textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font: inherit;
+  resize: vertical;
+  min-height: 120px;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.support-thread-page {
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100%;
+  padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+.support-thread-page .subpage-header {
+  flex-shrink: 0;
+}
+
+.support-thread-page__messages {
+  flex: 1;
+  list-style: none;
+  margin: 0;
+  padding: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  min-height: 200px;
+}
+
+.support-thread-page__message {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.support-thread-page__message--mine {
+  flex-direction: row-reverse;
+}
+
+.support-thread-page__bubble {
+  max-width: 85%;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--color-muted-bg);
+}
+
+.support-thread-page__message--mine .support-thread-page__bubble {
+  background: var(--color-darkest);
+  color: var(--color-surface);
+}
+
+.support-thread-page__message--mine .support-thread-page__author,
+.support-thread-page__message--mine .support-thread-page__time {
+  color: var(--color-surface);
+  opacity: 0.85;
+}
+
+.support-thread-page__message--admin:not(.support-thread-page__message--mine) .support-thread-page__bubble {
+  border: 1px solid var(--color-input-border);
+}
+
+.support-thread-page__author {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.support-thread-page__body {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.support-thread-page__time {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.6875rem;
+  color: var(--color-muted);
+}
+
+.support-thread-page__admin-actions {
+  margin-bottom: 12px;
+}
+
+.support-thread-page__admin-actions .btn {
+  width: 100%;
+}
+
+.support-thread-page__closed-hint {
+  margin: 0 0 16px;
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.support-thread-page__composer {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-input-border);
+}
+
+.support-thread-page__input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  font: inherit;
+  resize: none;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.support-thread-page__composer .btn {
+  width: 100%;
+}

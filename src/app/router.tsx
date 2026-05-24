@@ -13,6 +13,10 @@ import { AdminChangesPage } from '@/pages/AdminChangesPage';
 import { AdminStatisticsPage } from '@/pages/AdminStatisticsPage';
 import { NotificationsPage } from '@/pages/NotificationsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
+import { SupportPage } from '@/pages/SupportPage';
+import { SupportThreadPage } from '@/pages/SupportThreadPage';
+import { AdminSupportPage } from '@/pages/AdminSupportPage';
+import { AdminSupportThreadPage } from '@/pages/AdminSupportThreadPage';
 
 export function AppRouter() {
   return (
@@ -26,8 +30,12 @@ export function AppRouter() {
               <Route path="/" element={<HomePage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/support" element={<SupportPage />} />
+              <Route path="/support/:threadId" element={<SupportThreadPage />} />
               <Route element={<AdminRoute />}>
                 <Route path="/admin/users" element={<AdminUsersPage />} />
+                <Route path="/admin/support" element={<AdminSupportPage />} />
+                <Route path="/admin/support/:threadId" element={<AdminSupportThreadPage />} />
                 <Route path="/admin/import" element={<AdminImportPage />} />
                 <Route path="/admin/changes" element={<AdminChangesPage />} />
                 <Route path="/admin/statistics" element={<AdminStatisticsPage />} />

@@ -29,6 +29,9 @@ function notificationMeta(item: NotificationItem): string | null {
   if (item.type === 'user_registration') {
     return 'Регистрация';
   }
+  if (item.type === 'support_message') {
+    return 'Обращение';
+  }
   if (item.type === 'photo_like') {
     return 'Лайк';
   }
@@ -78,6 +81,15 @@ export function NotificationsPage() {
 
     if (item.type === 'user_registration' && isAdmin) {
       navigate('/admin/users');
+      return;
+    }
+
+    if (item.type === 'support_message' && item.payload?.threadId) {
+      if (isAdmin) {
+        navigate(`/admin/support/${item.payload.threadId}`);
+      } else {
+        navigate(`/support/${item.payload.threadId}`);
+      }
       return;
     }
 
