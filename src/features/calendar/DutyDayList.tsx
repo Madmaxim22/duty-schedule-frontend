@@ -125,7 +125,11 @@ export function DutyDayList({
 
   useLayoutEffect(() => {
     if (!isCurrentMonth) return;
-    todayRef.current?.scrollIntoView({ block: 'center' });
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    todayRef.current?.scrollIntoView({
+      block: 'center',
+      behavior: reducedMotion ? 'instant' : 'auto',
+    });
   }, [isCurrentMonth, month]);
 
   return (
@@ -150,6 +154,7 @@ export function DutyDayList({
                 className={rowClass}
                 onClick={() => onSelectDate(row.date)}
                 aria-pressed={selectedDate === row.date}
+                aria-label={`${row.dayNum}, ${row.weekday}: открыть день`}
               >
                 <span className="duty-day-list__date">
                   <span className="duty-day-list__day-num">{row.dayNum}</span>

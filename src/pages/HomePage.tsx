@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { fetchUnreadNotificationsCount } from '@/shared/api/notifications';
 import { apiRequest } from '@/shared/api/client';
 import type { MonthSchedule } from '@/shared/api/types';
@@ -73,11 +73,22 @@ export function HomePage() {
 
   const isAdmin = user?.role === 'admin';
 
-  const { data, isLoading } = useQuery({
+  const scheduleQuery = useQuery({
     queryKey: ['schedule', 'month', year, monthNum],
     queryFn: () =>
       apiRequest<MonthSchedule>(`/schedule/month?year=${year}&month=${monthNum}`),
+    placeholderData: keepPreviousData,
   });
+
+  const scheduleData = scheduleQuery.data;
+  const showInitialScheduleLoading = scheduleQuery.isLoading && !scheduleData;
+  const isScheduleRefreshing =
+    scheduleQuery.isFetching && !showInitialScheduleLoading;
+  const scheduleStatusMessage = showInitialScheduleLoading
+    ? 'Загрузка календаря…'
+    : isScheduleRefreshing
+      ? 'Обновление расписания…'
+      : '';
 
   const unreadNotifications = useQuery({
     queryKey: ['notifications', 'unread-count'],
@@ -174,33 +185,66 @@ export function HomePage() {
         />
       </div>
 
-      {isLoading ? <p className="page-loading">Загрузка календаря…</p> : null}
+      <div
+        className="home-page__schedule"
+        aria-busy={scheduleQuery.isFetching || undefined}
+      >
+        <p className="visually-hidden" aria-live="polite">
+          {scheduleStatusMessage}
+        </p>
 
-      {!isLoading && scheduleView === 'grid' ? (
-        <DutyCalendar
-          month={month}
-          onMonthChange={(m) => setMonth(new Date(m.getFullYear(), m.getMonth(), 1))}
-          days={data?.days ?? []}
-          highlightMyDuty={!isAdmin}
-          incompleteDates={isAdmin ? data?.monthCoverage?.incompleteDates : undefined}
-          selectedDate={selectedDate}
-          onSelectDate={setSelectedDate}
-        />
-      ) : null}
+        {showInitialScheduleLoading ? (
+          <p className="page-loading home-page__schedule-placeholder">
+            Загрузка календаря…
+          </p>
+        ) : null}
 
-      {!isLoading && scheduleView === 'list' ? (
-        <DutyDayList
-          month={month}
-          onMonthChange={setMonth}
-          days={data?.days ?? []}
-          highlightMyDuty={!isAdmin}
-          incompleteDates={isAdmin ? data?.monthCoverage?.incompleteDates : undefined}
-          selectedDate={selectedDate}
-          onSelectDate={setSelectedDate}
-          onDutyProfile={handleDutyProfile}
-          onAvatarPreview={setAvatarPreview}
-        />
-      ) : null}
+        {!showInitialScheduleLoading && scheduleView === 'grid' ? (
+          <div
+            className={
+              isScheduleRefreshing
+                ? 'home-page__schedule-view home-page__schedule-view--loading'
+                : 'home-page__schedule-view'
+            }
+          >
+            <DutyCalendar
+              month={month}
+              onMonthChange={(m) => setMonth(new Date(m.getFullYear(), m.getMonth(), 1))}
+              days={scheduleData?.days ?? []}
+              highlightMyDuty={!isAdmin}
+              incompleteDates={
+                isAdmin ? scheduleData?.monthCoverage?.incompleteDates : undefined
+              }
+              selectedDate={selectedDate}
+              onSelectDate={setSelectedDate}
+            />
+          </div>
+        ) : null}
+
+        {!showInitialScheduleLoading && scheduleView === 'list' ? (
+          <div
+            className={
+              isScheduleRefreshing
+                ? 'home-page__schedule-view home-page__schedule-view--loading'
+                : 'home-page__schedule-view'
+            }
+          >
+            <DutyDayList
+              month={month}
+              onMonthChange={setMonth}
+              days={scheduleData?.days ?? []}
+              highlightMyDuty={!isAdmin}
+              incompleteDates={
+                isAdmin ? scheduleData?.monthCoverage?.incompleteDates : undefined
+              }
+              selectedDate={selectedDate}
+              onSelectDate={setSelectedDate}
+              onDutyProfile={handleDutyProfile}
+              onAvatarPreview={setAvatarPreview}
+            />
+          </div>
+        ) : null}
+      </div>
 
       <p className="home-page__legend">
         {!isAdmin ? (
@@ -213,9 +257,14 @@ export function HomePage() {
             </span>
           </>
         ) : (
-          <span className="home-page__legend-item home-page__legend-item--incomplete">
-            Не заполнен
-          </span>
+          <>
+            <span className="home-page__legend-item home-page__legend-item--incomplete">
+              Не заполнен
+            </span>
+            <span className="home-page__legend-item home-page__legend-item--absent">
+              Отсутствие
+            </span>
+          </>
         )}
       </p>
 
