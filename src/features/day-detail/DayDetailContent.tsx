@@ -2,9 +2,15 @@ import type { DaySchedule } from '@/shared/api/types';
 import { formatSurnameWithInitials } from '@/shared/lib/formatName';
 import { Avatar } from '@/shared/ui/Avatar';
 
+export type AvatarPreviewUser = {
+  fullName: string;
+  avatarUrl: string;
+};
+
 type Props = {
   data: DaySchedule;
   isAdmin?: boolean;
+  onAvatarPreview?: (user: AvatarPreviewUser) => void;
 };
 
 function itemClassName(isAdmin: boolean, mandatory: boolean, filled: boolean) {
@@ -15,7 +21,7 @@ function itemClassName(isAdmin: boolean, mandatory: boolean, filled: boolean) {
     : 'day-detail__item day-detail__item--empty';
 }
 
-export function DayDetailContent({ data, isAdmin = false }: Props) {
+export function DayDetailContent({ data, isAdmin = false, onAvatarPreview }: Props) {
   const sections = data.sections
     .map((section) => ({
       ...section,
@@ -47,11 +53,31 @@ export function DayDetailContent({ data, isAdmin = false }: Props) {
                 <span className="day-detail__person">
                   {office.user ? (
                     <>
-                      <Avatar
-                        fullName={office.user.fullName}
-                        avatarUrl={office.user.avatarUrl}
-                        className="day-detail__avatar"
-                      />
+                      {office.user.avatarUrl && onAvatarPreview ? (
+                        <button
+                          type="button"
+                          className="day-detail__avatar-btn"
+                          aria-label={`Показать фото: ${office.user.fullName}`}
+                          onClick={() =>
+                            onAvatarPreview({
+                              fullName: office.user!.fullName,
+                              avatarUrl: office.user!.avatarUrl!,
+                            })
+                          }
+                        >
+                          <Avatar
+                            fullName={office.user.fullName}
+                            avatarUrl={office.user.avatarUrl}
+                            className="day-detail__avatar"
+                          />
+                        </button>
+                      ) : (
+                        <Avatar
+                          fullName={office.user.fullName}
+                          avatarUrl={office.user.avatarUrl}
+                          className="day-detail__avatar"
+                        />
+                      )}
                       {formatSurnameWithInitials(office.user.fullName)}
                     </>
                   ) : (

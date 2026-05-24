@@ -6,13 +6,21 @@ type Props = {
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
+  closeOnEscape?: boolean;
 };
 
-export function Modal({ open, title, onClose, children, footer }: Props) {
+export function Modal({
+  open,
+  title,
+  onClose,
+  children,
+  footer,
+  closeOnEscape = true,
+}: Props) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && closeOnEscape) onClose();
     };
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
@@ -20,7 +28,7 @@ export function Modal({ open, title, onClose, children, footer }: Props) {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
     };
-  }, [open, onClose]);
+  }, [open, onClose, closeOnEscape]);
 
   if (!open) return null;
 

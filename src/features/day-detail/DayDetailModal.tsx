@@ -1,10 +1,12 @@
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { apiRequest } from '@/shared/api/client';
 import type { DaySchedule } from '@/shared/api/types';
 import { Modal } from '@/shared/ui/Modal';
 import { Button } from '@/shared/ui/Button';
-import { DayDetailContent } from './DayDetailContent';
+import { AvatarPreviewModal } from './AvatarPreviewModal';
+import { DayDetailContent, type AvatarPreviewUser } from './DayDetailContent';
 import { useAuth } from '@/features/auth/AuthContext';
 
 type Props = {
@@ -24,6 +26,11 @@ function formatTitle(dateStr: string) {
 export function DayDetailModal({ date, onClose }: Props) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [previewUser, setPreviewUser] = useState<AvatarPreviewUser | null>(null);
+
+  useEffect(() => {
+    if (!date) setPreviewUser(null);
+  }, [date]);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['schedule', 'day', date],
@@ -45,15 +52,32 @@ export function DayDetailModal({ date, onClose }: Props) {
     ) : undefined;
 
   return (
-    <Modal
-      open={Boolean(date)}
-      title={date ? formatTitle(date) : ''}
-      onClose={onClose}
-      footer={footer}
-    >
-      {isLoading ? <p>Загрузка…</p> : null}
-      {error ? <p className="form-message form-message--error">{(error as Error).message}</p> : null}
-      {data ? <DayDetailContent data={data} isAdmin={user?.role === 'admin'} /> : null}
-    </Modal>
+    <>
+      <Modal
+        open={Boolean(date)}
+        title={date ? formatTitle(date) : ''}
+        onClose={onClose}
+        closeOnEscape={!previewUser}
+        footer={footer}
+      >
+        {isLoading ? <p>Загрузка…</p> : null}
+        {error ? (
+          <p className="form-message form-message--error">{(error as Error).message}</p>
+        ) : null}
+        {data ? (
+          <DayDetailContent
+            data={data}
+            isAdmin={user?.role === 'admin'}
+            onAvatarPreview={setPreviewUser}
+          />
+        ) : null}
+      </Modal>
+      <AvatarPreviewModal
+        open={Boolean(previewUser)}
+        fullName={previewUser?.fullName ?? ''}
+        avatarUrl={previewUser?.avatarUrl ?? null}
+        onClose={() => setPreviewUser(null)}
+      />
+    </>
   );
 }
