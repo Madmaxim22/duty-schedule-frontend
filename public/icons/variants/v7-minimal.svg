@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="ios-bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#8e9eab"/>
+      <stop offset="100%" stop-color="#5c6b7a"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#ios-bg)"/>
+  <rect x="128" y="148" width="256" height="220" rx="28" fill="#ffffff" opacity="0.95"/>
+  <rect x="128" y="148" width="256" height="52" rx="28" fill="#e8ecf0"/>
+  <circle cx="188" cy="174" r="8" fill="#c5cdd6"/>
+  <circle cx="324" cy="174" r="8" fill="#c5cdd6"/>
+  <rect x="156" y="224" width="48" height="40" rx="10" fill="#007aff"/>
+  <rect x="232" y="224" width="48" height="40" rx="10" fill="#e8ecf0"/>
+  <rect x="308" y="224" width="48" height="40" rx="10" fill="#e8ecf0"/>
+  <rect x="156" y="284" width="48" height="40" rx="10" fill="#e8ecf0"/>
+  <rect x="232" y="284" width="48" height="40" rx="10" fill="#e8ecf0"/>
+  <rect x="308" y="284" width="48" height="40" rx="10" fill="#e8ecf0"/>
+  <rect x="156" y="344" width="48" height="40" rx="10" fill="#e8ecf0"/>
+  <rect x="232" y="344" width="48" height="40" rx="10" fill="#e8ecf0"/>
+  <rect x="308" y="344" width="48" height="40" rx="10" fill="#e8ecf0"/>
+</svg>

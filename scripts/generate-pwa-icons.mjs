@@ -13,12 +13,21 @@ const root = path.join(__dirname, '..');
 const variantsDir = path.join(root, 'public', 'icons', 'variants');
 const outBase = path.join(variantsDir, 'generated');
 
+/** Растровые (AI) — обновлять через npm run icons:import-raster */
+const RASTER_VARIANT_IDS = new Set(['v9-vice', 'v10-matrix', 'v11-wizard']);
+
 const VARIANTS = [
   { id: 'v1-calendar', file: 'v1-calendar.svg', maskableBg: '#4f46e5', themeColor: '#4f46e5' },
   { id: 'v2-teal', file: 'v2-teal.svg', maskableBg: '#0d9488', themeColor: '#0d9488' },
   { id: 'v3-dark', file: 'v3-dark.svg', maskableBg: '#0f172a', themeColor: '#0f172a' },
   { id: 'v4-shield', file: 'v4-shield.svg', maskableBg: '#4f46e5', themeColor: '#4f46e5' },
   { id: 'v5-monogram', file: 'v5-monogram.svg', maskableBg: '#4f46e5', themeColor: '#4f46e5' },
+  { id: 'v6-wasteland', file: 'v6-wasteland.svg', maskableBg: '#3d2914', themeColor: '#3d2914' },
+  { id: 'v7-minimal', file: 'v7-minimal.svg', maskableBg: '#5c6b7a', themeColor: '#5c6b7a' },
+  { id: 'v8-material', file: 'v8-material.svg', maskableBg: '#4285f4', themeColor: '#4285f4' },
+  { id: 'v9-vice', file: 'v9-vice.svg', maskableBg: '#c850c0', themeColor: '#c850c0' },
+  { id: 'v10-matrix', file: 'v10-matrix.svg', maskableBg: '#0a0f0a', themeColor: '#0a0f0a' },
+  { id: 'v11-wizard', file: 'v11-wizard.svg', maskableBg: '#2d1b4e', themeColor: '#2d1b4e' },
 ];
 
 const manifestsDir = path.join(root, 'public', 'manifests');
@@ -91,6 +100,11 @@ async function main() {
   await fs.mkdir(manifestsDir, { recursive: true });
 
   for (const variant of VARIANTS) {
+    if (RASTER_VARIANT_IDS.has(variant.id)) {
+      console.log(`○ ${variant.id} (растр — пропуск, см. icons:import-raster)`);
+      continue;
+    }
+
     const svgPath = path.join(variantsDir, variant.file);
     const outDir = path.join(outBase, variant.id);
     await fs.mkdir(outDir, { recursive: true });

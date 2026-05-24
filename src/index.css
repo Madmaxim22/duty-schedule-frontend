@@ -2589,7 +2589,7 @@ body {
 
 .icon-picker {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
   gap: 10px;
   margin-bottom: 20px;
 }

@@ -10,7 +10,8 @@
     "dev:https:host": "vite --host --mode https",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "icons:generate": "node scripts/generate-pwa-icons.mjs"
+    "icons:generate": "node scripts/generate-pwa-icons.mjs",
+    "icons:import-raster": "node scripts/import-raster-pwa-icons.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0a0f0a"/>
+  <g fill="#00ff41" opacity="0.35" font-family="monospace" font-size="28">
+    <text x="24" y="48">101</text><text x="24" y="88">011</text><text x="24" y="128">110</text>
+    <text x="24" y="168">001</text><text x="24" y="208">101</text><text x="24" y="248">010</text>
+    <text x="24" y="288">111</text><text x="24" y="328">001</text><text x="24" y="368">100</text>
+    <text x="24" y="408">011</text><text x="24" y="448">110</text>
+    <text x="420" y="48">010</text><text x="420" y="88">111</text><text x="420" y="128">001</text>
+    <text x="420" y="168">100</text><text x="420" y="208">011</text><text x="420" y="248">101</text>
+    <text x="420" y="288">000</text><text x="420" y="328">110</text><text x="420" y="368">010</text>
+    <text x="420" y="408">101</text><text x="420" y="448">001</text>
+  </g>
+  <rect x="108" y="120" width="296" height="272" rx="12" fill="#0d1a0d" stroke="#00ff41" stroke-width="6"/>
+  <rect x="108" y="120" width="296" height="48" fill="#003b00"/>
+  <rect x="136" y="192" width="56" height="44" rx="4" fill="#00ff41" opacity="0.95"/>
+  <rect x="228" y="192" width="56" height="44" rx="4" fill="#00cc33" opacity="0.4"/>
+  <rect x="320" y="192" width="56" height="44" rx="4" fill="#00cc33" opacity="0.4"/>
+  <rect x="136" y="256" width="56" height="44" rx="4" fill="#00cc33" opacity="0.35"/>
+  <rect x="228" y="256" width="56" height="44" rx="4" fill="#00ff41" opacity="0.7"/>
+  <rect x="320" y="256" width="56" height="44" rx="4" fill="#00cc33" opacity="0.35"/>
+  <rect x="136" y="320" width="56" height="44" rx="4" fill="#00cc33" opacity="0.3"/>
+  <rect x="228" y="320" width="56" height="44" rx="4" fill="#00cc33" opacity="0.3"/>
+  <rect x="320" y="320" width="56" height="44" rx="4" fill="#00cc33" opacity="0.3"/>
+  <path d="M256 96 L268 132 H244 Z" fill="#00ff41" opacity="0.8"/>
+</svg>
