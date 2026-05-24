@@ -180,6 +180,7 @@ export function HomePage() {
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
           onDutyProfile={handleDutyProfile}
+          onAvatarPreview={setAvatarPreview}
         />
       ) : null}
 

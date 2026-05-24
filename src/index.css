@@ -1143,11 +1143,51 @@ body {
 
 .duty-day-list__shift {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--color-text);
+}
+
+.duty-day-list__person {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.duty-day-list__avatar.avatar--sm {
+  width: 28px;
+  height: 28px;
+  font-size: 0.65rem;
+  flex-shrink: 0;
+}
+
+.duty-day-list__avatar-btn {
+  display: inline-flex;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.duty-day-list__avatar-btn:hover .duty-day-list__avatar.avatar--image {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.duty-day-list__avatar-btn:focus-visible {
+  outline: 2px solid var(--color-darkest);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+.duty-day-list__name {
+  min-width: 0;
 }
 
 .duty-day-list__name-btn {

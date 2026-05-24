@@ -1,7 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo, type MouseEvent } from 'react';
 import type { MonthDay, MonthDayDuty } from '@/shared/api/types';
-import { formatSurnameWithInitials } from '@/shared/lib/formatName';
+import {
+  toAvatarPreviewUser,
+  type AvatarPreviewUser,
+} from '@/features/day-detail/avatarPreviewUser';
 import type { DutyProfileTarget } from '@/features/profile/dutyProfileTarget';
+import { formatSurnameWithInitials } from '@/shared/lib/formatName';
+import { Avatar } from '@/shared/ui/Avatar';
 import { buildMonthRows } from './buildMonthRows';
 import { ScheduleMonthNav } from './ScheduleMonthNav';
 
@@ -14,38 +19,78 @@ type Props = {
   selectedDate: string | null;
   onSelectDate: (date: string) => void;
   onDutyProfile?: (target: DutyProfileTarget) => void;
+  onAvatarPreview?: (user: AvatarPreviewUser) => void;
 };
 
-function DutyName({
+function DutyPerson({
   duty,
   onDutyProfile,
+  onAvatarPreview,
 }: {
   duty: MonthDayDuty;
   onDutyProfile?: (target: DutyProfileTarget) => void;
+  onAvatarPreview?: (user: AvatarPreviewUser) => void;
 }) {
+  const preview = toAvatarPreviewUser({
+    id: duty.userId,
+    fullName: duty.fullName,
+    avatarUrl: duty.avatarUrl,
+    currentPhotoId: duty.currentPhotoId,
+  });
   const label = formatSurnameWithInitials(duty.fullName);
 
-  if (!onDutyProfile) {
-    return <span className="duty-day-list__name">{label}</span>;
-  }
+  const openPreview = (e: MouseEvent) => {
+    e.stopPropagation();
+    if (preview && onAvatarPreview) onAvatarPreview(preview);
+  };
+
+  const openProfile = (e: MouseEvent) => {
+    e.stopPropagation();
+    if (onDutyProfile) {
+      onDutyProfile({
+        userId: duty.userId,
+        fullName: duty.fullName,
+        avatarUrl: duty.avatarUrl,
+        currentPhotoId: duty.currentPhotoId,
+      });
+    }
+  };
+
+  const avatar = (
+    <Avatar
+      fullName={duty.fullName}
+      avatarUrl={duty.avatarUrl}
+      className="duty-day-list__avatar"
+    />
+  );
 
   return (
-    <button
-      type="button"
-      className="duty-day-list__name-btn"
-      aria-label={`Профиль: ${duty.fullName}`}
-      onClick={(e) => {
-        e.stopPropagation();
-        onDutyProfile({
-          userId: duty.userId,
-          fullName: duty.fullName,
-          avatarUrl: duty.avatarUrl,
-          currentPhotoId: duty.currentPhotoId,
-        });
-      }}
-    >
-      {label}
-    </button>
+    <span className="duty-day-list__person">
+      {preview && onAvatarPreview ? (
+        <button
+          type="button"
+          className="duty-day-list__avatar-btn"
+          aria-label={`Показать фото: ${duty.fullName}`}
+          onClick={openPreview}
+        >
+          {avatar}
+        </button>
+      ) : (
+        avatar
+      )}
+      {onDutyProfile ? (
+        <button
+          type="button"
+          className="duty-day-list__name-btn"
+          aria-label={`Профиль: ${duty.fullName}`}
+          onClick={openProfile}
+        >
+          {label}
+        </button>
+      ) : (
+        <span className="duty-day-list__name">{label}</span>
+      )}
+    </span>
   );
 }
 
@@ -58,6 +103,7 @@ export function DutyDayList({
   selectedDate,
   onSelectDate,
   onDutyProfile,
+  onAvatarPreview,
 }: Props) {
   const rows = useMemo(
     () => buildMonthRows(month, days, incompleteDates),
@@ -100,7 +146,11 @@ export function DutyDayList({
                         key={`${duty.section}-${duty.office}`}
                         className="duty-day-list__shift"
                       >
-                        <DutyName duty={duty} onDutyProfile={onDutyProfile} />
+                        <DutyPerson
+                          duty={duty}
+                          onDutyProfile={onDutyProfile}
+                          onAvatarPreview={onAvatarPreview}
+                        />
                         <span className="duty-day-list__office">каб. {duty.office}</span>
                       </span>
                     ))
