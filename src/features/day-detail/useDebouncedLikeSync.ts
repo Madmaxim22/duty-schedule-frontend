@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { likeAvatar, unlikeAvatar } from '@/shared/api/client';
-import type { AvatarLikeStatus } from '@/shared/api/types';
+import { likePhoto, unlikePhoto } from '@/shared/api/client';
+import type { PhotoLikeStatus } from '@/shared/api/types';
 
 const DEBOUNCE_MS = 400;
 
@@ -10,17 +10,17 @@ type ServerSnapshot = {
 };
 
 type Options = {
-  targetUserId: string | undefined;
+  photoId: string | undefined;
   open: boolean;
   canLike: boolean;
   serverLiked: boolean;
   serverCount: number;
-  onSynced: (status: AvatarLikeStatus) => void;
+  onSynced: (status: PhotoLikeStatus) => void;
   onLikedBurst: () => void;
 };
 
 export function useDebouncedLikeSync({
-  targetUserId,
+  photoId,
   open,
   canLike,
   serverLiked,
@@ -41,7 +41,7 @@ export function useDebouncedLikeSync({
       setLocalLiked(serverLiked);
       serverRef.current = { liked: serverLiked, count: serverCount };
     }
-  }, [open, targetUserId, serverLiked, serverCount]);
+  }, [open, photoId, serverLiked, serverCount]);
 
   const displayCount = Math.max(
     0,
@@ -50,7 +50,7 @@ export function useDebouncedLikeSync({
   );
 
   const flush = useCallback(async () => {
-    if (!targetUserId || !canLike || syncingRef.current) return;
+    if (!photoId || !canLike || syncingRef.current) return;
 
     const local = localLikedRef.current;
     const server = serverRef.current;
@@ -58,9 +58,7 @@ export function useDebouncedLikeSync({
 
     syncingRef.current = true;
     try {
-      const data = local
-        ? await likeAvatar(targetUserId)
-        : await unlikeAvatar(targetUserId);
+      const data = local ? await likePhoto(photoId) : await unlikePhoto(photoId);
 
       serverRef.current = { liked: data.likedByMe, count: data.likeCount };
       setLocalLiked(data.likedByMe);
@@ -74,7 +72,7 @@ export function useDebouncedLikeSync({
     } finally {
       syncingRef.current = false;
     }
-  }, [targetUserId, canLike, onSynced, onLikedBurst]);
+  }, [photoId, canLike, onSynced, onLikedBurst]);
 
   const scheduleSync = useCallback(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);

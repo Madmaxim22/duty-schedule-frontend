@@ -4,6 +4,7 @@ import { Avatar } from '@/shared/ui/Avatar';
 
 export type AvatarPreviewUser = {
   targetUserId: string;
+  photoId: string;
   fullName: string;
   avatarUrl: string;
 };
@@ -54,7 +55,9 @@ export function DayDetailContent({ data, isAdmin = false, onAvatarPreview }: Pro
                 <span className="day-detail__person">
                   {office.user ? (
                     <>
-                      {office.user.avatarUrl && onAvatarPreview ? (
+                      {office.user.avatarUrl &&
+                      office.user.currentPhotoId &&
+                      onAvatarPreview ? (
                         <button
                           type="button"
                           className="day-detail__avatar-btn"
@@ -62,6 +65,7 @@ export function DayDetailContent({ data, isAdmin = false, onAvatarPreview }: Pro
                           onClick={() =>
                             onAvatarPreview({
                               targetUserId: office.user!.id,
+                              photoId: office.user!.currentPhotoId!,
                               fullName: office.user!.fullName,
                               avatarUrl: office.user!.avatarUrl!,
                             })

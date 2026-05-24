@@ -1,4 +1,4 @@
-import type { AvatarLikeStatus, User } from '@/shared/api/types';
+import type { PhotoLikeStatus, UploadPhotoResponse, User, UserPhotosResponse } from '@/shared/api/types';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api';
 
@@ -81,7 +81,7 @@ export async function apiUpload<T>(
 }
 
 export async function uploadAvatar(file: File): Promise<User> {
-  const data = await apiUpload<{ user: User }>('/auth/me/avatar', 'avatar', file);
+  const data = await uploadPhoto(file, true);
   return data.user;
 }
 
@@ -90,16 +90,38 @@ export async function deleteAvatar(): Promise<User> {
   return data.user;
 }
 
-export function getAvatarLikeStatus(targetUserId: string): Promise<AvatarLikeStatus> {
-  return apiRequest<AvatarLikeStatus>(`/avatar-likes/${targetUserId}`);
+export function listMyPhotos(): Promise<UserPhotosResponse> {
+  return apiRequest<UserPhotosResponse>('/users/me/photos');
 }
 
-export function likeAvatar(targetUserId: string): Promise<AvatarLikeStatus> {
-  return apiRequest<AvatarLikeStatus>(`/avatar-likes/${targetUserId}`, { method: 'POST' });
+export async function uploadPhoto(file: File, setAsCurrent = true): Promise<UploadPhotoResponse> {
+  const form = new FormData();
+  form.append('photo', file);
+  const q = setAsCurrent ? '' : '?setAsCurrent=false';
+  const response = await fetchWithAuth(`/users/me/photos${q}`, { method: 'POST', body: form });
+  return parseResponse<UploadPhotoResponse>(response);
 }
 
-export function unlikeAvatar(targetUserId: string): Promise<AvatarLikeStatus> {
-  return apiRequest<AvatarLikeStatus>(`/avatar-likes/${targetUserId}`, { method: 'DELETE' });
+export function deletePhoto(photoId: string): Promise<{ user: User }> {
+  return apiRequest<{ user: User }>(`/users/me/photos/${photoId}`, { method: 'DELETE' });
+}
+
+export function setCurrentPhoto(photoId: string): Promise<{ user: User }> {
+  return apiRequest<{ user: User }>(`/users/me/photos/${photoId}/set-current`, {
+    method: 'POST',
+  });
+}
+
+export function getPhotoLikeStatus(photoId: string): Promise<PhotoLikeStatus> {
+  return apiRequest<PhotoLikeStatus>(`/photos/${photoId}/likes`);
+}
+
+export function likePhoto(photoId: string): Promise<PhotoLikeStatus> {
+  return apiRequest<PhotoLikeStatus>(`/photos/${photoId}/likes`, { method: 'POST' });
+}
+
+export function unlikePhoto(photoId: string): Promise<PhotoLikeStatus> {
+  return apiRequest<PhotoLikeStatus>(`/photos/${photoId}/likes`, { method: 'DELETE' });
 }
 
 async function tryRefresh(): Promise<boolean> {

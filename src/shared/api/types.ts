@@ -8,6 +8,7 @@ export type User = {
   role: UserRole;
   status: UserStatus;
   avatarUrl: string | null;
+  currentPhotoId: string | null;
 };
 
 export type MonthDayDuty = {
@@ -40,7 +41,12 @@ export type DaySlot = {
   section: 'A' | 'B';
   office: string;
   mandatory: boolean;
-  user: { id: string; fullName: string; avatarUrl: string | null } | null;
+  user: {
+    id: string;
+    fullName: string;
+    avatarUrl: string | null;
+    currentPhotoId: string | null;
+  } | null;
 };
 
 export type DaySchedule = {
@@ -92,8 +98,31 @@ export type DutyChangesResponse = {
   nextCursor: string | null;
 };
 
-export type AvatarLikeStatus = {
+export type PhotoLikeStatus = {
   likeCount: number;
   likedByMe: boolean;
   canLike: boolean;
 };
+
+export type UserPhoto = {
+  id: string;
+  url: string;
+  isCurrent: boolean;
+  createdAt: string;
+  likeCount: number;
+  likedByMe: boolean;
+};
+
+export type UserPhotosResponse = {
+  photos: UserPhoto[];
+  count: number;
+  maxPhotos: number;
+};
+
+export type UploadPhotoResponse = {
+  photo: UserPhoto;
+  user: User;
+};
+
+/** @deprecated Use PhotoLikeStatus */
+export type AvatarLikeStatus = PhotoLikeStatus;

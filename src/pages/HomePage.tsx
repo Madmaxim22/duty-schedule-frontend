@@ -12,6 +12,7 @@ import {
   type ScheduleView,
 } from '@/features/calendar/ScheduleViewToggle';
 import { DayDetailModal } from '@/features/day-detail/DayDetailModal';
+import { AvatarPreviewModal } from '@/features/day-detail/AvatarPreviewModal';
 import { useAuth } from '@/features/auth/AuthContext';
 import { SideMenu } from '@/shared/ui/SideMenu';
 import { Avatar } from '@/shared/ui/Avatar';
@@ -56,6 +57,7 @@ export function HomePage() {
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
   const [scheduleView, setScheduleView] = useState<ScheduleView>(loadScheduleView);
 
   const year = month.getFullYear();
@@ -99,7 +101,21 @@ export function HomePage() {
         >
           <MenuIcon />
         </button>
-        {displayName ? (
+        {displayName && user?.avatarUrl && user.currentPhotoId && user.id ? (
+          <button
+            type="button"
+            className="home-page__header-avatar-btn"
+            aria-label={`Показать фото: ${displayName}`}
+            onClick={() => setAvatarPreviewOpen(true)}
+          >
+            <Avatar
+              fullName={displayName}
+              avatarUrl={user.avatarUrl}
+              cacheBust={avatarCacheBust}
+              className="home-page__header-avatar"
+            />
+          </button>
+        ) : displayName ? (
           <Avatar
             fullName={displayName}
             avatarUrl={user?.avatarUrl}
@@ -219,6 +235,17 @@ export function HomePage() {
       />
 
       <DayDetailModal date={selectedDate} onClose={() => setSelectedDate(null)} />
+
+      <AvatarPreviewModal
+        open={avatarPreviewOpen}
+        photoId={user?.currentPhotoId ?? undefined}
+        targetUserId={user?.id}
+        currentUserId={user?.id}
+        fullName={displayName}
+        avatarUrl={user?.avatarUrl ?? null}
+        avatarCacheBust={avatarCacheBust}
+        onClose={() => setAvatarPreviewOpen(false)}
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getAvatarLikeStatus } from '@/shared/api/client';
-import type { AvatarLikeStatus } from '@/shared/api/types';
+import { getPhotoLikeStatus } from '@/shared/api/client';
+import type { PhotoLikeStatus } from '@/shared/api/types';
 import { resolveAvatarUrl } from '@/shared/lib/avatarUrl';
 import { AvatarLikeButton } from './AvatarLikeButton';
 import { AvatarLikeHeartsOverlay, useAvatarLikeHeartsBurst } from './AvatarLikeHeartsBurst';
@@ -9,40 +9,55 @@ import { useDebouncedLikeSync } from './useDebouncedLikeSync';
 
 type Props = {
   open: boolean;
+  photoId: string | undefined;
   targetUserId: string | undefined;
   currentUserId: string | undefined;
   fullName: string;
   avatarUrl: string | null;
+  avatarCacheBust?: number;
+  isCurrentPhoto?: boolean;
+  ownerActionsBusy?: boolean;
+  onSetAsAvatar?: () => void;
+  onDeletePhoto?: () => void;
   onClose: () => void;
 };
 
 export function AvatarPreviewModal({
   open,
+  photoId,
   targetUserId,
   currentUserId,
   fullName,
   avatarUrl,
+  avatarCacheBust,
+  isCurrentPhoto = false,
+  ownerActionsBusy = false,
+  onSetAsAvatar,
+  onDeletePhoto,
   onClose,
 }: Props) {
-  const src = resolveAvatarUrl(avatarUrl);
+  const src = resolveAvatarUrl(avatarUrl, avatarCacheBust);
   const queryClient = useQueryClient();
   const { particles, burst } = useAvatarLikeHeartsBurst();
 
   const { data: likeStatus, isLoading: likesLoading } = useQuery({
-    queryKey: ['avatar-likes', targetUserId],
-    queryFn: () => getAvatarLikeStatus(targetUserId!),
-    enabled: open && Boolean(targetUserId),
+    queryKey: ['photo-likes', photoId],
+    queryFn: () => getPhotoLikeStatus(photoId!),
+    enabled: open && Boolean(photoId),
   });
 
   const onSynced = useCallback(
-    (status: AvatarLikeStatus) => {
-      queryClient.setQueryData(['avatar-likes', targetUserId], status);
+    (status: PhotoLikeStatus) => {
+      queryClient.setQueryData(['photo-likes', photoId], status);
+      if (photoId) {
+        queryClient.invalidateQueries({ queryKey: ['my-photos'] });
+      }
     },
-    [queryClient, targetUserId],
+    [queryClient, photoId],
   );
 
   const { localLiked, displayCount, toggleLike } = useDebouncedLikeSync({
-    targetUserId,
+    photoId,
     open,
     canLike: likeStatus?.canLike ?? false,
     serverLiked: likeStatus?.likedByMe ?? false,
@@ -68,11 +83,14 @@ export function AvatarPreviewModal({
   const isOwnPhoto = Boolean(
     currentUserId && targetUserId && currentUserId === targetUserId,
   );
-  const showLikeButton = Boolean(targetUserId && !isOwnPhoto);
-  const canInteract = likeStatus?.canLike ?? showLikeButton;
-  const likeLabel = localLiked
-    ? `Убрать лайк с фото ${fullName}`
-    : `Нравится фото ${fullName}`;
+  const showLikeButton = Boolean(photoId && targetUserId);
+  const showOwnerActions = isOwnPhoto && Boolean(onSetAsAvatar && onDeletePhoto);
+  const likeDisabled = isOwnPhoto || !(likeStatus?.canLike ?? false);
+  const likeLabel = isOwnPhoto
+    ? 'Нельзя лайкнуть своё фото'
+    : localLiked
+      ? `Убрать лайк с фото ${fullName}`
+      : `Нравится фото ${fullName}`;
 
   return (
     <div
@@ -110,13 +128,35 @@ export function AvatarPreviewModal({
                 liked={localLiked}
                 label={likeLabel}
                 onClick={toggleLike}
-                disabled={!canInteract}
+                disabled={likeDisabled}
               />
             ) : null}
-            {!likesLoading ? (
+            {!likesLoading && displayCount > 0 ? (
               <span className="avatar-preview__like-count" aria-live="polite">
                 {displayCount}
               </span>
+            ) : null}
+            {showOwnerActions ? (
+              <>
+                {!isCurrentPhoto ? (
+                  <button
+                    type="button"
+                    className="avatar-preview__action-btn"
+                    disabled={ownerActionsBusy}
+                    onClick={onSetAsAvatar}
+                  >
+                    В аватар
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className="avatar-preview__action-btn avatar-preview__action-btn--danger"
+                  disabled={ownerActionsBusy}
+                  onClick={onDeletePhoto}
+                >
+                  Удалить
+                </button>
+              </>
             ) : null}
           </div>
         </div>

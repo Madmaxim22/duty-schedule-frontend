@@ -2,7 +2,7 @@ import { useCallback, useState, type CSSProperties } from 'react';
 
 type Particle = {
   id: number;
-  x: number;
+  offset: number;
   delay: number;
   drift: number;
 };
@@ -21,9 +21,9 @@ export function useAvatarLikeHeartsBurst() {
 
     const batch = Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
       id: Date.now() + i,
-      x: 20 + Math.random() * 60,
+      offset: (Math.random() - 0.5) * 20,
       delay: Math.random() * 0.15,
-      drift: (Math.random() - 0.5) * 40,
+      drift: (Math.random() - 0.5) * 28,
     }));
 
     setParticles((prev) => [...prev, ...batch]);
@@ -51,8 +51,8 @@ export function AvatarLikeHeartsOverlay({ particles }: OverlayProps) {
           className="avatar-preview__heart-particle"
           style={
             {
-              left: `${p.x}%`,
               animationDelay: `${p.delay}s`,
+              '--heart-offset': `${p.offset}px`,
               '--heart-drift': `${p.drift}px`,
             } as CSSProperties
           }
