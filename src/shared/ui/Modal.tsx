@@ -2,11 +2,12 @@ import { useEffect, type ReactNode } from 'react';
 
 type Props = {
   open: boolean;
-  title: string;
+  title: ReactNode;
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
   closeOnEscape?: boolean;
+  titleClassName?: string;
 };
 
 export function Modal({
@@ -16,6 +17,7 @@ export function Modal({
   children,
   footer,
   closeOnEscape = true,
+  titleClassName,
 }: Props) {
   useEffect(() => {
     if (!open) return;
@@ -37,7 +39,7 @@ export function Modal({
       <button type="button" className="modal__overlay" aria-label="Закрыть" onClick={onClose} />
       <div className="modal__panel">
         <header className="modal__header">
-          <h2 id="modal-title" className="modal__title">
+          <h2 id="modal-title" className={titleClassName ? `modal__title ${titleClassName}` : 'modal__title'}>
             {title}
           </h2>
           <button type="button" className="modal__close" onClick={onClose} aria-label="Закрыть">

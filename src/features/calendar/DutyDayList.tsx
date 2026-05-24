@@ -147,20 +147,25 @@ export function DutyDayList({
             .filter(Boolean)
             .join(' ');
 
+          const selectDay = () => onSelectDate(row.date);
+          const dayLabel = `${row.dayNum}, ${row.weekday}: открыть день`;
+
           return (
             <li key={row.date} ref={row.date === todayKey ? todayRef : undefined}>
-              <button
-                type="button"
-                className={rowClass}
-                onClick={() => onSelectDate(row.date)}
-                aria-pressed={selectedDate === row.date}
-                aria-label={`${row.dayNum}, ${row.weekday}: открыть день`}
-              >
-                <span className="duty-day-list__date">
-                  <span className="duty-day-list__day-num">{row.dayNum}</span>
-                  <span className="duty-day-list__weekday">{row.weekday}</span>
-                </span>
-                <span className="duty-day-list__shifts">
+              <div className={rowClass}>
+                <button
+                  type="button"
+                  className="duty-day-list__date-trigger"
+                  onClick={selectDay}
+                  aria-pressed={selectedDate === row.date}
+                  aria-label={dayLabel}
+                >
+                  <span className="duty-day-list__date">
+                    <span className="duty-day-list__day-num">{row.dayNum}</span>
+                    <span className="duty-day-list__weekday">{row.weekday}</span>
+                  </span>
+                </button>
+                <div className="duty-day-list__shifts" onClick={selectDay}>
                   {row.duties.length === 0 ? (
                     <span className="duty-day-list__empty">—</span>
                   ) : (
@@ -178,8 +183,8 @@ export function DutyDayList({
                       </span>
                     ))
                   )}
-                </span>
-              </button>
+                </div>
+              </div>
             </li>
           );
         })}

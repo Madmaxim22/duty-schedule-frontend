@@ -7,6 +7,7 @@ import { Modal } from '@/shared/ui/Modal';
 import { Button } from '@/shared/ui/Button';
 import { AvatarPreviewModal } from './AvatarPreviewModal';
 import { DayDetailContent, type AvatarPreviewUser } from './DayDetailContent';
+import { DayDetailSkeleton } from './DayDetailSkeleton';
 import { UserProfileModal } from '@/features/profile/UserProfileModal';
 import type { DutyProfileTarget } from '@/features/profile/dutyProfileTarget';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -24,6 +25,12 @@ function formatTitle(dateStr: string) {
     month: 'long',
     year: 'numeric',
   });
+}
+
+function formatWeekday(dateStr: string) {
+  const d = new Date(`${dateStr}T12:00:00`);
+  const weekday = d.toLocaleDateString('ru-RU', { weekday: 'long' });
+  return weekday.charAt(0).toUpperCase() + weekday.slice(1);
 }
 
 export function DayDetailModal({ date, onClose, onUserProfile }: Props) {
@@ -66,16 +73,26 @@ export function DayDetailModal({ date, onClose, onUserProfile }: Props) {
       </Button>
     ) : undefined;
 
+  const modalTitle = date ? (
+    <>
+      <span className="day-detail-modal__title-date">{formatTitle(date)}</span>
+      <span className="day-detail-modal__title-weekday">{formatWeekday(date)}</span>
+    </>
+  ) : (
+    ''
+  );
+
   return (
     <>
       <Modal
         open={Boolean(date)}
-        title={date ? formatTitle(date) : ''}
+        title={modalTitle}
         onClose={onClose}
         closeOnEscape={!previewUser && !profileTarget}
         footer={footer}
+        titleClassName="day-detail-modal__title"
       >
-        {isLoading ? <p>Загрузка…</p> : null}
+        {isLoading ? <DayDetailSkeleton /> : null}
         {error ? (
           <p className="form-message form-message--error">{(error as Error).message}</p>
         ) : null}
