@@ -92,11 +92,11 @@ export function NotificationsPage() {
 
   return (
     <div className="notifications-page">
-      <header className="notifications-page__header">
-        <Link to="/" className="notifications-page__back" aria-label="Назад к календарю">
+      <header className="subpage-header">
+        <Link to="/" className="subpage-header__back" aria-label="Назад к календарю">
           <img src={arrowLeftIcon} alt="" width={24} height={24} aria-hidden />
         </Link>
-        <h1 className="notifications-page__title">Оповещения</h1>
+        <h1 className="subpage-header__title">Оповещения</h1>
         {unreadCount > 0 ? (
           <span className="notifications-page__badge" aria-label={`Непрочитанных: ${unreadCount}`}>
             {unreadCount > 99 ? '99+' : unreadCount}

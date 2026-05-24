@@ -2016,25 +2016,29 @@ body {
   color: var(--color-muted);
 }
 
-.admin-page__header,
-.edit-day-page__header {
-  margin-bottom: 20px;
+.subpage-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
-.admin-page__back,
-.edit-day-page__back {
-  display: inline-flex;
-  align-items: center;
-  margin-bottom: 8px;
+.subpage-header__back {
+  display: flex;
+  flex-shrink: 0;
+  padding: 8px;
+  margin: -8px;
   text-decoration: none;
   line-height: 0;
+  color: inherit;
 }
 
-.admin-page__title,
-.edit-day-page__title {
+.subpage-header__title {
+  flex: 1;
+  min-width: 0;
   margin: 0;
-  text-align: center;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
+  font-weight: 700;
   color: var(--color-primary);
 }
 
@@ -2262,28 +2266,6 @@ body {
   margin: 0 auto;
 }
 
-.admin-import-page__header,
-.admin-changes-page__header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.admin-import-page__back,
-.admin-changes-page__back {
-  display: flex;
-  padding: 8px;
-  margin: -8px;
-}
-
-.admin-import-page__title,
-.admin-changes-page__title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin: 0;
-}
-
 .admin-import-page__hint {
   font-size: 0.875rem;
   color: var(--color-muted);
@@ -2419,26 +2401,6 @@ body {
   min-height: 100%;
 }
 
-.notifications-page__header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.notifications-page__back {
-  display: flex;
-  padding: 8px;
-  margin: -8px;
-}
-
-.notifications-page__title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin: 0;
-  flex: 1;
-}
-
 .notifications-page__badge {
   min-width: 1.5rem;
   padding: 4px 8px;
@@ -2545,23 +2507,8 @@ body {
   min-height: 100%;
 }
 
-.settings-page__header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.settings-page .subpage-header {
   margin-bottom: 24px;
-}
-
-.settings-page__back {
-  display: flex;
-  padding: 8px;
-  margin: -8px;
-}
-
-.settings-page__title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin: 0;
 }
 
 .settings-page__section + .settings-page__section {

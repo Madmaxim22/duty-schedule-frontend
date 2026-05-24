@@ -34,11 +34,11 @@ export function SettingsPage() {
 
   return (
     <div className="settings-page">
-      <header className="settings-page__header">
-        <Link to="/" className="settings-page__back" aria-label="Назад к календарю">
+      <header className="subpage-header">
+        <Link to="/" className="subpage-header__back" aria-label="Назад к календарю">
           <img src={arrowLeftIcon} alt="" width={24} height={24} aria-hidden />
         </Link>
-        <h1 className="settings-page__title">Настройки</h1>
+        <h1 className="subpage-header__title">Настройки</h1>
       </header>
 
       <section className="settings-page__section" aria-labelledby="settings-appearance-title">

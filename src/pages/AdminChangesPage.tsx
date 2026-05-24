@@ -26,11 +26,11 @@ export function AdminChangesPage() {
 
   return (
     <div className="admin-changes-page">
-      <header className="admin-changes-page__header">
-        <Link to="/" className="admin-changes-page__back" aria-label="Назад">
+      <header className="subpage-header">
+        <Link to="/" className="subpage-header__back" aria-label="Назад к календарю">
           <img src={arrowLeftIcon} alt="" width={24} height={24} aria-hidden />
         </Link>
-        <h1 className="admin-changes-page__title">Изменения дежурств</h1>
+        <h1 className="subpage-header__title">Изменения дежурств</h1>
       </header>
 
       {isLoading ? <p className="page-loading">Загрузка…</p> : null}

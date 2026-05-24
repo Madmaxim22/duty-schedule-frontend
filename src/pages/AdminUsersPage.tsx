@@ -93,11 +93,11 @@ export function AdminUsersPage() {
 
   return (
     <div className="admin-page">
-      <header className="admin-page__header">
-        <Link to="/" className="admin-page__back" aria-label="Назад к календарю">
+      <header className="subpage-header">
+        <Link to="/" className="subpage-header__back" aria-label="Назад к календарю">
           <img src={arrowLeftIcon} alt="" width={24} height={24} aria-hidden />
         </Link>
-        <h1 className="admin-page__title">Пользователи</h1>
+        <h1 className="subpage-header__title">Пользователи</h1>
       </header>
 
       <div className="admin-page__tabs" role="tablist">

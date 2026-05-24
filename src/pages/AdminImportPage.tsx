@@ -115,11 +115,11 @@ export function AdminImportPage() {
 
   return (
     <div className="admin-import-page">
-      <header className="admin-import-page__header">
-        <Link to="/" className="admin-import-page__back" aria-label="Назад">
+      <header className="subpage-header">
+        <Link to="/" className="subpage-header__back" aria-label="Назад к календарю">
           <img src={arrowLeftIcon} alt="" width={24} height={24} aria-hidden />
         </Link>
-        <h1 className="admin-import-page__title">Импорт графика</h1>
+        <h1 className="subpage-header__title">Импорт графика</h1>
       </header>
 
       <p className="admin-import-page__hint">{importHint}</p>

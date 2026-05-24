@@ -80,11 +80,11 @@ export function EditDayPage() {
 
   return (
     <div className="edit-day-page">
-      <header className="edit-day-page__header">
-        <Link to="/" className="edit-day-page__back" aria-label="Назад к календарю">
+      <header className="subpage-header">
+        <Link to="/" className="subpage-header__back" aria-label="Назад к календарю">
           <img src={arrowLeftIcon} alt="" width={24} height={24} aria-hidden />
         </Link>
-        <h1 className="edit-day-page__title">Назначения на {title}</h1>
+        <h1 className="subpage-header__title">Назначения на {title}</h1>
       </header>
 
       {isLoading ? <p className="page-loading">Загрузка…</p> : null}
