@@ -199,6 +199,7 @@ export type SupportMessageAuthor = {
   id: string;
   fullName: string;
   avatarUrl: string | null;
+  currentPhotoId: string | null;
   role: UserRole;
 };
 

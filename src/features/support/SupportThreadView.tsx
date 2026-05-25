@@ -9,7 +9,13 @@ import {
   postAdminSupportMessage,
   postSupportMessage,
 } from '@/shared/api/support';
+import type { SupportMessage } from '@/shared/api/types';
 import { useAuth } from '@/features/auth/AuthContext';
+import { AvatarPreviewModal } from '@/features/day-detail/AvatarPreviewModal';
+import { toAvatarPreviewUser, type AvatarPreviewUser } from '@/features/day-detail/avatarPreviewUser';
+import type { DutyProfileTarget } from '@/features/profile/dutyProfileTarget';
+import { UserProfileModal } from '@/features/profile/UserProfileModal';
+import { ProfileModal } from '@/features/settings/ProfileModal';
 import { Avatar } from '@/shared/ui/Avatar';
 import { Button } from '@/shared/ui/Button';
 
@@ -29,11 +35,78 @@ type SupportThreadViewProps = {
   isAdmin: boolean;
 };
 
+type SupportMessageItemProps = {
+  msg: SupportMessage;
+  isMine: boolean;
+  isAdminMsg: boolean;
+  onAvatarPreview: (user: AvatarPreviewUser) => void;
+  onUserProfile: (target: DutyProfileTarget) => void;
+};
+
+function SupportMessageItem({
+  msg,
+  isMine,
+  isAdminMsg,
+  onAvatarPreview,
+  onUserProfile,
+}: SupportMessageItemProps) {
+  const preview = toAvatarPreviewUser(msg.author);
+  const openPreview = () => {
+    if (preview) onAvatarPreview(preview);
+  };
+  const openProfile = () => {
+    onUserProfile({
+      userId: msg.author.id,
+      fullName: msg.author.fullName,
+      avatarUrl: msg.author.avatarUrl,
+      currentPhotoId: msg.author.currentPhotoId,
+    });
+  };
+
+  const avatar = (
+    <Avatar fullName={msg.author.fullName} avatarUrl={msg.author.avatarUrl} size="sm" />
+  );
+
+  return (
+    <li
+      className={`support-thread-page__message${
+        isMine ? ' support-thread-page__message--mine' : ''
+      }${isAdminMsg ? ' support-thread-page__message--admin' : ''}`}
+    >
+      {preview ? (
+        <button
+          type="button"
+          className="support-thread-page__avatar-btn"
+          aria-label={`Показать фото: ${msg.author.fullName}`}
+          onClick={openPreview}
+        >
+          {avatar}
+        </button>
+      ) : (
+        avatar
+      )}
+      <div className="support-thread-page__bubble">
+        <button type="button" className="support-thread-page__author-btn" onClick={openProfile}>
+          {msg.author.fullName}
+        </button>
+        <p className="support-thread-page__body">{msg.body}</p>
+        <time className="support-thread-page__time" dateTime={msg.createdAt}>
+          {formatTime(msg.createdAt)}
+        </time>
+      </div>
+    </li>
+  );
+}
+
 export function SupportThreadView({ threadId, isAdmin }: SupportThreadViewProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
+  const [avatarPreview, setAvatarPreview] = useState<AvatarPreviewUser | null>(null);
+  const [viewedProfile, setViewedProfile] = useState<DutyProfileTarget | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [avatarVersion, setAvatarVersion] = useState(0);
   const listEndRef = useRef<HTMLDivElement>(null);
 
   const queryKey = isAdmin ? ['admin', 'support', threadId] : ['support', 'thread', threadId];
@@ -70,10 +143,19 @@ export function SupportThreadView({ threadId, isAdmin }: SupportThreadViewProps)
   const messages = threadQuery.data?.messages ?? [];
   const isClosed = thread?.status === 'closed';
   const backTo = isAdmin ? '/admin/support' : '/support';
+  const avatarCacheBust = avatarVersion || undefined;
 
   useEffect(() => {
     listEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length]);
+
+  function handleUserProfile(target: DutyProfileTarget) {
+    if (target.userId === user?.id) {
+      setProfileOpen(true);
+      return;
+    }
+    setViewedProfile(target);
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -114,31 +196,16 @@ export function SupportThreadView({ threadId, isAdmin }: SupportThreadViewProps)
       {!threadQuery.isLoading && !threadQuery.error ? (
         <>
           <ul className="support-thread-page__messages" aria-live="polite">
-            {messages.map((msg) => {
-              const isMine = msg.author.id === user?.id;
-              const isAdminMsg = msg.author.role === 'admin';
-              return (
-                <li
-                  key={msg.id}
-                  className={`support-thread-page__message${
-                    isMine ? ' support-thread-page__message--mine' : ''
-                  }${isAdminMsg ? ' support-thread-page__message--admin' : ''}`}
-                >
-                  <Avatar
-                    fullName={msg.author.fullName}
-                    avatarUrl={msg.author.avatarUrl}
-                    size="sm"
-                  />
-                  <div className="support-thread-page__bubble">
-                    <p className="support-thread-page__author">{msg.author.fullName}</p>
-                    <p className="support-thread-page__body">{msg.body}</p>
-                    <time className="support-thread-page__time" dateTime={msg.createdAt}>
-                      {formatTime(msg.createdAt)}
-                    </time>
-                  </div>
-                </li>
-              );
-            })}
+            {messages.map((msg) => (
+              <SupportMessageItem
+                key={msg.id}
+                msg={msg}
+                isMine={msg.author.id === user?.id}
+                isAdminMsg={msg.author.role === 'admin'}
+                onAvatarPreview={setAvatarPreview}
+                onUserProfile={handleUserProfile}
+              />
+            ))}
             <div ref={listEndRef} />
           </ul>
 
@@ -181,6 +248,27 @@ export function SupportThreadView({ threadId, isAdmin }: SupportThreadViewProps)
           )}
         </>
       ) : null}
+
+      <AvatarPreviewModal
+        open={Boolean(avatarPreview)}
+        photoId={avatarPreview?.photoId}
+        targetUserId={avatarPreview?.targetUserId}
+        currentUserId={user?.id}
+        fullName={avatarPreview?.fullName ?? ''}
+        avatarUrl={avatarPreview?.avatarUrl ?? null}
+        avatarCacheBust={
+          avatarPreview?.targetUserId === user?.id ? avatarCacheBust : undefined
+        }
+        onClose={() => setAvatarPreview(null)}
+      />
+
+      <UserProfileModal target={viewedProfile} onClose={() => setViewedProfile(null)} />
+
+      <ProfileModal
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        onAvatarUpdated={() => setAvatarVersion(Date.now())}
+      />
     </div>
   );
 }

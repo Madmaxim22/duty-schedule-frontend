@@ -3349,6 +3349,61 @@ body {
   color: var(--color-muted);
 }
 
+.support-thread-page__avatar-btn {
+  display: inline-flex;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.support-thread-page__avatar-btn:hover {
+  opacity: 0.85;
+}
+
+.support-thread-page__avatar-btn:focus-visible {
+  outline: 2px solid var(--color-darkest);
+  outline-offset: 2px;
+}
+
+.support-thread-page__author-btn {
+  display: block;
+  margin: 0 0 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 0.15s ease;
+}
+
+.support-thread-page__author-btn:hover {
+  text-decoration-color: currentColor;
+}
+
+.support-thread-page__author-btn:focus-visible {
+  outline: 2px solid var(--color-darkest);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.support-thread-page__message--mine .support-thread-page__author-btn {
+  color: var(--color-surface);
+  opacity: 0.85;
+}
+
+.support-thread-page__message--mine .support-thread-page__author-btn:hover {
+  opacity: 1;
+}
+
 .support-thread-page__body {
   margin: 0;
   font-size: 0.9375rem;
