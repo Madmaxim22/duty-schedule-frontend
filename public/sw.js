@@ -18,7 +18,7 @@ self.addEventListener('push', (event) => {
     icon: '/icons/icon-192.png',
     badge: '/icons/icon-192.png',
     data: { url: data.url || '/admin/users' },
-    tag: data.type || 'duty-notification',
+    tag: data.tag || data.type || 'duty-notification',
     renotify: true,
   };
 

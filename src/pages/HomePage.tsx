@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { fetchChatUnreadCount } from '@/shared/api/chat';
 import { fetchUnreadNotificationsCount } from '@/shared/api/notifications';
 import { apiRequest } from '@/shared/api/client';
 import type { MonthSchedule } from '@/shared/api/types';
@@ -95,6 +96,11 @@ export function HomePage() {
     queryFn: fetchUnreadNotificationsCount,
   });
 
+  const unreadChat = useQuery({
+    queryKey: ['chat', 'unread-count'],
+    queryFn: fetchChatUnreadCount,
+  });
+
   useEffect(() => {
     const date = (location.state as HomeLocationState | null)?.selectedDate;
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
@@ -127,7 +133,25 @@ export function HomePage() {
 
   const displayName = user?.fullName ?? '';
   const avatarCacheBust = avatarVersion || undefined;
-  const unreadCount = unreadNotifications.data?.count ?? 0;
+  const unreadNotificationsCount = unreadNotifications.data?.count ?? 0;
+  const unreadChatCount = unreadChat.data?.count ?? 0;
+  const menuBadgeTotal = unreadNotificationsCount + unreadChatCount;
+
+  function formatBadgeCount(n: number) {
+    return n > 99 ? '99+' : n;
+  }
+
+  function menuAriaLabel() {
+    if (menuBadgeTotal === 0) return 'Меню';
+    const parts: string[] = [];
+    if (unreadNotificationsCount > 0) {
+      parts.push(`оповещений: ${unreadNotificationsCount}`);
+    }
+    if (unreadChatCount > 0) {
+      parts.push(`сообщений в чатах: ${unreadChatCount}`);
+    }
+    return `Меню, непрочитанных ${parts.join(', ')}`;
+  }
 
   const isListView = scheduleView === 'list';
 
@@ -137,16 +161,14 @@ export function HomePage() {
         <button
           type="button"
           className="home-page__menu-btn"
-          aria-label={
-            unreadCount > 0 ? `Меню, непрочитанных оповещений: ${unreadCount}` : 'Меню'
-          }
+          aria-label={menuAriaLabel()}
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen(true)}
         >
           <MenuIcon />
-          {unreadCount > 0 ? (
+          {menuBadgeTotal > 0 ? (
             <span className="home-page__menu-badge" aria-hidden="true">
-              {unreadCount > 99 ? '99+' : unreadCount}
+              {formatBadgeCount(menuBadgeTotal)}
             </span>
           ) : null}
         </button>
@@ -297,11 +319,19 @@ export function HomePage() {
               </button>
             </li>
             <li>
+              <Link to="/chat" className="side-menu__action" onClick={closeMenu}>
+                Чаты
+                {unreadChatCount > 0 ? (
+                  <span className="side-menu__badge">{formatBadgeCount(unreadChatCount)}</span>
+                ) : null}
+              </Link>
+            </li>
+            <li>
               <Link to="/notifications" className="side-menu__action" onClick={closeMenu}>
                 Оповещения
-                {unreadCount > 0 ? (
+                {unreadNotificationsCount > 0 ? (
                   <span className="side-menu__badge">
-                    {unreadCount > 99 ? '99+' : unreadCount}
+                    {formatBadgeCount(unreadNotificationsCount)}
                   </span>
                 ) : null}
               </Link>

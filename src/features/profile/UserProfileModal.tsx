@@ -1,8 +1,11 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { apiRequest } from '@/shared/api/client';
+import { createDirectChat } from '@/shared/api/chat';
 import type { PublicUserProfile, UserRole } from '@/shared/api/types';
 import { Modal } from '@/shared/ui/Modal';
 import { Avatar } from '@/shared/ui/Avatar';
+import { Button } from '@/shared/ui/Button';
 import { useAuth } from '@/features/auth/AuthContext';
 import type { DutyProfileTarget } from './dutyProfileTarget';
 import { UserPhotoGallery } from './UserPhotoGallery';
@@ -18,7 +21,18 @@ const ROLE_LABELS: Record<UserRole, string> = {
 };
 
 export function UserProfileModal({ target, onClose }: Props) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user: currentUser } = useAuth();
+
+  const directMutation = useMutation({
+    mutationFn: (userId: string) => createDirectChat(userId),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['chat', 'rooms'] });
+      onClose();
+      navigate(`/chat/${data.room.id}`);
+    },
+  });
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['user-profile', target?.userId],
@@ -62,6 +76,23 @@ export function UserProfileModal({ target, onClose }: Props) {
                 ) : null}
               </div>
             </section>
+
+            {userId && userId !== currentUser?.id ? (
+              <div className="profile-modal__actions">
+                <Button
+                  variant="secondary"
+                  disabled={directMutation.isPending}
+                  onClick={() => directMutation.mutate(userId)}
+                >
+                  {directMutation.isPending ? '…' : 'Написать'}
+                </Button>
+                {directMutation.error ? (
+                  <p className="form-message form-message--error">
+                    {(directMutation.error as Error).message}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
 
             {userId ? (
               <UserPhotoGallery

@@ -166,7 +166,8 @@ export type NotificationType =
   | 'photo_like'
   | 'duty_change'
   | 'user_registration'
-  | 'support_message';
+  | 'support_message'
+  | 'chat_message';
 
 export type NotificationPayload = {
   dutyDate?: string;
@@ -177,6 +178,62 @@ export type NotificationPayload = {
   photoId?: string;
   userId?: string;
   threadId?: string;
+  roomId?: string;
+};
+
+export type ChatRoomType = 'direct' | 'group';
+
+export type ChatContact = {
+  id: string;
+  fullName: string;
+  avatarUrl: string | null;
+  currentPhotoId: string | null;
+};
+
+export type ChatRoomListItem = {
+  id: string;
+  type: ChatRoomType;
+  title: string | null;
+  displayName: string;
+  displayAvatarUrl: string | null;
+  lastMessagePreview: string | null;
+  lastMessageAt: string | null;
+  unreadCount: number;
+  updatedAt: string;
+};
+
+export type ChatMessageAuthor = {
+  id: string;
+  fullName: string;
+  avatarUrl: string | null;
+  currentPhotoId: string | null;
+  role: UserRole;
+};
+
+export type ChatMessage = {
+  id: string;
+  body: string;
+  createdAt: string;
+  author: ChatMessageAuthor;
+};
+
+export type ChatRoomMember = {
+  id: string;
+  fullName: string;
+  avatarUrl: string | null;
+  currentPhotoId: string | null;
+  role?: UserRole;
+};
+
+export type ChatRoomDetail = {
+  id: string;
+  type: ChatRoomType;
+  title: string | null;
+  displayName: string;
+  displayAvatarUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+  members: ChatRoomMember[];
 };
 
 export type SupportThreadStatus = 'open' | 'closed';

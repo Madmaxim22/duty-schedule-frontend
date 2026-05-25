@@ -18,9 +18,15 @@ export default defineConfig(({ mode }) => {
     port: 5173,
     https: devHttps,
     proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
+      '/api/ws': {
+        target: 'http://127.0.0.1:3000',
         changeOrigin: true,
+        ws: true,
+      },
+      '/api': {
+        target: 'http://127.0.0.1:3000',
+        changeOrigin: true,
+        ws: true,
       },
       '/uploads': {
         target: 'http://localhost:3000',

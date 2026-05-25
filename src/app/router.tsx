@@ -17,6 +17,8 @@ import { SupportPage } from '@/pages/SupportPage';
 import { SupportThreadPage } from '@/pages/SupportThreadPage';
 import { AdminSupportPage } from '@/pages/AdminSupportPage';
 import { AdminSupportThreadPage } from '@/pages/AdminSupportThreadPage';
+import { ChatPage } from '@/pages/ChatPage';
+import { ChatRoomPage } from '@/pages/ChatRoomPage';
 
 export function AppRouter() {
   return (
@@ -32,6 +34,8 @@ export function AppRouter() {
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/support" element={<SupportPage />} />
               <Route path="/support/:threadId" element={<SupportThreadPage />} />
+              <Route path="/chat" element={<ChatPage />} />
+              <Route path="/chat/:roomId" element={<ChatRoomPage />} />
               <Route element={<AdminRoute />}>
                 <Route path="/admin/users" element={<AdminUsersPage />} />
                 <Route path="/admin/support" element={<AdminSupportPage />} />
