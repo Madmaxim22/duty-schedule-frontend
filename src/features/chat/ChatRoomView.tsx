@@ -108,6 +108,7 @@ export function ChatRoomView({ roomId }: Props) {
     readMutation.mutate();
     return () => {
       unsubscribe([roomId]);
+      void markChatRoomRead(roomId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);

@@ -7,9 +7,9 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { getAccessToken } from '@/shared/api/client';
-import { getChatWsUrl } from '@/shared/api/chat';
+import { getChatWsUrl, markChatRoomRead } from '@/shared/api/chat';
 import type { ChatMessage, ChatRoomListItem } from '@/shared/api/types';
 import { useAuth } from '@/features/auth/AuthContext';
 
@@ -34,6 +34,16 @@ const ChatSocketContext = createContext<ChatSocketContextValue | null>(null);
 
 const RECONNECT_BASE_MS = 1000;
 const RECONNECT_MAX_MS = 30000;
+
+function syncChatUnreadTotalFromRooms(queryClient: QueryClient) {
+  const data = queryClient.getQueryData<{ rooms: ChatRoomListItem[] }>(['chat', 'rooms']);
+  if (!data) {
+    void queryClient.invalidateQueries({ queryKey: ['chat', 'unread-count'] });
+    return;
+  }
+  const count = data.rooms.reduce((sum, r) => sum + r.unreadCount, 0);
+  queryClient.setQueryData(['chat', 'unread-count'], { count });
+}
 
 export function ChatSocketProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -164,21 +174,39 @@ export function ChatSocketProvider({ children }: { children: ReactNode }) {
             return { ...old, messages: [...old.messages, msg.message] };
           },
         );
-        queryClient.invalidateQueries({ queryKey: ['chat', 'rooms'] });
-        queryClient.invalidateQueries({ queryKey: ['chat', 'unread-count'] });
+
+        const isViewingRoom = subscribedRef.current.has(msg.roomId);
+        const isIncoming = msg.message.author.id !== user?.id;
+
+        if (isViewingRoom && isIncoming) {
+          void markChatRoomRead(msg.roomId).then(() => {
+            queryClient.setQueryData<{ rooms: ChatRoomListItem[] }>(['chat', 'rooms'], (old) => {
+              if (!old) return old;
+              return {
+                rooms: old.rooms.map((r) =>
+                  r.id === msg.roomId ? { ...r, unreadCount: 0 } : r,
+                ),
+              };
+            });
+            queryClient.invalidateQueries({ queryKey: ['chat', 'unread-count'] });
+          });
+        }
+        // Список и счётчик непрочитанных обновляет room.updated (приходит сразу после отправки).
         return;
       }
 
       if (msg.type === 'room.updated') {
+        const room =
+          subscribedRef.current.has(msg.room.id) ? { ...msg.room, unreadCount: 0 } : msg.room;
         queryClient.setQueryData<{ rooms: ChatRoomListItem[] }>(
           ['chat', 'rooms'],
           (old) => {
-            if (!old) return { rooms: [msg.room] };
-            const idx = old.rooms.findIndex((r) => r.id === msg.room.id);
+            if (!old) return { rooms: [room] };
+            const idx = old.rooms.findIndex((r) => r.id === room.id);
             const rooms =
               idx === -1
-                ? [msg.room, ...old.rooms]
-                : old.rooms.map((r, i) => (i === idx ? msg.room : r));
+                ? [room, ...old.rooms]
+                : old.rooms.map((r, i) => (i === idx ? room : r));
             return {
               rooms: [...rooms].sort(
                 (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
@@ -186,7 +214,9 @@ export function ChatSocketProvider({ children }: { children: ReactNode }) {
             };
           },
         );
-        queryClient.invalidateQueries({ queryKey: ['chat', 'unread-count'] });
+        if (!subscribedRef.current.has(msg.room.id)) {
+          syncChatUnreadTotalFromRooms(queryClient);
+        }
         return;
       }
 
@@ -194,7 +224,7 @@ export function ChatSocketProvider({ children }: { children: ReactNode }) {
         setTypingUser(msg.roomId, msg.userId, msg.active);
       }
     },
-    [queryClient, flushSubscribe, setTypingUser, clearTypingUser],
+    [queryClient, flushSubscribe, setTypingUser, clearTypingUser, user?.id],
   );
 
   useEffect(() => {
