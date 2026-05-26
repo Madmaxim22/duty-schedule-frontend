@@ -49,7 +49,14 @@ export function ChatMessageOverlay({
   onToast,
 }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const anchoredPositionRef = useRef<{ top: number; left: number } | null>(null);
   const [cardStyle, setCardStyle] = useState<{ top: number; left: number } | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      anchoredPositionRef.current = null;
+    }
+  }, [open, message?.id]);
 
   useLayoutEffect(() => {
     if (!open || !anchorRect || !cardRef.current) {
@@ -57,24 +64,25 @@ export function ChatMessageOverlay({
       return;
     }
 
-    const card = cardRef.current;
-    const cardWidth = card.offsetWidth;
-    const cardHeight = card.offsetHeight;
-    const margin = 12;
+    if (!anchoredPositionRef.current) {
+      const card = cardRef.current;
+      const cardWidth = card.offsetWidth;
+      const cardHeight = card.offsetHeight;
+      const margin = 12;
 
-    let left = anchorRect.left + anchorRect.width / 2 - cardWidth / 2;
-    left = Math.max(margin, Math.min(left, window.innerWidth - cardWidth - margin));
+      let left = anchorRect.left + anchorRect.width / 2 - cardWidth / 2;
+      left = Math.max(margin, Math.min(left, window.innerWidth - cardWidth - margin));
 
-    let top = anchorRect.top - cardHeight - 8;
-    if (top < margin) {
-      top = anchorRect.bottom + 8;
+      let top = anchorRect.top - cardHeight - 8;
+      if (top < margin) {
+        top = anchorRect.bottom + 8;
+      }
+
+      anchoredPositionRef.current = { top, left };
     }
-    if (top + cardHeight > window.innerHeight - margin) {
-      top = Math.max(margin, window.innerHeight - cardHeight - margin);
-    }
 
-    setCardStyle({ top, left });
-  }, [open, anchorRect, emojiExpanded, message?.id]);
+    setCardStyle(anchoredPositionRef.current);
+  }, [open, anchorRect, message?.id]);
 
   useEffect(() => {
     if (!open) return;
