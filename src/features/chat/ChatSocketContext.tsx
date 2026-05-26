@@ -19,6 +19,7 @@ import { useAuth } from '@/features/auth/AuthContext';
 import {
   appendMessageToChatPages,
   markMessagesReadByPeer,
+  updateMessageReactions,
   updateSingleMessageStatus,
   type ChatMessagesPage,
 } from './chatMessagesCache';
@@ -27,6 +28,12 @@ type ServerMessage =
   | { type: 'auth.ok'; userId: string }
   | { type: 'message.new'; roomId: string; message: ChatMessage }
   | { type: 'message.status'; roomId: string; messageId: string; status: 'delivered' | 'read' }
+  | {
+      type: 'message.reaction';
+      roomId: string;
+      messageId: string;
+      reactions: ChatMessage['reactions'];
+    }
   | { type: 'read.updated'; roomId: string; userId: string; lastReadAt: string }
   | { type: 'room.updated'; room: ChatRoomListItem }
   | { type: 'typing'; roomId: string; userId: string; active: boolean }
@@ -210,6 +217,14 @@ export function ChatSocketProvider({ children }: { children: ReactNode }) {
         queryClient.setQueryData<InfiniteData<ChatMessagesPage>>(
           ['chat', 'messages', msg.roomId],
           (old) => updateSingleMessageStatus(old, msg.messageId, msg.status) ?? old,
+        );
+        return;
+      }
+
+      if (msg.type === 'message.reaction') {
+        queryClient.setQueryData<InfiniteData<ChatMessagesPage>>(
+          ['chat', 'messages', msg.roomId],
+          (old) => updateMessageReactions(old, msg.messageId, msg.reactions) ?? old,
         );
         return;
       }

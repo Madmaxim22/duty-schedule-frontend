@@ -210,10 +210,24 @@ export type ChatMessageAuthor = {
   role: UserRole;
 };
 
+export type ChatReactionReactor = {
+  id: string;
+  fullName: string;
+  avatarUrl: string | null;
+};
+
+export type ChatReactionSummary = {
+  emoji: string;
+  count: number;
+  reactedByMe: boolean;
+  reactors: ChatReactionReactor[];
+};
+
 export type ChatMessage = {
   id: string;
   body: string;
   createdAt: string;
+  reactions: ChatReactionSummary[];
   status?: 'sent' | 'delivered' | 'read';
   author: ChatMessageAuthor;
 };

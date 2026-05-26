@@ -2,6 +2,7 @@ import { apiRequest } from '@/shared/api/client';
 import type {
   ChatContact,
   ChatMessage,
+  ChatReactionSummary,
   ChatRoomDetail,
   ChatRoomListItem,
 } from '@/shared/api/types';
@@ -80,4 +81,23 @@ export function markChatRoomRead(roomId: string) {
   return apiRequest<{ ok: boolean }>(`/chat/rooms/${roomId}/read`, {
     method: 'PATCH',
   });
+}
+
+export function setChatMessageReaction(roomId: string, messageId: string, emoji: string) {
+  return apiRequest<{ reactions: ChatReactionSummary[] }>(
+    `/chat/rooms/${roomId}/messages/${messageId}/reactions`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ emoji }),
+    },
+  );
+}
+
+export function removeChatMessageReaction(roomId: string, messageId: string) {
+  return apiRequest<{ reactions: ChatReactionSummary[] }>(
+    `/chat/rooms/${roomId}/messages/${messageId}/reactions`,
+    {
+      method: 'DELETE',
+    },
+  );
 }

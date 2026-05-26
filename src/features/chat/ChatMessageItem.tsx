@@ -2,6 +2,7 @@ import type { ChatMessage } from '@/shared/api/types';
 import { Avatar } from '@/shared/ui/Avatar';
 import { toAvatarPreviewUser, type AvatarPreviewUser } from '@/features/day-detail/avatarPreviewUser';
 import type { DutyProfileTarget } from '@/features/profile/dutyProfileTarget';
+import { ChatMessageReactions } from './ChatMessageReactions';
 
 function formatBubbleTime(iso: string) {
   return new Date(iso).toLocaleTimeString('ru-RU', {
@@ -24,14 +25,10 @@ const TICK_STROKE = {
   fill: 'none',
 };
 
-/** Одна галочка — отправлено. */
 const TICK_SINGLE_PATH = 'M1.5 6.25 4.6 9.35 10.45 2.65';
-
-/** Две галочки с наложением — доставлено / прочитано (как в Telegram). */
 const TICK_DOUBLE_BACK = 'M0.75 6.25 3.85 9.35 9.2 2.65';
 const TICK_DOUBLE_FRONT = 'M5.25 6.25 8.35 9.35 13.7 2.65';
 
-/** Галочки в стиле Telegram: одна / две с наложением, синие при прочтении. */
 function MessageTicks({ status }: { status: 'sent' | 'delivered' | 'read' }) {
   if (status === 'sent') {
     return (
@@ -64,6 +61,8 @@ type Props = {
   showAvatar: boolean;
   onAvatarPreview: (user: AvatarPreviewUser) => void;
   onUserProfile: (target: DutyProfileTarget) => void;
+  onBubbleClick: (msg: ChatMessage, anchorRect: DOMRect) => void;
+  onReactionChipClick: (msg: ChatMessage, emoji: string, reactedByMe: boolean) => void;
 };
 
 export function ChatMessageItem({
@@ -73,8 +72,11 @@ export function ChatMessageItem({
   showAvatar,
   onAvatarPreview,
   onUserProfile,
+  onBubbleClick,
+  onReactionChipClick,
 }: Props) {
   const preview = toAvatarPreviewUser(msg.author);
+  const reactions = msg.reactions ?? [];
 
   const openPreview = () => {
     if (preview) onAvatarPreview(preview);
@@ -109,6 +111,21 @@ export function ChatMessageItem({
   );
   const shouldRenderTicks = isMine && !isGroup && Boolean(msg.status);
 
+  const openMenuFromBubble = (target: HTMLElement) => {
+    onBubbleClick(msg, target.getBoundingClientRect());
+  };
+
+  const onBubbleClickHandler = (e: React.MouseEvent<HTMLDivElement>) => {
+    openMenuFromBubble(e.currentTarget);
+  };
+
+  const onBubbleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openMenuFromBubble(e.currentTarget);
+    }
+  };
+
   return (
     <li
       className={`chat-room__message${isMine ? ' chat-room__message--mine' : ''}${
@@ -116,20 +133,52 @@ export function ChatMessageItem({
       }`}
     >
       {!isMine && isGroup ? avatarSlot : null}
-      <div className="chat-room__bubble">
-        {isGroup && !isMine ? (
-          <button type="button" className="chat-room__author-btn" onClick={openProfile}>
-            {msg.author.fullName}
-          </button>
-        ) : null}
-        <div className="chat-room__bubble-row">
-          <p className="chat-room__body">{msg.body}</p>
-          <span className="chat-room__meta">
-            <time className="chat-room__time" dateTime={msg.createdAt}>
-              {formatBubbleTime(msg.createdAt)}
-            </time>
-            {shouldRenderTicks && msg.status ? <MessageTicks status={msg.status} /> : null}
-          </span>
+      <div className="chat-room__message-stack">
+        <div
+          role="button"
+          tabIndex={0}
+          className="chat-room__bubble"
+          onClick={onBubbleClickHandler}
+          onKeyDown={onBubbleKeyDown}
+          aria-haspopup="dialog"
+        >
+          {isGroup && !isMine ? (
+            <span
+              role="link"
+              tabIndex={0}
+              className="chat-room__author-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                openProfile();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openProfile();
+                }
+              }}
+            >
+              {msg.author.fullName}
+            </span>
+          ) : null}
+          <div className="chat-room__bubble-row">
+            <p className="chat-room__body">{msg.body}</p>
+            <div className="chat-room__bubble-footer">
+              <ChatMessageReactions
+                reactions={reactions}
+                corner
+                isDirect={!isGroup}
+                onChipClick={(emoji, reactedByMe) => onReactionChipClick(msg, emoji, reactedByMe)}
+              />
+              <span className="chat-room__meta">
+                <time className="chat-room__time" dateTime={msg.createdAt}>
+                  {formatBubbleTime(msg.createdAt)}
+                </time>
+                {shouldRenderTicks && msg.status ? <MessageTicks status={msg.status} /> : null}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </li>

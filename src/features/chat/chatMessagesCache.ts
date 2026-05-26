@@ -1,5 +1,5 @@
 import type { InfiniteData } from '@tanstack/react-query';
-import type { ChatMessage } from '@/shared/api/types';
+import type { ChatMessage, ChatReactionSummary } from '@/shared/api/types';
 
 /** Одна страница ответа GET /chat/rooms/:id/messages (для useInfiniteQuery). */
 export type ChatMessagesPage = {
@@ -68,6 +68,16 @@ export function updateSingleMessageStatus(
     if (message.status === 'read') return message;
     return { ...message, status: 'delivered' };
   });
+}
+
+export function updateMessageReactions(
+  old: InfiniteData<ChatMessagesPage> | undefined,
+  messageId: string,
+  reactions: ChatReactionSummary[],
+): InfiniteData<ChatMessagesPage> | undefined {
+  return mapPages(old, (message) =>
+    message.id === messageId ? { ...message, reactions } : message,
+  );
 }
 
 export function markMessagesReadByPeer(

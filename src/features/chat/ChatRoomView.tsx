@@ -7,7 +7,10 @@ import {
   getChatRoom,
   markChatRoomRead,
   postChatMessage,
+  removeChatMessageReaction,
+  setChatMessageReaction,
 } from '@/shared/api/chat';
+import type { ChatMessage } from '@/shared/api/types';
 import { useAuth } from '@/features/auth/AuthContext';
 import { AvatarPreviewModal } from '@/features/day-detail/AvatarPreviewModal';
 import { toAvatarPreviewUser, type AvatarPreviewUser } from '@/features/day-detail/avatarPreviewUser';
@@ -16,9 +19,16 @@ import { UserProfileModal } from '@/features/profile/UserProfileModal';
 import { ProfileModal } from '@/features/settings/ProfileModal';
 import { Avatar } from '@/shared/ui/Avatar';
 import { ChatMessageItem } from './ChatMessageItem';
+import { ChatMessageOverlay } from './ChatMessageOverlay';
 import { groupMessagesByDate } from './chatMessageGroups';
+import { getDirectPeerLastReadAt } from './chatMessageMenuActions';
 import { formatTypingLabel } from './formatTypingLabel';
-import { appendMessageToChatPagesAfterPost, mergeChatPages, type ChatMessagesPage } from './chatMessagesCache';
+import {
+  appendMessageToChatPagesAfterPost,
+  mergeChatPages,
+  updateMessageReactions,
+  type ChatMessagesPage,
+} from './chatMessagesCache';
 import { useChatSocket } from './ChatSocketContext';
 import { useChatTypingEmitter } from './useChatTypingEmitter';
 
@@ -49,6 +59,12 @@ export function ChatRoomView({ roomId }: Props) {
   const [viewedProfile, setViewedProfile] = useState<DutyProfileTarget | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [avatarVersion, setAvatarVersion] = useState(0);
+  const [activeMessageMenu, setActiveMessageMenu] = useState<{
+    message: ChatMessage;
+    anchorRect: DOMRect;
+  } | null>(null);
+  const [emojiExpanded, setEmojiExpanded] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const listEndRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLUListElement>(null);
   const topSentinelRef = useRef<HTMLDivElement>(null);
@@ -76,6 +92,37 @@ export function ChatRoomView({ roomId }: Props) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chat', 'rooms'] });
       queryClient.invalidateQueries({ queryKey: ['chat', 'unread-count'] });
+    },
+  });
+
+  const closeMessageMenu = useCallback(() => {
+    setActiveMessageMenu(null);
+    setEmojiExpanded(false);
+  }, []);
+
+  const applyMessageReactions = useCallback(
+    (messageId: string, reactions: ChatMessage['reactions']) => {
+      queryClient.setQueryData<InfiniteData<ChatMessagesPage>>(
+        ['chat', 'messages', roomId],
+        (old) => updateMessageReactions(old, messageId, reactions) ?? old,
+      );
+    },
+    [queryClient, roomId],
+  );
+
+  const setReactionMutation = useMutation({
+    mutationFn: ({ messageId, emoji }: { messageId: string; emoji: string }) =>
+      setChatMessageReaction(roomId, messageId, emoji),
+    onSuccess: (data, { messageId }) => {
+      applyMessageReactions(messageId, data.reactions);
+      closeMessageMenu();
+    },
+  });
+
+  const removeReactionMutation = useMutation({
+    mutationFn: (messageId: string) => removeChatMessageReaction(roomId, messageId),
+    onSuccess: (data, messageId) => {
+      applyMessageReactions(messageId, data.reactions);
     },
   });
 
@@ -136,6 +183,24 @@ export function ChatRoomView({ roomId }: Props) {
   }, [room, typingUserIds]);
 
   useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), 2500);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  useEffect(() => {
+    closeMessageMenu();
+  }, [roomId, closeMessageMenu]);
+
+  useEffect(() => {
+    const root = scrollRef.current;
+    if (!root || !activeMessageMenu) return;
+    const onScroll = () => closeMessageMenu();
+    root.addEventListener('scroll', onScroll, { passive: true });
+    return () => root.removeEventListener('scroll', onScroll);
+  }, [activeMessageMenu, closeMessageMenu]);
+
+  useEffect(() => {
     subscribe([roomId]);
     readMutation.mutate();
     return () => {
@@ -144,6 +209,40 @@ export function ChatRoomView({ roomId }: Props) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
+
+  const handleBubbleClick = useCallback((msg: ChatMessage, anchorRect: DOMRect) => {
+    setEmojiExpanded(false);
+    setActiveMessageMenu({ message: msg, anchorRect });
+  }, []);
+
+  const handleReactionChipClick = useCallback(
+    (msg: ChatMessage, emoji: string, reactedByMe: boolean) => {
+      if (reactedByMe) {
+        removeReactionMutation.mutate(msg.id);
+      } else {
+        setReactionMutation.mutate({ messageId: msg.id, emoji });
+      }
+    },
+    [removeReactionMutation, setReactionMutation],
+  );
+
+  const handleOverlayEmoji = useCallback(
+    (emoji: string) => {
+      if (!activeMessageMenu) return;
+      setReactionMutation.mutate({ messageId: activeMessageMenu.message.id, emoji });
+    },
+    [activeMessageMenu, setReactionMutation],
+  );
+
+  const messageMenuContext = useMemo(() => {
+    if (!activeMessageMenu || !room || !user?.id) return null;
+    return {
+      message: activeMessageMenu.message,
+      isMine: activeMessageMenu.message.author.id === user.id,
+      isDirect: room.type === 'direct',
+      peerLastReadAt: getDirectPeerLastReadAt(room.members, user.id),
+    };
+  }, [activeMessageMenu, room, user?.id]);
 
   useEffect(() => {
     prevFirstIdRef.current = undefined;
@@ -340,12 +439,14 @@ export function ChatRoomView({ roomId }: Props) {
                     return (
                       <ChatMessageItem
                         key={msg.id}
-                        msg={msg}
+                        msg={{ ...msg, reactions: msg.reactions ?? [] }}
                         isMine={msg.author.id === user?.id}
                         isGroup={isGroup}
                         showAvatar={showAvatar}
                         onAvatarPreview={setAvatarPreview}
                         onUserProfile={handleUserProfile}
+                        onBubbleClick={handleBubbleClick}
+                        onReactionChipClick={handleReactionChipClick}
                       />
                     );
                   })}
@@ -396,6 +497,24 @@ export function ChatRoomView({ roomId }: Props) {
           </div>
           {error ? <p className="form-message form-message--error chat-room__composer-error">{error}</p> : null}
         </form>
+      ) : null}
+
+      <ChatMessageOverlay
+        open={Boolean(activeMessageMenu)}
+        message={activeMessageMenu?.message ?? null}
+        anchorRect={activeMessageMenu?.anchorRect ?? null}
+        menuContext={messageMenuContext}
+        emojiExpanded={emojiExpanded}
+        onEmojiExpandedChange={setEmojiExpanded}
+        onSelectEmoji={handleOverlayEmoji}
+        onClose={closeMessageMenu}
+        onToast={setToast}
+      />
+
+      {toast ? (
+        <div className="chat-room__toast" role="status">
+          {toast}
+        </div>
       ) : null}
 
       <AvatarPreviewModal
