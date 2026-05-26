@@ -67,7 +67,7 @@ export function ChatRoomView({ roomId }: Props) {
   const messagesQuery = useInfiniteQuery({
     queryKey: ['chat', 'messages', roomId],
     initialPageParam: undefined as string | undefined,
-    queryFn: ({ pageParam }) => getChatMessages(roomId, pageParam, 10),
+    queryFn: ({ pageParam }) => getChatMessages(roomId, pageParam),
     getNextPageParam: (lastPage) => lastPage.nextBefore ?? undefined,
   });
 
