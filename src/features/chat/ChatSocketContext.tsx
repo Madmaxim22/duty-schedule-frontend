@@ -7,11 +7,16 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { useQueryClient, type QueryClient } from '@tanstack/react-query';
+import {
+  useQueryClient,
+  type InfiniteData,
+  type QueryClient,
+} from '@tanstack/react-query';
 import { getAccessToken } from '@/shared/api/client';
 import { getChatWsUrl, markChatRoomRead } from '@/shared/api/chat';
 import type { ChatMessage, ChatRoomListItem } from '@/shared/api/types';
 import { useAuth } from '@/features/auth/AuthContext';
+import { appendMessageToChatPages, type ChatMessagesPage } from './chatMessagesCache';
 
 type ServerMessage =
   | { type: 'auth.ok'; userId: string }
@@ -166,13 +171,9 @@ export function ChatSocketProvider({ children }: { children: ReactNode }) {
 
       if (msg.type === 'message.new') {
         clearTypingUser(msg.roomId, msg.message.author.id);
-        queryClient.setQueryData<{ messages: ChatMessage[]; nextBefore: string | null }>(
+        queryClient.setQueryData<InfiniteData<ChatMessagesPage>>(
           ['chat', 'messages', msg.roomId],
-          (old) => {
-            if (!old) return old;
-            if (old.messages.some((m) => m.id === msg.message.id)) return old;
-            return { ...old, messages: [...old.messages, msg.message] };
-          },
+          (old) => appendMessageToChatPages(old, msg.message) ?? old,
         );
 
         const isViewingRoom = subscribedRef.current.has(msg.roomId);

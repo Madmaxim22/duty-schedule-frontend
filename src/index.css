@@ -3828,6 +3828,29 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
+.chat-room__messages-top {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 0;
+}
+
+.chat-room__messages-spinner {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  padding: 4px 0 2px;
+}
+
+.chat-room__messages-sentinel {
+  width: 100%;
+  height: 1px;
+  flex-shrink: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
 .chat-room__day-group {
   list-style: none;
 }

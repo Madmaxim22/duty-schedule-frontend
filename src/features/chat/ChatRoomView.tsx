@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import arrowLeftIcon from '@/shared/assets/icons/Arrow Left.svg';
 import {
@@ -18,6 +18,7 @@ import { Avatar } from '@/shared/ui/Avatar';
 import { ChatMessageItem } from './ChatMessageItem';
 import { groupMessagesByDate } from './chatMessageGroups';
 import { formatTypingLabel } from './formatTypingLabel';
+import { appendMessageToChatPagesAfterPost, mergeChatPages, type ChatMessagesPage } from './chatMessagesCache';
 import { useChatSocket } from './ChatSocketContext';
 import { useChatTypingEmitter } from './useChatTypingEmitter';
 
@@ -49,16 +50,25 @@ export function ChatRoomView({ roomId }: Props) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [avatarVersion, setAvatarVersion] = useState(0);
   const listEndRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLUListElement>(null);
+  const topSentinelRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const prependSnapshotRef = useRef<{ scrollHeight: number; scrollTop: number } | null>(null);
+  const prevFirstIdRef = useRef<string | undefined>(undefined);
+  const prevLastIdRef = useRef<string | undefined>(undefined);
+  const topFetchCooldownUntilRef = useRef(0);
+  const allowOlderFetchRef = useRef(true);
 
   const roomQuery = useQuery({
     queryKey: ['chat', 'room', roomId],
     queryFn: () => getChatRoom(roomId),
   });
 
-  const messagesQuery = useQuery({
+  const messagesQuery = useInfiniteQuery({
     queryKey: ['chat', 'messages', roomId],
-    queryFn: () => getChatMessages(roomId),
+    initialPageParam: undefined as string | undefined,
+    queryFn: ({ pageParam }) => getChatMessages(roomId, pageParam, 10),
+    getNextPageParam: (lastPage) => lastPage.nextBefore ?? undefined,
   });
 
   const readMutation = useMutation({
@@ -77,20 +87,37 @@ export function ChatRoomView({ roomId }: Props) {
       if (textareaRef.current) {
         textareaRef.current.style.height = '';
       }
-      queryClient.setQueryData(['chat', 'messages', roomId], (old: typeof messagesQuery.data) => {
-        if (!old) return { messages: [data.message], nextBefore: null };
-        if (old.messages.some((m) => m.id === data.message.id)) return old;
-        return { ...old, messages: [...old.messages, data.message] };
-      });
+      queryClient.setQueryData<InfiniteData<ChatMessagesPage>>(
+        ['chat', 'messages', roomId],
+        (old) => appendMessageToChatPagesAfterPost(old, data.message),
+      );
       queryClient.invalidateQueries({ queryKey: ['chat', 'rooms'] });
     },
     onError: (e: Error) => setError(e.message),
   });
 
   const room = roomQuery.data?.room;
-  const messages = messagesQuery.data?.messages ?? [];
+  const messages = useMemo(() => mergeChatPages(messagesQuery.data), [messagesQuery.data]);
   const isGroup = room?.type === 'group';
   const messageGroups = groupMessagesByDate(messages);
+  const hasNextPage = Boolean(messagesQuery.hasNextPage);
+  const isFetchingNextPage = messagesQuery.isFetchingNextPage;
+
+  const fetchNextPage = messagesQuery.fetchNextPage;
+  const hasOlderPage = messagesQuery.hasNextPage;
+  const loadingOlder = messagesQuery.isFetchingNextPage;
+
+  const tryFetchOlder = useCallback(() => {
+    if (!hasOlderPage || loadingOlder) return;
+    if (Date.now() < topFetchCooldownUntilRef.current) return;
+    if (!allowOlderFetchRef.current) return;
+    const root = scrollRef.current;
+    if (!root) return;
+    allowOlderFetchRef.current = false;
+    topFetchCooldownUntilRef.current = Date.now() + 450;
+    prependSnapshotRef.current = { scrollHeight: root.scrollHeight, scrollTop: root.scrollTop };
+    void fetchNextPage();
+  }, [hasOlderPage, loadingOlder, fetchNextPage]);
 
   useChatTypingEmitter(roomId, draft);
 
@@ -114,8 +141,62 @@ export function ChatRoomView({ roomId }: Props) {
   }, [roomId]);
 
   useEffect(() => {
-    listEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages.length]);
+    prevFirstIdRef.current = undefined;
+    prevLastIdRef.current = undefined;
+    prependSnapshotRef.current = null;
+    allowOlderFetchRef.current = true;
+  }, [roomId]);
+
+  useEffect(() => {
+    const root = scrollRef.current;
+    const sentinel = topSentinelRef.current;
+    if (!root || !sentinel || !hasNextPage) return;
+
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const e = entries[0];
+        if (!e) return;
+        if (!e.isIntersecting) {
+          allowOlderFetchRef.current = true;
+          return;
+        }
+        tryFetchOlder();
+      },
+      { root, rootMargin: '160px 0px 0px 0px', threshold: 0 },
+    );
+    obs.observe(sentinel);
+    return () => obs.disconnect();
+  }, [hasNextPage, tryFetchOlder, roomId, messagesQuery.data?.pages.length]);
+
+  useLayoutEffect(() => {
+    const root = scrollRef.current;
+    const snap = prependSnapshotRef.current;
+    if (snap && !isFetchingNextPage) {
+      if (root) {
+        const delta = root.scrollHeight - snap.scrollHeight;
+        root.scrollTop = snap.scrollTop + delta;
+      }
+      prependSnapshotRef.current = null;
+      const first = messages[0]?.id;
+      const last = messages[messages.length - 1]?.id;
+      prevFirstIdRef.current = first;
+      prevLastIdRef.current = last;
+      return;
+    }
+
+    if (messages.length === 0) return;
+    const firstId = messages[0].id;
+    const lastId = messages[messages.length - 1].id;
+
+    if (prevLastIdRef.current === undefined) {
+      listEndRef.current?.scrollIntoView({ behavior: 'auto' });
+    } else if (lastId !== prevLastIdRef.current && firstId === prevFirstIdRef.current) {
+      listEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    prevFirstIdRef.current = firstId;
+    prevLastIdRef.current = lastId;
+  }, [messages, isFetchingNextPage]);
 
   function handleUserProfile(target: DutyProfileTarget) {
     if (target.userId === user?.id) {
@@ -191,7 +272,21 @@ export function ChatRoomView({ roomId }: Props) {
         ) : null}
 
         {!roomQuery.isLoading && !messagesQuery.isLoading && !roomQuery.error && !messagesQuery.error ? (
-          <ul className="chat-room__messages" aria-live="polite">
+          <ul ref={scrollRef} className="chat-room__messages" aria-live="polite">
+            {hasNextPage ? (
+              <li className="chat-room__messages-top" aria-busy={isFetchingNextPage}>
+                {isFetchingNextPage ? (
+                  <div className="chat-room__messages-spinner" role="status">
+                    Загрузка…
+                  </div>
+                ) : null}
+                <div
+                  ref={topSentinelRef}
+                  className="chat-room__messages-sentinel"
+                  aria-hidden
+                />
+              </li>
+            ) : null}
             {messageGroups.map((group) => (
               <li key={group.dateKey} className="chat-room__day-group">
                 <div className="chat-room__date-badge" role="separator">
