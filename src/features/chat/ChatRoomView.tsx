@@ -10,7 +10,7 @@ import {
 } from '@/shared/api/chat';
 import { useAuth } from '@/features/auth/AuthContext';
 import { AvatarPreviewModal } from '@/features/day-detail/AvatarPreviewModal';
-import type { AvatarPreviewUser } from '@/features/day-detail/avatarPreviewUser';
+import { toAvatarPreviewUser, type AvatarPreviewUser } from '@/features/day-detail/avatarPreviewUser';
 import type { DutyProfileTarget } from '@/features/profile/dutyProfileTarget';
 import { UserProfileModal } from '@/features/profile/UserProfileModal';
 import { ProfileModal } from '@/features/settings/ProfileModal';
@@ -99,6 +99,11 @@ export function ChatRoomView({ roomId }: Props) {
   const room = roomQuery.data?.room;
   const messages = useMemo(() => mergeChatPages(messagesQuery.data), [messagesQuery.data]);
   const isGroup = room?.type === 'group';
+  const directPeer = useMemo(() => {
+    if (!room || room.type !== 'direct' || !user?.id) return null;
+    return room.members.find((m) => m.id !== user.id) ?? null;
+  }, [room, user?.id]);
+  const directPeerPreview = directPeer ? toAvatarPreviewUser(directPeer) : null;
   const messageGroups = groupMessagesByDate(messages);
   const hasNextPage = Boolean(messagesQuery.hasNextPage);
   const isFetchingNextPage = messagesQuery.isFetchingNextPage;
@@ -235,13 +240,45 @@ export function ChatRoomView({ roomId }: Props) {
         </Link>
         {room ? (
           <div className="chat-room__header-main">
-            <Avatar
-              fullName={room.displayName}
-              avatarUrl={room.displayAvatarUrl}
-              size="sm"
-            />
+            {directPeer && directPeerPreview ? (
+              <button
+                type="button"
+                className="chat-room__header-avatar-btn"
+                aria-label={`Показать фото: ${directPeer.fullName}`}
+                onClick={() => setAvatarPreview(directPeerPreview)}
+              >
+                <Avatar
+                  fullName={room.displayName}
+                  avatarUrl={room.displayAvatarUrl}
+                  size="sm"
+                />
+              </button>
+            ) : (
+              <Avatar
+                fullName={room.displayName}
+                avatarUrl={room.displayAvatarUrl}
+                size="sm"
+              />
+            )}
             <div className="chat-room__header-text">
-              <h1 className="chat-room__title">{room.displayName}</h1>
+              {directPeer ? (
+                <button
+                  type="button"
+                  className="chat-room__title-btn"
+                  onClick={() =>
+                    handleUserProfile({
+                      userId: directPeer.id,
+                      fullName: directPeer.fullName,
+                      avatarUrl: directPeer.avatarUrl,
+                      currentPhotoId: directPeer.currentPhotoId,
+                    })
+                  }
+                >
+                  {room.displayName}
+                </button>
+              ) : (
+                <h1 className="chat-room__title">{room.displayName}</h1>
+              )}
               {typingLabel ? (
                 <p className="chat-room__subtitle chat-room__subtitle--typing" role="status">
                   {typingLabel}
