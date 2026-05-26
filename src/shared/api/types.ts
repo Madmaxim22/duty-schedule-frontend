@@ -214,6 +214,7 @@ export type ChatMessage = {
   id: string;
   body: string;
   createdAt: string;
+  status?: 'sent' | 'delivered' | 'read';
   author: ChatMessageAuthor;
 };
 
@@ -223,6 +224,7 @@ export type ChatRoomMember = {
   avatarUrl: string | null;
   currentPhotoId: string | null;
   role?: UserRole;
+  lastReadAt?: string | null;
 };
 
 export type ChatRoomDetail = {

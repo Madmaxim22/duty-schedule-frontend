@@ -42,3 +42,44 @@ export function appendMessageToChatPagesAfterPost(
   const base = old?.pages.length ? old : emptyInfiniteMessages();
   return appendMessageToChatPages(base, message)!;
 }
+
+function mapPages(
+  old: InfiniteData<ChatMessagesPage> | undefined,
+  updater: (message: ChatMessage) => ChatMessage,
+): InfiniteData<ChatMessagesPage> | undefined {
+  if (!old?.pages.length) return old;
+  return {
+    pageParams: old.pageParams,
+    pages: old.pages.map((page) => ({
+      ...page,
+      messages: page.messages.map(updater),
+    })),
+  };
+}
+
+export function updateSingleMessageStatus(
+  old: InfiniteData<ChatMessagesPage> | undefined,
+  messageId: string,
+  status: 'delivered' | 'read',
+): InfiniteData<ChatMessagesPage> | undefined {
+  return mapPages(old, (message) => {
+    if (message.id !== messageId || !message.status) return message;
+    if (status === 'read') return { ...message, status: 'read' };
+    if (message.status === 'read') return message;
+    return { ...message, status: 'delivered' };
+  });
+}
+
+export function markMessagesReadByPeer(
+  old: InfiniteData<ChatMessagesPage> | undefined,
+  myUserId: string,
+  lastReadAt: string,
+): InfiniteData<ChatMessagesPage> | undefined {
+  const lastReadMs = new Date(lastReadAt).getTime();
+  if (!Number.isFinite(lastReadMs)) return old;
+  return mapPages(old, (message) => {
+    if (message.author.id !== myUserId || !message.status) return message;
+    if (new Date(message.createdAt).getTime() > lastReadMs) return message;
+    return { ...message, status: 'read' };
+  });
+}

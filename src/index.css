@@ -3491,6 +3491,8 @@ body {
   --chat-bubble-in: var(--color-surface);
   --chat-bubble-out: color-mix(in srgb, var(--color-duty-bg) 70%, var(--color-surface));
   --chat-accent: var(--color-darkest);
+  --chat-tick-pending: color-mix(in srgb, var(--color-duty) 45%, var(--color-muted));
+  --chat-tick-read: #2aabee;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -3942,12 +3944,14 @@ body {
 
 .chat-room__bubble-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: flex-end;
-  gap: 6px 8px;
+  gap: 2px;
+  line-height: 1.4;
 }
 
 .chat-room__body {
+  align-self: stretch;
   margin: 0;
   font-size: 0.9375rem;
   line-height: 1.4;
@@ -3956,14 +3960,56 @@ body {
   color: var(--color-text);
 }
 
-.chat-room__time {
+.chat-room__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   flex-shrink: 0;
-  margin-left: auto;
+  min-height: 11px;
+  user-select: none;
+}
+
+.chat-room__time {
   font-size: 0.6875rem;
-  line-height: 1.2;
+  line-height: 11px;
   color: var(--color-muted);
   opacity: 0.85;
   white-space: nowrap;
+}
+
+.chat-room__message--mine .chat-room__time {
+  color: var(--chat-tick-pending);
+  opacity: 1;
+}
+
+.chat-room__ticks {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--chat-tick-pending);
+  line-height: 0;
+}
+
+.chat-room__ticks--double {
+  height: 11px;
+  overflow: visible;
+}
+
+.chat-room__ticks-icon {
+  display: block;
+  flex-shrink: 0;
+}
+
+.chat-room__ticks-icon path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.65;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chat-room__ticks--read {
+  color: var(--chat-tick-read);
 }
 
 .chat-room__composer {

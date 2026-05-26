@@ -16,11 +16,18 @@ import { getAccessToken } from '@/shared/api/client';
 import { getChatWsUrl, markChatRoomRead } from '@/shared/api/chat';
 import type { ChatMessage, ChatRoomListItem } from '@/shared/api/types';
 import { useAuth } from '@/features/auth/AuthContext';
-import { appendMessageToChatPages, type ChatMessagesPage } from './chatMessagesCache';
+import {
+  appendMessageToChatPages,
+  markMessagesReadByPeer,
+  updateSingleMessageStatus,
+  type ChatMessagesPage,
+} from './chatMessagesCache';
 
 type ServerMessage =
   | { type: 'auth.ok'; userId: string }
   | { type: 'message.new'; roomId: string; message: ChatMessage }
+  | { type: 'message.status'; roomId: string; messageId: string; status: 'delivered' | 'read' }
+  | { type: 'read.updated'; roomId: string; userId: string; lastReadAt: string }
   | { type: 'room.updated'; room: ChatRoomListItem }
   | { type: 'typing'; roomId: string; userId: string; active: boolean }
   | { type: 'error'; code: string; message: string };
@@ -178,6 +185,9 @@ export function ChatSocketProvider({ children }: { children: ReactNode }) {
 
         const isViewingRoom = subscribedRef.current.has(msg.roomId);
         const isIncoming = msg.message.author.id !== user?.id;
+        if (isIncoming) {
+          send({ type: 'message.delivered', roomId: msg.roomId, messageId: msg.message.id });
+        }
 
         if (isViewingRoom && isIncoming) {
           void markChatRoomRead(msg.roomId).then(() => {
@@ -193,6 +203,24 @@ export function ChatSocketProvider({ children }: { children: ReactNode }) {
           });
         }
         // Список и счётчик непрочитанных обновляет room.updated (приходит сразу после отправки).
+        return;
+      }
+
+      if (msg.type === 'message.status') {
+        queryClient.setQueryData<InfiniteData<ChatMessagesPage>>(
+          ['chat', 'messages', msg.roomId],
+          (old) => updateSingleMessageStatus(old, msg.messageId, msg.status) ?? old,
+        );
+        return;
+      }
+
+      if (msg.type === 'read.updated') {
+        if (msg.userId === user?.id) return;
+        if (!user?.id) return;
+        queryClient.setQueryData<InfiniteData<ChatMessagesPage>>(
+          ['chat', 'messages', msg.roomId],
+          (old) => markMessagesReadByPeer(old, user.id, msg.lastReadAt) ?? old,
+        );
         return;
       }
 
@@ -225,7 +253,7 @@ export function ChatSocketProvider({ children }: { children: ReactNode }) {
         setTypingUser(msg.roomId, msg.userId, msg.active);
       }
     },
-    [queryClient, flushSubscribe, setTypingUser, clearTypingUser, user?.id],
+    [queryClient, flushSubscribe, setTypingUser, clearTypingUser, send, user?.id],
   );
 
   useEffect(() => {

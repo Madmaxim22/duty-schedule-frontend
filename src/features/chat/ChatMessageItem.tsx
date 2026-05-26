@@ -10,6 +10,53 @@ function formatBubbleTime(iso: string) {
   });
 }
 
+const TICK_LABELS = {
+  sent: 'Отправлено',
+  delivered: 'Доставлено',
+  read: 'Прочитано',
+} as const;
+
+const TICK_STROKE = {
+  stroke: 'currentColor',
+  strokeWidth: 1.65,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+  fill: 'none',
+};
+
+/** Одна галочка — отправлено. */
+const TICK_SINGLE_PATH = 'M1.5 6.25 4.6 9.35 10.45 2.65';
+
+/** Две галочки с наложением — доставлено / прочитано (как в Telegram). */
+const TICK_DOUBLE_BACK = 'M0.75 6.25 3.85 9.35 9.2 2.65';
+const TICK_DOUBLE_FRONT = 'M5.25 6.25 8.35 9.35 13.7 2.65';
+
+/** Галочки в стиле Telegram: одна / две с наложением, синие при прочтении. */
+function MessageTicks({ status }: { status: 'sent' | 'delivered' | 'read' }) {
+  if (status === 'sent') {
+    return (
+      <span className="chat-room__ticks chat-room__ticks--sent" role="img" aria-label={TICK_LABELS.sent}>
+        <svg className="chat-room__ticks-icon" viewBox="0 0 12 11" width={12} height={11} aria-hidden>
+          <path d={TICK_SINGLE_PATH} {...TICK_STROKE} />
+        </svg>
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className={`chat-room__ticks chat-room__ticks--double chat-room__ticks--${status}`}
+      role="img"
+      aria-label={TICK_LABELS[status]}
+    >
+      <svg className="chat-room__ticks-icon" viewBox="0 0 18 11" width={18} height={11} aria-hidden>
+        <path d={TICK_DOUBLE_BACK} {...TICK_STROKE} />
+        <path d={TICK_DOUBLE_FRONT} {...TICK_STROKE} />
+      </svg>
+    </span>
+  );
+}
+
 type Props = {
   msg: ChatMessage;
   isMine: boolean;
@@ -60,6 +107,7 @@ export function ChatMessageItem({
   ) : (
     <span className="chat-room__avatar-spacer" aria-hidden />
   );
+  const shouldRenderTicks = isMine && !isGroup && Boolean(msg.status);
 
   return (
     <li
@@ -76,9 +124,12 @@ export function ChatMessageItem({
         ) : null}
         <div className="chat-room__bubble-row">
           <p className="chat-room__body">{msg.body}</p>
-          <time className="chat-room__time" dateTime={msg.createdAt}>
-            {formatBubbleTime(msg.createdAt)}
-          </time>
+          <span className="chat-room__meta">
+            <time className="chat-room__time" dateTime={msg.createdAt}>
+              {formatBubbleTime(msg.createdAt)}
+            </time>
+            {shouldRenderTicks && msg.status ? <MessageTicks status={msg.status} /> : null}
+          </span>
         </div>
       </div>
     </li>
