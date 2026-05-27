@@ -35,6 +35,7 @@ import {
   type ChatScrollSnapshot,
   unregisterChatReactionScrollCapture,
 } from './chatReactionScrollAnchor';
+import { flyReactionEmoji } from './chatReactionFlyAnimation';
 import { useChatSocket } from './ChatSocketContext';
 import { useChatTypingEmitter } from './useChatTypingEmitter';
 
@@ -133,7 +134,6 @@ export function ChatRoomView({ roomId }: Props) {
       setChatMessageReaction(roomId, messageId, emoji),
     onSuccess: (data, { messageId }) => {
       applyMessageReactions(messageId, data.reactions);
-      closeMessageMenu();
     },
   });
 
@@ -245,11 +245,16 @@ export function ChatRoomView({ roomId }: Props) {
   );
 
   const handleOverlayEmoji = useCallback(
-    (emoji: string) => {
+    (emoji: string, fromRect: DOMRect) => {
       if (!activeMessageMenu) return;
-      setReactionMutation.mutate({ messageId: activeMessageMenu.message.id, emoji });
+      const messageId = activeMessageMenu.message.id;
+
+      flyReactionEmoji(emoji, fromRect, messageId, () => {
+        closeMessageMenu();
+      });
+      setReactionMutation.mutate({ messageId, emoji });
     },
-    [activeMessageMenu, setReactionMutation],
+    [activeMessageMenu, setReactionMutation, closeMessageMenu],
   );
 
   const messageMenuContext = useMemo(() => {

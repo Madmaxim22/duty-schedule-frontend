@@ -138,6 +138,7 @@ export function ChatMessageItem({
 
   return (
     <li
+      data-chat-message-id={msg.id}
       className={`chat-room__message${isMine ? ' chat-room__message--mine' : ''}${
         isGroup ? ' chat-room__message--group' : ''
       }`}

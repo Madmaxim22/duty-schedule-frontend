@@ -78,7 +78,7 @@ type Props = {
   menuContext: ChatMessageMenuContext | null;
   emojiExpanded: boolean;
   onEmojiExpandedChange: (expanded: boolean) => void;
-  onSelectEmoji: (emoji: string) => void;
+  onSelectEmoji: (emoji: string, fromRect: DOMRect) => void;
   onClose: () => void;
   onToast: (message: string) => void;
 };
@@ -156,7 +156,11 @@ export function ChatMessageOverlay({
                 type="button"
                 className="chat-message-overlay__emoji-btn"
                 aria-label={`Реакция ${emoji}`}
-                onClick={() => onSelectEmoji(emoji)}
+                onClick={(e) => {
+                  const btn = e.currentTarget;
+                  btn.classList.add('chat-message-overlay__emoji-btn--picked');
+                  onSelectEmoji(emoji, btn.getBoundingClientRect());
+                }}
               >
                 {emoji}
               </button>
