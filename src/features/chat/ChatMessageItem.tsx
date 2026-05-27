@@ -3,6 +3,7 @@ import { Avatar } from '@/shared/ui/Avatar';
 import { toAvatarPreviewUser, type AvatarPreviewUser } from '@/features/day-detail/avatarPreviewUser';
 import type { DutyProfileTarget } from '@/features/profile/dutyProfileTarget';
 import { ChatMessageReactions } from './ChatMessageReactions';
+import type { ChatMessageMenuAnchor } from './ChatMessageOverlay';
 
 function formatBubbleTime(iso: string) {
   return new Date(iso).toLocaleTimeString('ru-RU', {
@@ -61,7 +62,7 @@ type Props = {
   showAvatar: boolean;
   onAvatarPreview: (user: AvatarPreviewUser) => void;
   onUserProfile: (target: DutyProfileTarget) => void;
-  onBubbleClick: (msg: ChatMessage, anchorRect: DOMRect) => void;
+  onBubbleClick: (msg: ChatMessage, anchor: ChatMessageMenuAnchor) => void;
   onReactionChipClick: (msg: ChatMessage, emoji: string, reactedByMe: boolean) => void;
 };
 
@@ -111,12 +112,21 @@ export function ChatMessageItem({
   );
   const shouldRenderTicks = isMine && !isGroup && Boolean(msg.status);
 
-  const openMenuFromBubble = (target: HTMLElement) => {
-    onBubbleClick(msg, target.getBoundingClientRect());
+  const openMenuFromBubble = (
+    target: HTMLElement,
+    clientX?: number,
+    clientY?: number,
+  ) => {
+    const rect = target.getBoundingClientRect();
+    onBubbleClick(msg, {
+      rect,
+      clientX: clientX ?? rect.left + rect.width / 2,
+      clientY: clientY ?? rect.top + rect.height / 2,
+    });
   };
 
   const onBubbleClickHandler = (e: React.MouseEvent<HTMLDivElement>) => {
-    openMenuFromBubble(e.currentTarget);
+    openMenuFromBubble(e.currentTarget, e.clientX, e.clientY);
   };
 
   const onBubbleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {

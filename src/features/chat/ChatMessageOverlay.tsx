@@ -25,10 +25,56 @@ function ChevronDownIcon() {
   );
 }
 
+const OVERLAY_MARGIN = 12;
+const OVERLAY_GAP = 8;
+
+export type ChatMessageMenuAnchor = {
+  rect: DOMRect;
+  clientX: number;
+  clientY: number;
+};
+
+/** Панель по центру точки нажатия; вертикально — над/под тапом с clamp по viewport. */
+function computeOverlayCardPosition(
+  anchor: ChatMessageMenuAnchor,
+  cardWidth: number,
+  cardHeight: number,
+): { top: number; left: number } {
+  const viewportW = window.innerWidth;
+  const viewportH = window.innerHeight;
+
+  let left = anchor.clientX - cardWidth / 2;
+  left = Math.max(OVERLAY_MARGIN, Math.min(left, viewportW - cardWidth - OVERLAY_MARGIN));
+
+  const clickY = Math.max(
+    anchor.rect.top,
+    Math.min(anchor.clientY, anchor.rect.bottom),
+  );
+  const clampedY = Math.max(OVERLAY_MARGIN, Math.min(clickY, viewportH - OVERLAY_MARGIN));
+
+  const spaceAbove = clampedY - OVERLAY_MARGIN - OVERLAY_GAP;
+  const spaceBelow = viewportH - OVERLAY_MARGIN - clampedY - OVERLAY_GAP;
+
+  let top: number;
+  if (spaceAbove >= cardHeight) {
+    top = clampedY - cardHeight - OVERLAY_GAP;
+  } else if (spaceBelow >= cardHeight) {
+    top = clampedY + OVERLAY_GAP;
+  } else if (spaceAbove >= spaceBelow) {
+    top = clampedY - cardHeight - OVERLAY_GAP;
+  } else {
+    top = clampedY + OVERLAY_GAP;
+  }
+
+  top = Math.max(OVERLAY_MARGIN, Math.min(top, viewportH - cardHeight - OVERLAY_MARGIN));
+
+  return { top, left };
+}
+
 type Props = {
   open: boolean;
   message: ChatMessage | null;
-  anchorRect: DOMRect | null;
+  anchor: ChatMessageMenuAnchor | null;
   menuContext: ChatMessageMenuContext | null;
   emojiExpanded: boolean;
   onEmojiExpandedChange: (expanded: boolean) => void;
@@ -40,7 +86,7 @@ type Props = {
 export function ChatMessageOverlay({
   open,
   message,
-  anchorRect,
+  anchor,
   menuContext,
   emojiExpanded,
   onEmojiExpandedChange,
@@ -49,40 +95,19 @@ export function ChatMessageOverlay({
   onToast,
 }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
-  const anchoredPositionRef = useRef<{ top: number; left: number } | null>(null);
   const [cardStyle, setCardStyle] = useState<{ top: number; left: number } | null>(null);
 
-  useEffect(() => {
-    if (!open) {
-      anchoredPositionRef.current = null;
-    }
-  }, [open, message?.id]);
-
   useLayoutEffect(() => {
-    if (!open || !anchorRect || !cardRef.current) {
+    if (!open || !anchor || !cardRef.current) {
       setCardStyle(null);
       return;
     }
 
-    if (!anchoredPositionRef.current) {
-      const card = cardRef.current;
-      const cardWidth = card.offsetWidth;
-      const cardHeight = card.offsetHeight;
-      const margin = 12;
-
-      let left = anchorRect.left + anchorRect.width / 2 - cardWidth / 2;
-      left = Math.max(margin, Math.min(left, window.innerWidth - cardWidth - margin));
-
-      let top = anchorRect.top - cardHeight - 8;
-      if (top < margin) {
-        top = anchorRect.bottom + 8;
-      }
-
-      anchoredPositionRef.current = { top, left };
-    }
-
-    setCardStyle(anchoredPositionRef.current);
-  }, [open, anchorRect, message?.id]);
+    const card = cardRef.current;
+    setCardStyle(
+      computeOverlayCardPosition(anchor, card.offsetWidth, card.offsetHeight),
+    );
+  }, [open, anchor, message?.id, emojiExpanded]);
 
   useEffect(() => {
     if (!open) return;
@@ -95,7 +120,7 @@ export function ChatMessageOverlay({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [open, onClose]);
 
-  if (!open || !message || !anchorRect || !menuContext) return null;
+  if (!open || !message || !anchor || !menuContext) return null;
 
   const visibleEmojis = emojiExpanded
     ? [...CHAT_REACTION_EMOJIS_QUICK, ...CHAT_REACTION_EMOJIS_MORE]

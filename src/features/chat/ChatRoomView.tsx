@@ -19,7 +19,7 @@ import { UserProfileModal } from '@/features/profile/UserProfileModal';
 import { ProfileModal } from '@/features/settings/ProfileModal';
 import { Avatar } from '@/shared/ui/Avatar';
 import { ChatMessageItem } from './ChatMessageItem';
-import { ChatMessageOverlay } from './ChatMessageOverlay';
+import { ChatMessageOverlay, type ChatMessageMenuAnchor } from './ChatMessageOverlay';
 import { groupMessagesByDate } from './chatMessageGroups';
 import { getDirectPeerLastReadAt } from './chatMessageMenuActions';
 import { formatTypingLabel } from './formatTypingLabel';
@@ -67,7 +67,7 @@ export function ChatRoomView({ roomId }: Props) {
   const [avatarVersion, setAvatarVersion] = useState(0);
   const [activeMessageMenu, setActiveMessageMenu] = useState<{
     message: ChatMessage;
-    anchorRect: DOMRect;
+    anchor: ChatMessageMenuAnchor;
   } | null>(null);
   const [emojiExpanded, setEmojiExpanded] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -228,9 +228,9 @@ export function ChatRoomView({ roomId }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
 
-  const handleBubbleClick = useCallback((msg: ChatMessage, anchorRect: DOMRect) => {
+  const handleBubbleClick = useCallback((msg: ChatMessage, anchor: ChatMessageMenuAnchor) => {
     setEmojiExpanded(false);
-    setActiveMessageMenu({ message: msg, anchorRect });
+    setActiveMessageMenu({ message: msg, anchor });
   }, []);
 
   const handleReactionChipClick = useCallback(
@@ -540,7 +540,7 @@ export function ChatRoomView({ roomId }: Props) {
       <ChatMessageOverlay
         open={Boolean(activeMessageMenu)}
         message={activeMessageMenu?.message ?? null}
-        anchorRect={activeMessageMenu?.anchorRect ?? null}
+        anchor={activeMessageMenu?.anchor ?? null}
         menuContext={messageMenuContext}
         emojiExpanded={emojiExpanded}
         onEmojiExpandedChange={setEmojiExpanded}
