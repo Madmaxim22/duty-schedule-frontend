@@ -27,7 +27,13 @@ function RoomCard({ room }: { room: ChatRoomListItem }) {
     <Link to={`/chat/${room.id}`} className={`chat-page__row${hasUnread ? ' chat-page__row--unread' : ''}`}>
       <div className="chat-page__row-avatar">
         {room.type === 'direct' ? (
-          <Avatar fullName={room.displayName} avatarUrl={room.displayAvatarUrl} size="md" />
+          <Avatar
+            fullName={room.displayName}
+            avatarUrl={room.displayAvatarUrl}
+            focusX={room.displayAvatarFocusX}
+            focusY={room.displayAvatarFocusY}
+            size="md"
+          />
         ) : (
           <span className="chat-page__group-icon" aria-hidden>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

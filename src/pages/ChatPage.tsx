@@ -25,7 +25,13 @@ function ContactRow({
       disabled={disabled}
       onClick={() => onSelect(contact.id)}
     >
-      <Avatar fullName={contact.fullName} avatarUrl={contact.avatarUrl} size="md" />
+      <Avatar
+        fullName={contact.fullName}
+        avatarUrl={contact.avatarUrl}
+        focusX={contact.avatarFocusX}
+        focusY={contact.avatarFocusY}
+        size="md"
+      />
       <span>{contact.fullName}</span>
     </button>
   );

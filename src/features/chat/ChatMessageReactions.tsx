@@ -53,6 +53,8 @@ export function ChatMessageReactions({
                     key={reactor.id}
                     fullName={reactor.fullName}
                     avatarUrl={reactor.avatarUrl}
+                    focusX={reactor.avatarFocusX}
+                    focusY={reactor.avatarFocusY}
                     className="chat-room__reaction-avatar"
                   />
                 ))}

@@ -3,6 +3,8 @@ export type AvatarPreviewUser = {
   photoId: string;
   fullName: string;
   avatarUrl: string;
+  focusX: number;
+  focusY: number;
 };
 
 export function toAvatarPreviewUser(user: {
@@ -10,6 +12,8 @@ export function toAvatarPreviewUser(user: {
   fullName: string;
   avatarUrl: string | null;
   currentPhotoId: string | null;
+  avatarFocusX?: number;
+  avatarFocusY?: number;
 }): AvatarPreviewUser | null {
   if (!user.avatarUrl || !user.currentPhotoId) return null;
   return {
@@ -17,5 +21,7 @@ export function toAvatarPreviewUser(user: {
     photoId: user.currentPhotoId,
     fullName: user.fullName,
     avatarUrl: user.avatarUrl,
+    focusX: user.avatarFocusX ?? 50,
+    focusY: user.avatarFocusY ?? 50,
   };
 }

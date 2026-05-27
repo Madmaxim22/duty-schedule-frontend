@@ -183,12 +183,16 @@ export function HomePage() {
                 photoId: user.currentPhotoId!,
                 fullName: displayName,
                 avatarUrl: user.avatarUrl!,
+                focusX: user.avatarFocusX,
+                focusY: user.avatarFocusY,
               })
             }
           >
             <Avatar
               fullName={displayName}
               avatarUrl={user.avatarUrl}
+              focusX={user.avatarFocusX}
+              focusY={user.avatarFocusY}
               cacheBust={avatarCacheBust}
               className="home-page__header-avatar"
             />
@@ -197,6 +201,8 @@ export function HomePage() {
           <Avatar
             fullName={displayName}
             avatarUrl={user?.avatarUrl}
+            focusX={user?.avatarFocusX}
+            focusY={user?.avatarFocusY}
             cacheBust={avatarCacheBust}
             className="home-page__header-avatar"
           />
@@ -303,6 +309,8 @@ export function HomePage() {
           <Avatar
             fullName={displayName || '?'}
             avatarUrl={user?.avatarUrl}
+            focusX={user?.avatarFocusX}
+            focusY={user?.avatarFocusY}
             size="md"
             cacheBust={avatarCacheBust}
           />
@@ -412,6 +420,8 @@ export function HomePage() {
         currentUserId={user?.id}
         fullName={avatarPreview?.fullName ?? ''}
         avatarUrl={avatarPreview?.avatarUrl ?? null}
+        focusX={avatarPreview?.focusX}
+        focusY={avatarPreview?.focusY}
         avatarCacheBust={
           avatarPreview?.targetUserId === user?.id ? avatarCacheBust : undefined
         }

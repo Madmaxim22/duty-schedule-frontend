@@ -60,6 +60,8 @@ export function UserProfileModal({ target, onClose }: Props) {
                 <Avatar
                   fullName={displayName || '?'}
                   avatarUrl={profile?.avatarUrl ?? target.avatarUrl}
+                  focusX={profile?.avatarFocusX ?? target.avatarFocusX}
+                  focusY={profile?.avatarFocusY ?? target.avatarFocusY}
                   size="lg"
                 />
               </div>

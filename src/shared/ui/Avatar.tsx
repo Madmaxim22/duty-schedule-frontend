@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { avatarImageStyle } from '@/shared/lib/avatarFocus';
 import { resolveAvatarUrl } from '@/shared/lib/avatarUrl';
 
 function getInitials(fullName: string): string {
@@ -11,12 +12,22 @@ function getInitials(fullName: string): string {
 type AvatarProps = {
   fullName: string;
   avatarUrl?: string | null;
+  focusX?: number | null;
+  focusY?: number | null;
   size?: 'sm' | 'md' | 'lg';
   cacheBust?: number;
   className?: string;
 };
 
-export function Avatar({ fullName, avatarUrl, size = 'sm', cacheBust, className }: AvatarProps) {
+export function Avatar({
+  fullName,
+  avatarUrl,
+  focusX,
+  focusY,
+  size = 'sm',
+  cacheBust,
+  className,
+}: AvatarProps) {
   const [broken, setBroken] = useState(false);
   const src = resolveAvatarUrl(avatarUrl, cacheBust);
 
@@ -33,6 +44,7 @@ export function Avatar({ fullName, avatarUrl, size = 'sm', cacheBust, className 
         src={src}
         alt=""
         className={`${classes} avatar--image`}
+        style={avatarImageStyle(focusX, focusY)}
         onError={() => setBroken(true)}
       />
     );

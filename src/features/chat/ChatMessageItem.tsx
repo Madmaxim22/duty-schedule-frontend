@@ -89,6 +89,8 @@ export function ChatMessageItem({
       fullName: msg.author.fullName,
       avatarUrl: msg.author.avatarUrl,
       currentPhotoId: msg.author.currentPhotoId,
+      avatarFocusX: msg.author.avatarFocusX,
+      avatarFocusY: msg.author.avatarFocusY,
     });
   };
 
@@ -100,11 +102,23 @@ export function ChatMessageItem({
         aria-label={`Показать фото: ${msg.author.fullName}`}
         onClick={openPreview}
       >
-        <Avatar fullName={msg.author.fullName} avatarUrl={msg.author.avatarUrl} size="sm" />
+        <Avatar
+          fullName={msg.author.fullName}
+          avatarUrl={msg.author.avatarUrl}
+          focusX={msg.author.avatarFocusX}
+          focusY={msg.author.avatarFocusY}
+          size="sm"
+        />
       </button>
     ) : (
       <span className="chat-room__avatar-placeholder" aria-hidden>
-        <Avatar fullName={msg.author.fullName} avatarUrl={msg.author.avatarUrl} size="sm" />
+        <Avatar
+          fullName={msg.author.fullName}
+          avatarUrl={msg.author.avatarUrl}
+          focusX={msg.author.avatarFocusX}
+          focusY={msg.author.avatarFocusY}
+          size="sm"
+        />
       </span>
     )
   ) : (

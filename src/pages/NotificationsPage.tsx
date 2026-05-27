@@ -154,6 +154,8 @@ export function NotificationsPage() {
                     <Avatar
                       fullName={item.actor.fullName}
                       avatarUrl={item.actor.avatarUrl}
+                      focusX={item.actor.avatarFocusX}
+                      focusY={item.actor.avatarFocusY}
                       size="sm"
                     />
                   ) : (

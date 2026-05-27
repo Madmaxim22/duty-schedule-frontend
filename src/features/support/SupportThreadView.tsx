@@ -60,11 +60,19 @@ function SupportMessageItem({
       fullName: msg.author.fullName,
       avatarUrl: msg.author.avatarUrl,
       currentPhotoId: msg.author.currentPhotoId,
+      avatarFocusX: msg.author.avatarFocusX,
+      avatarFocusY: msg.author.avatarFocusY,
     });
   };
 
   const avatar = (
-    <Avatar fullName={msg.author.fullName} avatarUrl={msg.author.avatarUrl} size="sm" />
+    <Avatar
+      fullName={msg.author.fullName}
+      avatarUrl={msg.author.avatarUrl}
+      focusX={msg.author.avatarFocusX}
+      focusY={msg.author.avatarFocusY}
+      size="sm"
+    />
   );
 
   return (
@@ -256,6 +264,8 @@ export function SupportThreadView({ threadId, isAdmin }: SupportThreadViewProps)
         currentUserId={user?.id}
         fullName={avatarPreview?.fullName ?? ''}
         avatarUrl={avatarPreview?.avatarUrl ?? null}
+        focusX={avatarPreview?.focusX}
+        focusY={avatarPreview?.focusY}
         avatarCacheBust={
           avatarPreview?.targetUserId === user?.id ? avatarCacheBust : undefined
         }

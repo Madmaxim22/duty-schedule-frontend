@@ -24,6 +24,8 @@ function AdminThreadCard({ thread }: { thread: SupportThreadSummary }) {
         <Avatar
           fullName={thread.author.fullName}
           avatarUrl={thread.author.avatarUrl}
+          focusX={thread.author.avatarFocusX}
+          focusY={thread.author.avatarFocusY}
           size="sm"
         />
         <div className="support-page__card-meta">

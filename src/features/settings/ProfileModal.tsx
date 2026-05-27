@@ -37,6 +37,8 @@ export function ProfileModal({ open, onClose, onAvatarUpdated }: Props) {
             <Avatar
               fullName={displayName || '?'}
               avatarUrl={user?.avatarUrl}
+              focusX={user?.avatarFocusX}
+              focusY={user?.avatarFocusY}
               size="lg"
               cacheBust={avatarVersion || undefined}
             />

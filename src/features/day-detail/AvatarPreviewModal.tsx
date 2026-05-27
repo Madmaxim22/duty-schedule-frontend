@@ -1,7 +1,9 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { AvatarFocusEditor } from '@/features/settings/AvatarFocusEditor';
 import { getPhotoLikeStatus } from '@/shared/api/client';
 import type { PhotoLikeStatus } from '@/shared/api/types';
+import { avatarImageStyle } from '@/shared/lib/avatarFocus';
 import { resolveAvatarUrl } from '@/shared/lib/avatarUrl';
 import { AvatarLikeButton } from './AvatarLikeButton';
 import { AvatarLikeHeartsOverlay, useAvatarLikeHeartsBurst } from './AvatarLikeHeartsBurst';
@@ -14,11 +16,14 @@ type Props = {
   currentUserId: string | undefined;
   fullName: string;
   avatarUrl: string | null;
+  focusX?: number;
+  focusY?: number;
   avatarCacheBust?: number;
   isCurrentPhoto?: boolean;
   ownerActionsBusy?: boolean;
   onSetAsAvatar?: () => void;
   onDeletePhoto?: () => void;
+  onFocusChange?: (focusX: number, focusY: number) => void;
   onClose: () => void;
 };
 
@@ -29,16 +34,31 @@ export function AvatarPreviewModal({
   currentUserId,
   fullName,
   avatarUrl,
+  focusX = 50,
+  focusY = 50,
   avatarCacheBust,
   isCurrentPhoto = false,
   ownerActionsBusy = false,
   onSetAsAvatar,
   onDeletePhoto,
+  onFocusChange,
   onClose,
 }: Props) {
   const src = resolveAvatarUrl(avatarUrl, avatarCacheBust);
   const queryClient = useQueryClient();
   const { particles, burst } = useAvatarLikeHeartsBurst();
+  const [editingFocus, setEditingFocus] = useState(false);
+  const [localFocusX, setLocalFocusX] = useState(focusX);
+  const [localFocusY, setLocalFocusY] = useState(focusY);
+
+  useEffect(() => {
+    if (!open) {
+      setEditingFocus(false);
+      return;
+    }
+    setLocalFocusX(focusX);
+    setLocalFocusY(focusY);
+  }, [open, focusX, focusY]);
 
   const { data: likeStatus, isLoading: likesLoading } = useQuery({
     queryKey: ['photo-likes', photoId],
@@ -85,6 +105,7 @@ export function AvatarPreviewModal({
   );
   const showLikeButton = Boolean(photoId && targetUserId);
   const showOwnerActions = isOwnPhoto && Boolean(onSetAsAvatar && onDeletePhoto);
+  const canEditFocus = isOwnPhoto && Boolean(onFocusChange);
   const likeCount = likeStatus?.likeCount ?? 0;
   const likeDisabled = isOwnPhoto || !(likeStatus?.canLike ?? false);
   const heartFilled = isOwnPhoto ? likeCount > 0 : localLiked;
@@ -95,6 +116,12 @@ export function AvatarPreviewModal({
     : localLiked
       ? `Убрать лайк с фото ${fullName}`
       : `Нравится фото ${fullName}`;
+
+  const handleFocusChange = (nextX: number, nextY: number) => {
+    setLocalFocusX(nextX);
+    setLocalFocusY(nextY);
+    onFocusChange?.(nextX, nextY);
+  };
 
   return (
     <div
@@ -124,7 +151,22 @@ export function AvatarPreviewModal({
           </button>
         </header>
         <div className="avatar-preview__body">
-          <img src={src} alt={fullName} className="avatar-preview__image" />
+          {editingFocus && canEditFocus ? (
+            <AvatarFocusEditor
+              src={src}
+              focusX={localFocusX}
+              focusY={localFocusY}
+              onChange={handleFocusChange}
+              disabled={ownerActionsBusy}
+            />
+          ) : (
+            <img
+              src={src}
+              alt={fullName}
+              className="avatar-preview__image"
+              style={avatarImageStyle(localFocusX, localFocusY)}
+            />
+          )}
           <div className="avatar-preview__actions">
             {showLikeButton ? (
               <div className="avatar-preview__like-wrap">
@@ -141,6 +183,16 @@ export function AvatarPreviewModal({
               <span className="avatar-preview__like-count" aria-live="polite">
                 {displayCount}
               </span>
+            ) : null}
+            {canEditFocus ? (
+              <button
+                type="button"
+                className="avatar-preview__action-btn"
+                disabled={ownerActionsBusy}
+                onClick={() => setEditingFocus((v) => !v)}
+              >
+                {editingFocus ? 'Готово' : 'Настроить кадр'}
+              </button>
             ) : null}
             {showOwnerActions ? (
               <>

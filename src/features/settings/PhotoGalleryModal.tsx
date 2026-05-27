@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/AuthContext';
 import { AvatarPreviewModal } from '@/features/day-detail/AvatarPreviewModal';
@@ -6,9 +6,11 @@ import {
   deletePhoto,
   listMyPhotos,
   setCurrentPhoto,
+  updatePhotoFocus,
   uploadPhoto,
 } from '@/shared/api/client';
 import type { UserPhoto } from '@/shared/api/types';
+import { avatarImageStyle } from '@/shared/lib/avatarFocus';
 import { resolveAvatarUrl } from '@/shared/lib/avatarUrl';
 import { Modal } from '@/shared/ui/Modal';
 
@@ -26,6 +28,7 @@ export function PhotoGalleryModal({ open, displayName, onClose, onUserUpdated }:
   const [previewPhoto, setPreviewPhoto] = useState<UserPhoto | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cacheBust, setCacheBust] = useState(0);
+  const focusSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['my-photos'],
@@ -77,8 +80,32 @@ export function PhotoGalleryModal({ open, displayName, onClose, onUserUpdated }:
     onError: (err: Error) => setError(err.message),
   });
 
+  const focusMutation = useMutation({
+    mutationFn: ({ photoId, focusX, focusY }: { photoId: string; focusX: number; focusY: number }) =>
+      updatePhotoFocus(photoId, focusX, focusY),
+    onSuccess: (result) => {
+      setError(null);
+      setCacheBust(Date.now());
+      setUser(result.user);
+      onUserUpdated();
+      setPreviewPhoto(result.photo);
+      invalidate();
+    },
+    onError: (err: Error) => setError(err.message),
+  });
+
+  useEffect(
+    () => () => {
+      if (focusSaveTimerRef.current) clearTimeout(focusSaveTimerRef.current);
+    },
+    [],
+  );
+
   const busy =
-    uploadMutation.isPending || deleteMutation.isPending || setCurrentMutation.isPending;
+    uploadMutation.isPending ||
+    deleteMutation.isPending ||
+    setCurrentMutation.isPending ||
+    focusMutation.isPending;
 
   const photos = data?.photos ?? [];
   const atLimit = (data?.count ?? 0) >= (data?.maxPhotos ?? 20);
@@ -107,6 +134,15 @@ export function PhotoGalleryModal({ open, displayName, onClose, onUserUpdated }:
     setCurrentMutation.mutate(previewPhoto.id);
   }
 
+  function handleFocusChange(focusX: number, focusY: number) {
+    if (!previewPhoto || busy) return;
+    setPreviewPhoto((prev) => (prev ? { ...prev, focusX, focusY } : null));
+    if (focusSaveTimerRef.current) clearTimeout(focusSaveTimerRef.current);
+    focusSaveTimerRef.current = setTimeout(() => {
+      focusMutation.mutate({ photoId: previewPhoto.id, focusX, focusY });
+    }, 400);
+  }
+
   function handleModalClose() {
     if (previewPhoto) return;
     onClose();
@@ -125,7 +161,8 @@ export function PhotoGalleryModal({ open, displayName, onClose, onUserUpdated }:
       >
         <div className="photo-gallery-modal">
           <p className="photo-gallery-modal__hint">
-            До {data?.maxPhotos ?? 20} фотографий. Нажмите на миниатюру для просмотра.
+            До {data?.maxPhotos ?? 20} фотографий. Нажмите на миниатюру для просмотра и настройки
+            кадра.
             {data?.count != null ? ` Загружено: ${data.count}.` : ''}
           </p>
 
@@ -147,7 +184,12 @@ export function PhotoGalleryModal({ open, displayName, onClose, onUserUpdated }:
                       onClick={() => setPreviewPhoto(photo)}
                     >
                       {src ? (
-                        <img src={src} alt="" className="photo-gallery__thumb" />
+                        <img
+                          src={src}
+                          alt=""
+                          className="photo-gallery__thumb"
+                          style={avatarImageStyle(photo.focusX, photo.focusY)}
+                        />
                       ) : (
                         <span className="photo-gallery__thumb-placeholder" />
                       )}
@@ -197,11 +239,14 @@ export function PhotoGalleryModal({ open, displayName, onClose, onUserUpdated }:
         currentUserId={user?.id}
         fullName={displayName}
         avatarUrl={previewInGallery?.url ?? null}
+        focusX={previewInGallery?.focusX}
+        focusY={previewInGallery?.focusY}
         avatarCacheBust={cacheBust}
         isCurrentPhoto={previewInGallery?.isCurrent ?? false}
         ownerActionsBusy={busy}
         onSetAsAvatar={handleSetCurrentFromPreview}
         onDeletePhoto={handleDeleteFromPreview}
+        onFocusChange={handleFocusChange}
         onClose={() => setPreviewPhoto(null)}
       />
     </>

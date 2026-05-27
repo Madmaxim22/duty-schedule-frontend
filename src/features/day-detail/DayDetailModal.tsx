@@ -112,6 +112,8 @@ export function DayDetailModal({ date, onClose, onUserProfile }: Props) {
         currentUserId={user?.id}
         fullName={previewUser?.fullName ?? ''}
         avatarUrl={previewUser?.avatarUrl ?? null}
+        focusX={previewUser?.focusX}
+        focusY={previewUser?.focusY}
         onClose={() => setPreviewUser(null)}
       />
       <UserProfileModal

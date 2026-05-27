@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AvatarPreviewModal } from '@/features/day-detail/AvatarPreviewModal';
 import { listUserPhotos } from '@/shared/api/client';
 import type { UserPhoto } from '@/shared/api/types';
+import { avatarImageStyle } from '@/shared/lib/avatarFocus';
 import { resolveAvatarUrl } from '@/shared/lib/avatarUrl';
 
 type Props = {
@@ -60,7 +61,12 @@ export function UserPhotoGallery({ userId, displayName, currentUserId, enabled }
                     onClick={() => setPreviewPhoto(photo)}
                   >
                     {src ? (
-                      <img src={src} alt="" className="photo-gallery__thumb" />
+                      <img
+                        src={src}
+                        alt=""
+                        className="photo-gallery__thumb"
+                        style={avatarImageStyle(photo.focusX, photo.focusY)}
+                      />
                     ) : (
                       <span className="photo-gallery__thumb-placeholder" />
                     )}
@@ -82,6 +88,8 @@ export function UserPhotoGallery({ userId, displayName, currentUserId, enabled }
         currentUserId={currentUserId}
         fullName={displayName}
         avatarUrl={previewPhoto?.url ?? null}
+        focusX={previewPhoto?.focusX}
+        focusY={previewPhoto?.focusY}
         isCurrentPhoto={previewPhoto?.isCurrent ?? false}
         onClose={() => setPreviewPhoto(null)}
       />

@@ -2061,6 +2061,79 @@ body {
   border-radius: var(--radius);
 }
 
+.avatar-focus-editor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: min(320px, 85vw);
+  max-width: 100%;
+}
+
+.avatar-focus-editor__hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.avatar-focus-editor__frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--radius);
+  touch-action: none;
+  cursor: grab;
+  background: var(--color-muted-bg);
+}
+
+.avatar-focus-editor__frame--dragging {
+  cursor: grabbing;
+}
+
+.avatar-focus-editor__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.avatar-focus-editor__mask {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.avatar-focus-editor__reticle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.avatar-focus-editor__preview-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-focus-editor__preview {
+  overflow: hidden;
+}
+
+.avatar-focus-editor__preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .avatar-preview__actions {
   position: relative;
   z-index: 3;

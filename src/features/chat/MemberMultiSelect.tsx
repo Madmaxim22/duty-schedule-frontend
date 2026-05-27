@@ -32,7 +32,13 @@ export function MemberMultiSelect({ contacts, selectedIds, onChange, disabled }:
               disabled={disabled}
               onClick={() => toggle(c.id)}
             >
-              <Avatar fullName={c.fullName} avatarUrl={c.avatarUrl} size="sm" />
+              <Avatar
+                fullName={c.fullName}
+                avatarUrl={c.avatarUrl}
+                focusX={c.avatarFocusX}
+                focusY={c.avatarFocusY}
+                size="sm"
+              />
               <span className="chat-member-select__name">{c.fullName}</span>
               {checked ? <span className="chat-member-select__check">Выбран</span> : null}
             </button>

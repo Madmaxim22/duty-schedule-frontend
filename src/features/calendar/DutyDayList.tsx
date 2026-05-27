@@ -59,6 +59,8 @@ function DutyPerson({
         fullName: duty.fullName,
         avatarUrl: duty.avatarUrl,
         currentPhotoId: duty.currentPhotoId,
+        avatarFocusX: duty.avatarFocusX,
+        avatarFocusY: duty.avatarFocusY,
       });
     }
   };
@@ -67,6 +69,8 @@ function DutyPerson({
     <Avatar
       fullName={duty.fullName}
       avatarUrl={duty.avatarUrl}
+      focusX={duty.avatarFocusX}
+      focusY={duty.avatarFocusY}
       className="duty-day-list__avatar"
     />
   );

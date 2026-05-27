@@ -48,6 +48,8 @@ function DutyPerson({
         fullName: user.fullName,
         avatarUrl: user.avatarUrl,
         currentPhotoId: user.currentPhotoId,
+        avatarFocusX: user.avatarFocusX,
+        avatarFocusY: user.avatarFocusY,
       });
     }
   };
@@ -65,6 +67,8 @@ function DutyPerson({
           <Avatar
             fullName={user.fullName}
             avatarUrl={user.avatarUrl}
+            focusX={user.avatarFocusX}
+            focusY={user.avatarFocusY}
             className="day-detail__avatar"
           />
         </button>
@@ -72,6 +76,8 @@ function DutyPerson({
         <Avatar
           fullName={user.fullName}
           avatarUrl={user.avatarUrl}
+          focusX={user.avatarFocusX}
+          focusY={user.avatarFocusY}
           className="day-detail__avatar"
         />
       )}

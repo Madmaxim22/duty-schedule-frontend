@@ -1,4 +1,10 @@
-import type { PhotoLikeStatus, UploadPhotoResponse, User, UserPhotosResponse } from '@/shared/api/types';
+import type {
+  PhotoLikeStatus,
+  UpdatePhotoFocusResponse,
+  UploadPhotoResponse,
+  User,
+  UserPhotosResponse,
+} from '@/shared/api/types';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api';
 
@@ -113,6 +119,17 @@ export function deletePhoto(photoId: string): Promise<{ user: User }> {
 export function setCurrentPhoto(photoId: string): Promise<{ user: User }> {
   return apiRequest<{ user: User }>(`/users/me/photos/${photoId}/set-current`, {
     method: 'POST',
+  });
+}
+
+export function updatePhotoFocus(
+  photoId: string,
+  focusX: number,
+  focusY: number,
+): Promise<UpdatePhotoFocusResponse> {
+  return apiRequest<UpdatePhotoFocusResponse>(`/users/me/photos/${photoId}/focus`, {
+    method: 'PATCH',
+    body: JSON.stringify({ focusX, focusY }),
   });
 }
 

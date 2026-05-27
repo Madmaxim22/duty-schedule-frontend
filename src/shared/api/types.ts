@@ -9,6 +9,8 @@ export type User = {
   status: UserStatus;
   avatarUrl: string | null;
   currentPhotoId: string | null;
+  avatarFocusX: number;
+  avatarFocusY: number;
 };
 
 export type PublicUserProfile = {
@@ -17,6 +19,8 @@ export type PublicUserProfile = {
   role: UserRole;
   avatarUrl: string | null;
   currentPhotoId: string | null;
+  avatarFocusX: number;
+  avatarFocusY: number;
 };
 
 export type MonthDayDuty = {
@@ -26,6 +30,8 @@ export type MonthDayDuty = {
   fullName: string;
   avatarUrl: string | null;
   currentPhotoId: string | null;
+  avatarFocusX: number;
+  avatarFocusY: number;
 };
 
 export type MonthDay = {
@@ -57,6 +63,8 @@ export type DaySlot = {
     fullName: string;
     avatarUrl: string | null;
     currentPhotoId: string | null;
+    avatarFocusX: number;
+    avatarFocusY: number;
   } | null;
 };
 
@@ -143,9 +151,16 @@ export type UserPhoto = {
   id: string;
   url: string;
   isCurrent: boolean;
+  focusX: number;
+  focusY: number;
   createdAt: string;
   likeCount: number;
   likedByMe: boolean;
+};
+
+export type UpdatePhotoFocusResponse = {
+  photo: UserPhoto;
+  user: User;
 };
 
 export type UserPhotosResponse = {
@@ -188,6 +203,8 @@ export type ChatContact = {
   fullName: string;
   avatarUrl: string | null;
   currentPhotoId: string | null;
+  avatarFocusX: number;
+  avatarFocusY: number;
 };
 
 export type ChatRoomListItem = {
@@ -196,6 +213,8 @@ export type ChatRoomListItem = {
   title: string | null;
   displayName: string;
   displayAvatarUrl: string | null;
+  displayAvatarFocusX: number;
+  displayAvatarFocusY: number;
   lastMessagePreview: string | null;
   lastMessageAt: string | null;
   unreadCount: number;
@@ -207,6 +226,8 @@ export type ChatMessageAuthor = {
   fullName: string;
   avatarUrl: string | null;
   currentPhotoId: string | null;
+  avatarFocusX: number;
+  avatarFocusY: number;
   role: UserRole;
 };
 
@@ -214,6 +235,8 @@ export type ChatReactionReactor = {
   id: string;
   fullName: string;
   avatarUrl: string | null;
+  avatarFocusX: number;
+  avatarFocusY: number;
 };
 
 export type ChatReactionSummary = {
@@ -237,6 +260,8 @@ export type ChatRoomMember = {
   fullName: string;
   avatarUrl: string | null;
   currentPhotoId: string | null;
+  avatarFocusX: number;
+  avatarFocusY: number;
   role?: UserRole;
   lastReadAt?: string | null;
 };
@@ -247,6 +272,8 @@ export type ChatRoomDetail = {
   title: string | null;
   displayName: string;
   displayAvatarUrl: string | null;
+  displayAvatarFocusX: number;
+  displayAvatarFocusY: number;
   createdAt: string;
   updatedAt: string;
   members: ChatRoomMember[];
@@ -263,6 +290,8 @@ export type SupportThreadSummary = {
     id: string;
     fullName: string;
     avatarUrl: string | null;
+    avatarFocusX: number;
+    avatarFocusY: number;
   };
   lastMessagePreview: string | null;
   lastMessageAt: string | null;
@@ -273,6 +302,8 @@ export type SupportMessageAuthor = {
   fullName: string;
   avatarUrl: string | null;
   currentPhotoId: string | null;
+  avatarFocusX: number;
+  avatarFocusY: number;
   role: UserRole;
 };
 
@@ -318,6 +349,8 @@ export type NotificationItem = {
     id: string;
     fullName: string;
     avatarUrl: string | null;
+    avatarFocusX: number;
+    avatarFocusY: number;
   } | null;
 };
 

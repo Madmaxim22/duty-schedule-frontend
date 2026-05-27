@@ -407,6 +407,8 @@ export function ChatRoomView({ roomId }: Props) {
                 <Avatar
                   fullName={room.displayName}
                   avatarUrl={room.displayAvatarUrl}
+                  focusX={room.displayAvatarFocusX}
+                  focusY={room.displayAvatarFocusY}
                   size="sm"
                 />
               </button>
@@ -414,6 +416,8 @@ export function ChatRoomView({ roomId }: Props) {
               <Avatar
                 fullName={room.displayName}
                 avatarUrl={room.displayAvatarUrl}
+                focusX={room.displayAvatarFocusX}
+                focusY={room.displayAvatarFocusY}
                 size="sm"
               />
             )}
@@ -428,6 +432,8 @@ export function ChatRoomView({ roomId }: Props) {
                       fullName: directPeer.fullName,
                       avatarUrl: directPeer.avatarUrl,
                       currentPhotoId: directPeer.currentPhotoId,
+                      avatarFocusX: directPeer.avatarFocusX,
+                      avatarFocusY: directPeer.avatarFocusY,
                     })
                   }
                 >
@@ -582,6 +588,8 @@ export function ChatRoomView({ roomId }: Props) {
         currentUserId={user?.id}
         fullName={avatarPreview?.fullName ?? ''}
         avatarUrl={avatarPreview?.avatarUrl ?? null}
+        focusX={avatarPreview?.focusX}
+        focusY={avatarPreview?.focusY}
         avatarCacheBust={
           avatarPreview?.targetUserId === user?.id ? avatarCacheBust : undefined
         }

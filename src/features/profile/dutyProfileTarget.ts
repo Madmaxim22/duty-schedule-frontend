@@ -3,4 +3,6 @@ export type DutyProfileTarget = {
   fullName: string;
   avatarUrl: string | null;
   currentPhotoId: string | null;
+  avatarFocusX: number;
+  avatarFocusY: number;
 };
