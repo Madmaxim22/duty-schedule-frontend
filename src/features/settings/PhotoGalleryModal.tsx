@@ -161,8 +161,8 @@ export function PhotoGalleryModal({ open, displayName, onClose, onUserUpdated }:
       >
         <div className="photo-gallery-modal">
           <p className="photo-gallery-modal__hint">
-            До {data?.maxPhotos ?? 20} фотографий. Нажмите на миниатюру для просмотра и настройки
-            кадра.
+            До {data?.maxPhotos ?? 20} фотографий, до 15 МБ каждая. Нажмите на миниатюру для
+            просмотра и настройки кадра.
             {data?.count != null ? ` Загружено: ${data.count}.` : ''}
           </p>
 
