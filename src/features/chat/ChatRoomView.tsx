@@ -29,6 +29,12 @@ import {
   updateMessageReactions,
   type ChatMessagesPage,
 } from './chatMessagesCache';
+import {
+  applyChatScrollReactionCompensation,
+  registerChatReactionScrollCapture,
+  type ChatScrollSnapshot,
+  unregisterChatReactionScrollCapture,
+} from './chatReactionScrollAnchor';
 import { useChatSocket } from './ChatSocketContext';
 import { useChatTypingEmitter } from './useChatTypingEmitter';
 
@@ -70,6 +76,7 @@ export function ChatRoomView({ roomId }: Props) {
   const topSentinelRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const prependSnapshotRef = useRef<{ scrollHeight: number; scrollTop: number } | null>(null);
+  const reactionSnapshotRef = useRef<ChatScrollSnapshot | null>(null);
   const prevFirstIdRef = useRef<string | undefined>(undefined);
   const prevLastIdRef = useRef<string | undefined>(undefined);
   const topFetchCooldownUntilRef = useRef(0);
@@ -100,14 +107,25 @@ export function ChatRoomView({ roomId }: Props) {
     setEmojiExpanded(false);
   }, []);
 
+  const captureReactionScrollSnapshot = useCallback(() => {
+    const root = scrollRef.current;
+    if (!root) return;
+    reactionSnapshotRef.current = {
+      scrollHeight: root.scrollHeight,
+      scrollTop: root.scrollTop,
+      clientHeight: root.clientHeight,
+    };
+  }, []);
+
   const applyMessageReactions = useCallback(
     (messageId: string, reactions: ChatMessage['reactions']) => {
+      captureReactionScrollSnapshot();
       queryClient.setQueryData<InfiniteData<ChatMessagesPage>>(
         ['chat', 'messages', roomId],
         (old) => updateMessageReactions(old, messageId, reactions) ?? old,
       );
     },
-    [queryClient, roomId],
+    [queryClient, roomId, captureReactionScrollSnapshot],
   );
 
   const setReactionMutation = useMutation({
@@ -245,9 +263,18 @@ export function ChatRoomView({ roomId }: Props) {
   }, [activeMessageMenu, room, user?.id]);
 
   useEffect(() => {
+    const capture = (id: string) => {
+      if (id === roomId) captureReactionScrollSnapshot();
+    };
+    registerChatReactionScrollCapture(capture);
+    return () => unregisterChatReactionScrollCapture(capture);
+  }, [roomId, captureReactionScrollSnapshot]);
+
+  useEffect(() => {
     prevFirstIdRef.current = undefined;
     prevLastIdRef.current = undefined;
     prependSnapshotRef.current = null;
+    reactionSnapshotRef.current = null;
     allowOlderFetchRef.current = true;
   }, [roomId]);
 
@@ -285,6 +312,17 @@ export function ChatRoomView({ roomId }: Props) {
       const last = messages[messages.length - 1]?.id;
       prevFirstIdRef.current = first;
       prevLastIdRef.current = last;
+      return;
+    }
+
+    const reactionSnap = reactionSnapshotRef.current;
+    if (reactionSnap && root) {
+      applyChatScrollReactionCompensation(root, reactionSnap);
+      reactionSnapshotRef.current = null;
+      if (messages.length > 0) {
+        prevFirstIdRef.current = messages[0].id;
+        prevLastIdRef.current = messages[messages.length - 1].id;
+      }
       return;
     }
 

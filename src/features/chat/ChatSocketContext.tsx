@@ -16,6 +16,7 @@ import { getAccessToken } from '@/shared/api/client';
 import { getChatWsUrl, markChatRoomRead } from '@/shared/api/chat';
 import type { ChatMessage, ChatRoomListItem } from '@/shared/api/types';
 import { useAuth } from '@/features/auth/AuthContext';
+import { captureChatReactionScroll } from './chatReactionScrollAnchor';
 import {
   appendMessageToChatPages,
   markMessagesReadByPeer,
@@ -222,6 +223,7 @@ export function ChatSocketProvider({ children }: { children: ReactNode }) {
       }
 
       if (msg.type === 'message.reaction') {
+        captureChatReactionScroll(msg.roomId);
         queryClient.setQueryData<InfiniteData<ChatMessagesPage>>(
           ['chat', 'messages', msg.roomId],
           (old) => updateMessageReactions(old, msg.messageId, msg.reactions) ?? old,
