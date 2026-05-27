@@ -2,6 +2,33 @@ export function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+/** Нижняя левая зона пузыря (где появляются чипы реакций). */
+function resolveBubbleLandingPoint(bubble: Element): { x: number; y: number } {
+  const reactions = bubble.querySelector('.chat-room__reactions');
+  if (reactions) {
+    const r = reactions.getBoundingClientRect();
+    return {
+      x: r.left + Math.min(18, r.width * 0.35),
+      y: r.top + r.height / 2,
+    };
+  }
+
+  const footer = bubble.querySelector('.chat-room__bubble-footer');
+  if (footer) {
+    const f = footer.getBoundingClientRect();
+    return {
+      x: f.left + 14,
+      y: f.bottom - 6,
+    };
+  }
+
+  const end = bubble.getBoundingClientRect();
+  return {
+    x: end.left + Math.min(22, Math.max(14, end.width * 0.12)),
+    y: end.bottom - 12,
+  };
+}
+
 export function getChatMessageBubbleLandingPoint(
   messageId: string,
 ): { x: number; y: number } | null {
@@ -9,11 +36,7 @@ export function getChatMessageBubbleLandingPoint(
   const bubble = row?.querySelector('.chat-room__bubble');
   if (!bubble) return null;
 
-  const end = bubble.getBoundingClientRect();
-  return {
-    x: end.left + end.width * 0.85,
-    y: end.bottom - 12,
-  };
+  return resolveBubbleLandingPoint(bubble);
 }
 
 const RIPPLE_COUNT = 3;
@@ -62,11 +85,7 @@ export function playChatReactionBubbleHit(
   ) as HTMLElement | null;
   if (!bubble) return;
 
-  const rect = bubble.getBoundingClientRect();
-  const point = impact ?? {
-    x: rect.left + rect.width * 0.85,
-    y: rect.bottom - 12,
-  };
+  const point = impact ?? resolveBubbleLandingPoint(bubble);
 
   bubble.classList.add('chat-room__bubble--reaction-landed');
 

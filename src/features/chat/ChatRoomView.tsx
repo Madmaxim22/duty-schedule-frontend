@@ -36,6 +36,12 @@ import {
   unregisterChatReactionScrollCapture,
 } from './chatReactionScrollAnchor';
 import { flyReactionEmoji } from './chatReactionFlyAnimation';
+import {
+  cancelChatReactionRevealHold,
+  deferChatReactionReveal,
+  holdChatReactionReveal,
+  releaseChatReactionReveal,
+} from './chatReactionRevealHold';
 import { useChatSocket } from './ChatSocketContext';
 import { useChatTypingEmitter } from './useChatTypingEmitter';
 
@@ -133,7 +139,11 @@ export function ChatRoomView({ roomId }: Props) {
     mutationFn: ({ messageId, emoji }: { messageId: string; emoji: string }) =>
       setChatMessageReaction(roomId, messageId, emoji),
     onSuccess: (data, { messageId }) => {
+      if (deferChatReactionReveal(messageId, data.reactions)) return;
       applyMessageReactions(messageId, data.reactions);
+    },
+    onError: (_err, { messageId }) => {
+      cancelChatReactionRevealHold(messageId);
     },
   });
 
@@ -249,12 +259,17 @@ export function ChatRoomView({ roomId }: Props) {
       if (!activeMessageMenu) return;
       const messageId = activeMessageMenu.message.id;
 
+      holdChatReactionReveal(messageId);
       flyReactionEmoji(emoji, fromRect, messageId, () => {
+        const pending = releaseChatReactionReveal(messageId);
+        if (pending) {
+          applyMessageReactions(messageId, pending);
+        }
         closeMessageMenu();
       });
       setReactionMutation.mutate({ messageId, emoji });
     },
-    [activeMessageMenu, setReactionMutation, closeMessageMenu],
+    [activeMessageMenu, setReactionMutation, closeMessageMenu, applyMessageReactions],
   );
 
   const messageMenuContext = useMemo(() => {
