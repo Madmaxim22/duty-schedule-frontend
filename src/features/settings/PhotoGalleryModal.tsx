@@ -9,7 +9,7 @@ import {
   updatePhotoFocus,
   uploadPhoto,
 } from '@/shared/api/client';
-import type { UserPhoto } from '@/shared/api/types';
+import type { UserPhoto, UserPhotosResponse } from '@/shared/api/types';
 import { avatarImageStyle } from '@/shared/lib/avatarFocus';
 import { resolveAvatarUrl } from '@/shared/lib/avatarUrl';
 import { Modal } from '@/shared/ui/Modal';
@@ -54,15 +54,36 @@ export function PhotoGalleryModal({ open, displayName, onClose, onUserUpdated }:
 
   const deleteMutation = useMutation({
     mutationFn: deletePhoto,
-    onSuccess: (result) => {
-      setError(null);
-      setCacheBust(Date.now());
-      setUser(result.user);
-      onUserUpdated();
+    onMutate: async (photoId) => {
       setPreviewPhoto(null);
+      await queryClient.cancelQueries({ queryKey: ['my-photos'] });
+      const previous = queryClient.getQueryData<UserPhotosResponse>(['my-photos']);
+      if (previous) {
+        queryClient.setQueryData<UserPhotosResponse>(['my-photos'], {
+          ...previous,
+          photos: previous.photos.filter((p) => p.id !== photoId),
+          count: Math.max(0, previous.count - 1),
+        });
+      }
+      return { previous };
+    },
+    onSuccess: (result, photoId) => {
+      setError(null);
+      setUser(result.user);
+      const deletedWasCurrent =
+        user?.currentPhotoId === photoId || user?.avatarUrl?.includes(photoId);
+      if (deletedWasCurrent) {
+        setCacheBust(Date.now());
+        onUserUpdated();
+      }
       invalidate();
     },
-    onError: (err: Error) => setError(err.message),
+    onError: (err: Error, _photoId, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['my-photos'], context.previous);
+      }
+      setError(err.message);
+    },
   });
 
   const setCurrentMutation = useMutation({
