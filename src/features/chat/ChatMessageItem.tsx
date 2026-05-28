@@ -68,6 +68,7 @@ type Props = {
   onBubbleClick: (msg: ChatMessage, anchor: ChatMessageMenuAnchor) => void;
   onReactionChipClick: (msg: ChatMessage, emoji: string, reactedByMe: boolean) => void;
   onScrollToReply?: (messageId: string) => void;
+  onOpenAttachment?: (attachmentId: string) => void;
 };
 
 export function ChatMessageItem({
@@ -81,6 +82,7 @@ export function ChatMessageItem({
   onBubbleClick,
   onReactionChipClick,
   onScrollToReply,
+  onOpenAttachment,
 }: Props) {
   const preview = toAvatarPreviewUser(msg.author);
   const reactions = msg.reactions ?? [];
@@ -207,7 +209,12 @@ export function ChatMessageItem({
               }}
             />
           ) : null}
-          {attachments.length > 0 ? <ChatMessageAttachments attachments={attachments} /> : null}
+          {attachments.length > 0 ? (
+            <ChatMessageAttachments
+              attachments={attachments}
+              onOpenAttachment={onOpenAttachment}
+            />
+          ) : null}
           <div className="chat-room__bubble-row">
             {hasBody ? <p className="chat-room__body">{msg.body}</p> : null}
             <div className="chat-room__bubble-footer">

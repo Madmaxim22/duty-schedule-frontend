@@ -8,6 +8,7 @@ import {
 
 type Props = {
   attachments: ChatAttachment[];
+  onOpenAttachment?: (attachmentId: string) => void;
 };
 
 async function measureAttachmentSizes(attachments: ChatAttachment[]): Promise<AlbumPhotoSize[]> {
@@ -33,7 +34,7 @@ async function measureAttachmentSizes(attachments: ChatAttachment[]): Promise<Al
   );
 }
 
-export function ChatMessageAttachments({ attachments }: Props) {
+export function ChatMessageAttachments({ attachments, onOpenAttachment }: Props) {
   const needsMeasure = attachments.some((a) => !a.width || !a.height);
   const [measuredSizes, setMeasuredSizes] = useState<AlbumPhotoSize[] | null>(null);
 
@@ -79,26 +80,29 @@ export function ChatMessageAttachments({ attachments }: Props) {
             : undefined;
 
         return (
-          <a
+          <button
             key={att.id}
-            href={att.url}
-            target="_blank"
-            rel="noopener noreferrer"
+            type="button"
             className={`chat-room__attachment-link${
               isAlbum ? ' chat-room__attachment-link--cell' : ''
             }`}
             style={cellStyle}
-            onClick={(e) => e.stopPropagation()}
+            aria-label={`Открыть фото: ${att.fileName}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenAttachment?.(att.id);
+            }}
           >
             <img
               src={att.url}
-              alt={att.fileName}
+              alt=""
               className={`chat-room__attachment-img${
                 isAlbum ? ' chat-room__attachment-img--cover' : ''
               }`}
               loading="lazy"
+              draggable={false}
             />
-          </a>
+          </button>
         );
       })}
     </div>

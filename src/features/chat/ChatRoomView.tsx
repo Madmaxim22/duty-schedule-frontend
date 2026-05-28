@@ -19,8 +19,10 @@ import type { DutyProfileTarget } from '@/features/profile/dutyProfileTarget';
 import { UserProfileModal } from '@/features/profile/UserProfileModal';
 import { ProfileModal } from '@/features/settings/ProfileModal';
 import { Avatar } from '@/shared/ui/Avatar';
+import { buildChatRoomMediaGallery } from './buildChatRoomMediaGallery';
 import { ChatComposerMenu } from './ChatComposerMenu';
 import { ChatAttachmentPreviewStrip } from './ChatAttachmentPreviewStrip';
+import { ChatMediaLightbox } from './ChatMediaLightbox';
 import { ChatMessageItem } from './ChatMessageItem';
 import { ChatMessageOverlay, type ChatMessageMenuAnchor } from './ChatMessageOverlay';
 import { ChatReplyComposerBar } from './ChatReplyComposerBar';
@@ -87,6 +89,7 @@ export function ChatRoomView({ roomId }: Props) {
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [previewItems, setPreviewItems] = useState<{ file: File; url: string }[]>([]);
+  const [mediaLightboxIndex, setMediaLightboxIndex] = useState<number | null>(null);
   const listEndRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLUListElement>(null);
   const topSentinelRef = useRef<HTMLDivElement>(null);
@@ -199,6 +202,21 @@ export function ChatRoomView({ roomId }: Props) {
 
   const room = roomQuery.data?.room;
   const messages = useMemo(() => mergeChatPages(messagesQuery.data), [messagesQuery.data]);
+  const mediaGalleryItems = useMemo(
+    () => buildChatRoomMediaGallery(messages),
+    [messages],
+  );
+
+  const handleOpenAttachment = useCallback(
+    (attachmentId: string) => {
+      const index = mediaGalleryItems.findIndex((i) => i.attachmentId === attachmentId);
+      if (index < 0) return;
+      closeMessageMenu();
+      setMediaLightboxIndex(index);
+    },
+    [mediaGalleryItems, closeMessageMenu],
+  );
+
   const isGroup = room?.type === 'group';
   const directPeer = useMemo(() => {
     if (!room || room.type !== 'direct' || !user?.id) return null;
@@ -598,6 +616,7 @@ export function ChatRoomView({ roomId }: Props) {
                         onBubbleClick={handleBubbleClick}
                         onReactionChipClick={handleReactionChipClick}
                         onScrollToReply={scrollToMessageById}
+                        onOpenAttachment={handleOpenAttachment}
                       />
                     );
                   })}
@@ -691,6 +710,13 @@ export function ChatRoomView({ roomId }: Props) {
           {toast}
         </div>
       ) : null}
+
+      <ChatMediaLightbox
+        open={mediaLightboxIndex != null}
+        items={mediaGalleryItems}
+        initialIndex={mediaLightboxIndex ?? 0}
+        onClose={() => setMediaLightboxIndex(null)}
+      />
 
       <AvatarPreviewModal
         open={Boolean(avatarPreview)}
