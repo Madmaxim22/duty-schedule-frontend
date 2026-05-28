@@ -63,6 +63,7 @@ export async function runChatMessageMenuAction(
   ctx: ChatMessageMenuContext,
   onStub: (message: string) => void,
   onClose: () => void,
+  onReply?: (message: ChatMessage) => void,
 ): Promise<void> {
   switch (actionId) {
     case 'copy': {
@@ -72,6 +73,11 @@ export async function runChatMessageMenuAction(
       } catch {
         onStub('Не удалось скопировать');
       }
+      onClose();
+      return;
+    }
+    case 'reply': {
+      onReply?.(ctx.message);
       onClose();
       return;
     }

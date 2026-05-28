@@ -20,6 +20,8 @@ import { ProfileModal } from '@/features/settings/ProfileModal';
 import { Avatar } from '@/shared/ui/Avatar';
 import { ChatMessageItem } from './ChatMessageItem';
 import { ChatMessageOverlay, type ChatMessageMenuAnchor } from './ChatMessageOverlay';
+import { ChatReplyComposerBar } from './ChatReplyComposerBar';
+import { scrollToChatMessage } from './chatScrollToMessage';
 import { groupMessagesByDate } from './chatMessageGroups';
 import { getDirectPeerLastReadAt } from './chatMessageMenuActions';
 import { formatTypingLabel } from './formatTypingLabel';
@@ -78,6 +80,7 @@ export function ChatRoomView({ roomId }: Props) {
   } | null>(null);
   const [emojiExpanded, setEmojiExpanded] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   const listEndRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLUListElement>(null);
   const topSentinelRef = useRef<HTMLDivElement>(null);
@@ -155,9 +158,11 @@ export function ChatRoomView({ roomId }: Props) {
   });
 
   const postMutation = useMutation({
-    mutationFn: (body: string) => postChatMessage(roomId, body),
+    mutationFn: ({ body, replyToMessageId }: { body: string; replyToMessageId?: string }) =>
+      postChatMessage(roomId, body, replyToMessageId),
     onSuccess: (data) => {
       setDraft('');
+      setReplyTo(null);
       setError('');
       if (textareaRef.current) {
         textareaRef.current.style.height = '';
@@ -218,7 +223,33 @@ export function ChatRoomView({ roomId }: Props) {
 
   useEffect(() => {
     closeMessageMenu();
+    setReplyTo(null);
   }, [roomId, closeMessageMenu]);
+
+  const handleStartReply = useCallback(
+    (msg: ChatMessage) => {
+      setReplyTo(msg);
+      closeMessageMenu();
+      requestAnimationFrame(() => textareaRef.current?.focus());
+    },
+    [closeMessageMenu],
+  );
+
+  const scrollToMessageById = useCallback(
+    async (messageId: string) => {
+      const ok = await scrollToChatMessage(messageId, {
+        getMessages: () => messages,
+        hasOlderPages: () => Boolean(messagesQuery.hasNextPage),
+        loadOlderPage: () => fetchNextPage(),
+      });
+      if (!ok) setToast('Сообщение не найдено в ленте');
+    },
+    [messages, messagesQuery.hasNextPage, fetchNextPage],
+  );
+
+  const scrollToReplyTarget = useCallback(() => {
+    if (replyTo) void scrollToMessageById(replyTo.id);
+  }, [replyTo, scrollToMessageById]);
 
   useEffect(() => {
     const root = scrollRef.current;
@@ -382,7 +413,10 @@ export function ChatRoomView({ roomId }: Props) {
       setError('Введите сообщение от 1 до 2000 символов');
       return;
     }
-    postMutation.mutate(body);
+    postMutation.mutate({
+      body,
+      replyToMessageId: replyTo?.id,
+    });
   }
 
   const isBusy = postMutation.isPending;
@@ -506,11 +540,13 @@ export function ChatRoomView({ roomId }: Props) {
                         msg={{ ...msg, reactions: msg.reactions ?? [] }}
                         isMine={msg.author.id === user?.id}
                         isGroup={isGroup}
+                        currentUserId={user?.id}
                         showAvatar={showAvatar}
                         onAvatarPreview={setAvatarPreview}
                         onUserProfile={handleUserProfile}
                         onBubbleClick={handleBubbleClick}
                         onReactionChipClick={handleReactionChipClick}
+                        onScrollToReply={scrollToMessageById}
                       />
                     );
                   })}
@@ -527,6 +563,15 @@ export function ChatRoomView({ roomId }: Props) {
           <label className="visually-hidden" htmlFor="chat-message">
             Сообщение
           </label>
+          {replyTo ? (
+            <ChatReplyComposerBar
+              replyTo={replyTo}
+              currentUserId={user?.id}
+              isDirect={!isGroup}
+              onCancel={() => setReplyTo(null)}
+              onQuoteClick={() => void scrollToReplyTarget()}
+            />
+          ) : null}
           <div className="chat-room__composer-field">
             <textarea
               ref={textareaRef}
@@ -542,6 +587,11 @@ export function ChatRoomView({ roomId }: Props) {
                 handleTextareaInput();
               }}
               onKeyDown={(e) => {
+                if (e.key === 'Escape' && replyTo) {
+                  e.preventDefault();
+                  setReplyTo(null);
+                  return;
+                }
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   if (canSend) {
@@ -573,6 +623,7 @@ export function ChatRoomView({ roomId }: Props) {
         onSelectEmoji={handleOverlayEmoji}
         onClose={closeMessageMenu}
         onToast={setToast}
+        onReply={handleStartReply}
       />
 
       {toast ? (

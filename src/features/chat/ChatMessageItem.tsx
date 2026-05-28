@@ -3,6 +3,7 @@ import { Avatar } from '@/shared/ui/Avatar';
 import { toAvatarPreviewUser, type AvatarPreviewUser } from '@/features/day-detail/avatarPreviewUser';
 import type { DutyProfileTarget } from '@/features/profile/dutyProfileTarget';
 import { ChatMessageReactions } from './ChatMessageReactions';
+import { ChatMessageReplyQuote } from './ChatMessageReplyQuote';
 import type { ChatMessageMenuAnchor } from './ChatMessageOverlay';
 
 function formatBubbleTime(iso: string) {
@@ -59,22 +60,26 @@ type Props = {
   msg: ChatMessage;
   isMine: boolean;
   isGroup: boolean;
+  currentUserId?: string;
   showAvatar: boolean;
   onAvatarPreview: (user: AvatarPreviewUser) => void;
   onUserProfile: (target: DutyProfileTarget) => void;
   onBubbleClick: (msg: ChatMessage, anchor: ChatMessageMenuAnchor) => void;
   onReactionChipClick: (msg: ChatMessage, emoji: string, reactedByMe: boolean) => void;
+  onScrollToReply?: (messageId: string) => void;
 };
 
 export function ChatMessageItem({
   msg,
   isMine,
   isGroup,
+  currentUserId,
   showAvatar,
   onAvatarPreview,
   onUserProfile,
   onBubbleClick,
   onReactionChipClick,
+  onScrollToReply,
 }: Props) {
   const preview = toAvatarPreviewUser(msg.author);
   const reactions = msg.reactions ?? [];
@@ -186,6 +191,18 @@ export function ChatMessageItem({
             >
               {msg.author.fullName}
             </span>
+          ) : null}
+          {msg.replyTo ? (
+            <ChatMessageReplyQuote
+              replyTo={msg.replyTo}
+              currentUserId={currentUserId}
+              isDirect={!isGroup}
+              className="chat-room__reply-quote--clickable"
+              onClick={(e) => {
+                e.stopPropagation();
+                onScrollToReply?.(msg.replyTo!.id);
+              }}
+            />
           ) : null}
           <div className="chat-room__bubble-row">
             <p className="chat-room__body">{msg.body}</p>

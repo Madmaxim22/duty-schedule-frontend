@@ -246,11 +246,18 @@ export type ChatReactionSummary = {
   reactors: ChatReactionReactor[];
 };
 
+export type ChatMessageReplyTo = {
+  id: string;
+  body: string;
+  author: { id: string; fullName: string };
+};
+
 export type ChatMessage = {
   id: string;
   body: string;
   createdAt: string;
   reactions: ChatReactionSummary[];
+  replyTo?: ChatMessageReplyTo;
   status?: 'sent' | 'delivered' | 'read';
   author: ChatMessageAuthor;
 };

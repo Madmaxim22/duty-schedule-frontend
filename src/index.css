@@ -4088,6 +4088,123 @@ body {
   text-decoration: underline;
 }
 
+.chat-room__reply-quote {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 0 6px;
+  padding: 4px 8px 4px 10px;
+  border-left: 3px solid var(--chat-accent);
+  border-radius: 0 6px 6px 0;
+  background: color-mix(in srgb, var(--chat-accent) 8%, transparent);
+  text-align: left;
+}
+
+.chat-room__message--mine .chat-room__reply-quote {
+  background: color-mix(in srgb, var(--chat-accent) 10%, var(--chat-bubble-out));
+}
+
+.chat-room__reply-quote-author {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--chat-accent);
+  line-height: 1.25;
+}
+
+.chat-room__reply-quote-body {
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  color: var(--color-text-muted, var(--color-text));
+  opacity: 0.85;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-room__reply-quote--composer {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 0 10px;
+  background: transparent;
+}
+
+.chat-room__reply-quote--clickable {
+  cursor: pointer;
+}
+
+.chat-room__reply-quote--clickable:hover {
+  opacity: 0.9;
+}
+
+.chat-room__reply-quote--clickable:focus-visible {
+  outline: 2px solid var(--chat-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.chat-room__message--highlight .chat-room__bubble {
+  animation: chat-message-highlight 1.8s ease-out;
+}
+
+@keyframes chat-message-highlight {
+  0%,
+  25% {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--chat-accent) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 1px 1px rgba(15, 23, 42, 0.06);
+  }
+}
+
+.chat-room__message--mine.chat-room__message--highlight .chat-room__bubble {
+  animation-name: chat-message-highlight-mine;
+}
+
+@keyframes chat-message-highlight-mine {
+  0%,
+  25% {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--chat-accent) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 1px 1px rgba(15, 23, 42, 0.04);
+  }
+}
+
+.chat-room__reply-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--color-muted-bg);
+}
+
+.chat-room__reply-bar-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-muted, var(--color-text));
+  cursor: pointer;
+}
+
+.chat-room__reply-bar-close:hover {
+  background: color-mix(in srgb, var(--color-text) 8%, transparent);
+}
+
+.chat-room__reply-bar-close:focus-visible {
+  outline: 2px solid var(--chat-accent);
+  outline-offset: 2px;
+}
+
 .chat-room__bubble-row {
   display: flex;
   flex-direction: column;

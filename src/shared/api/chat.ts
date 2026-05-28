@@ -70,10 +70,13 @@ export function getChatMessages(roomId: string, before?: string, limit = 50) {
   );
 }
 
-export function postChatMessage(roomId: string, body: string) {
+export function postChatMessage(roomId: string, body: string, replyToMessageId?: string) {
   return apiRequest<{ message: ChatMessage }>(`/chat/rooms/${roomId}/messages`, {
     method: 'POST',
-    body: JSON.stringify({ body }),
+    body: JSON.stringify({
+      body,
+      ...(replyToMessageId ? { replyToMessageId } : {}),
+    }),
   });
 }
 

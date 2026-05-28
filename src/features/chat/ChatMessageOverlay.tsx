@@ -81,6 +81,7 @@ type Props = {
   onSelectEmoji: (emoji: string, fromRect: DOMRect) => void;
   onClose: () => void;
   onToast: (message: string) => void;
+  onReply?: (message: ChatMessage) => void;
 };
 
 export function ChatMessageOverlay({
@@ -93,6 +94,7 @@ export function ChatMessageOverlay({
   onSelectEmoji,
   onClose,
   onToast,
+  onReply,
 }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [cardStyle, setCardStyle] = useState<{ top: number; left: number } | null>(null);
@@ -191,7 +193,7 @@ export function ChatMessageOverlay({
                     }${action.id === 'read' ? ' chat-message-overlay__action--meta' : ''}`}
                     disabled={action.id === 'read'}
                     onClick={() => {
-                      void runChatMessageMenuAction(action.id, menuContext, onToast, onClose);
+                      void runChatMessageMenuAction(action.id, menuContext, onToast, onClose, onReply);
                     }}
                   >
                     {action.label}
