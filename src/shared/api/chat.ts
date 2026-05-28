@@ -1,5 +1,6 @@
-import { apiRequest } from '@/shared/api/client';
+import { apiMultipartRequest, apiRequest } from '@/shared/api/client';
 import type {
+  ChatAttachment,
   ChatContact,
   ChatMessage,
   ChatReactionSummary,
@@ -70,12 +71,29 @@ export function getChatMessages(roomId: string, before?: string, limit = 50) {
   );
 }
 
-export function postChatMessage(roomId: string, body: string, replyToMessageId?: string) {
+export function uploadChatAttachments(roomId: string, files: File[]) {
+  const form = new FormData();
+  for (const file of files) {
+    form.append('files', file);
+  }
+  return apiMultipartRequest<{ attachments: ChatAttachment[] }>(
+    `/chat/rooms/${roomId}/attachments`,
+    form,
+  );
+}
+
+export function postChatMessage(
+  roomId: string,
+  body: string,
+  replyToMessageId?: string,
+  attachmentIds?: string[],
+) {
   return apiRequest<{ message: ChatMessage }>(`/chat/rooms/${roomId}/messages`, {
     method: 'POST',
     body: JSON.stringify({
       body,
       ...(replyToMessageId ? { replyToMessageId } : {}),
+      ...(attachmentIds?.length ? { attachmentIds } : {}),
     }),
   });
 }

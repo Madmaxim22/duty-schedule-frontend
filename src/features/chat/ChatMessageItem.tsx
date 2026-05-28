@@ -2,6 +2,7 @@ import type { ChatMessage } from '@/shared/api/types';
 import { Avatar } from '@/shared/ui/Avatar';
 import { toAvatarPreviewUser, type AvatarPreviewUser } from '@/features/day-detail/avatarPreviewUser';
 import type { DutyProfileTarget } from '@/features/profile/dutyProfileTarget';
+import { ChatMessageAttachments } from './ChatMessageAttachments';
 import { ChatMessageReactions } from './ChatMessageReactions';
 import { ChatMessageReplyQuote } from './ChatMessageReplyQuote';
 import type { ChatMessageMenuAnchor } from './ChatMessageOverlay';
@@ -83,6 +84,8 @@ export function ChatMessageItem({
 }: Props) {
   const preview = toAvatarPreviewUser(msg.author);
   const reactions = msg.reactions ?? [];
+  const attachments = msg.attachments ?? [];
+  const hasBody = msg.body.trim().length > 0;
 
   const openPreview = () => {
     if (preview) onAvatarPreview(preview);
@@ -204,8 +207,9 @@ export function ChatMessageItem({
               }}
             />
           ) : null}
+          {attachments.length > 0 ? <ChatMessageAttachments attachments={attachments} /> : null}
           <div className="chat-room__bubble-row">
-            <p className="chat-room__body">{msg.body}</p>
+            {hasBody ? <p className="chat-room__body">{msg.body}</p> : null}
             <div className="chat-room__bubble-footer">
               <ChatMessageReactions
                 reactions={reactions}

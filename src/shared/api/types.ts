@@ -252,11 +252,22 @@ export type ChatMessageReplyTo = {
   author: { id: string; fullName: string };
 };
 
+export type ChatAttachment = {
+  id: string;
+  fileName: string;
+  mimeType: string;
+  size: number;
+  width?: number;
+  height?: number;
+  url: string;
+};
+
 export type ChatMessage = {
   id: string;
   body: string;
   createdAt: string;
   reactions: ChatReactionSummary[];
+  attachments?: ChatAttachment[];
   replyTo?: ChatMessageReplyTo;
   status?: 'sent' | 'delivered' | 'read';
   author: ChatMessageAuthor;

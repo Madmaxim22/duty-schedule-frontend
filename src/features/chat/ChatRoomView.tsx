@@ -9,6 +9,7 @@ import {
   postChatMessage,
   removeChatMessageReaction,
   setChatMessageReaction,
+  uploadChatAttachments,
 } from '@/shared/api/chat';
 import type { ChatMessage } from '@/shared/api/types';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -18,6 +19,8 @@ import type { DutyProfileTarget } from '@/features/profile/dutyProfileTarget';
 import { UserProfileModal } from '@/features/profile/UserProfileModal';
 import { ProfileModal } from '@/features/settings/ProfileModal';
 import { Avatar } from '@/shared/ui/Avatar';
+import { ChatComposerMenu } from './ChatComposerMenu';
+import { ChatAttachmentPreviewStrip } from './ChatAttachmentPreviewStrip';
 import { ChatMessageItem } from './ChatMessageItem';
 import { ChatMessageOverlay, type ChatMessageMenuAnchor } from './ChatMessageOverlay';
 import { ChatReplyComposerBar } from './ChatReplyComposerBar';
@@ -47,7 +50,8 @@ import {
 import { useChatSocket } from './ChatSocketContext';
 import { useChatTypingEmitter } from './useChatTypingEmitter';
 
-const messageSchema = { min: 1, max: 2000 };
+const messageSchema = { max: 2000 };
+const MAX_CHAT_ATTACHMENTS = 10;
 
 function SendIcon() {
   return (
@@ -81,6 +85,8 @@ export function ChatRoomView({ roomId }: Props) {
   const [emojiExpanded, setEmojiExpanded] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [previewItems, setPreviewItems] = useState<{ file: File; url: string }[]>([]);
   const listEndRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLUListElement>(null);
   const topSentinelRef = useRef<HTMLDivElement>(null);
@@ -158,11 +164,26 @@ export function ChatRoomView({ roomId }: Props) {
   });
 
   const postMutation = useMutation({
-    mutationFn: ({ body, replyToMessageId }: { body: string; replyToMessageId?: string }) =>
-      postChatMessage(roomId, body, replyToMessageId),
+    mutationFn: async ({
+      body,
+      replyToMessageId,
+      files,
+    }: {
+      body: string;
+      replyToMessageId?: string;
+      files: File[];
+    }) => {
+      let attachmentIds: string[] | undefined;
+      if (files.length > 0) {
+        const uploaded = await uploadChatAttachments(roomId, files);
+        attachmentIds = uploaded.attachments.map((a) => a.id);
+      }
+      return postChatMessage(roomId, body, replyToMessageId, attachmentIds);
+    },
     onSuccess: (data) => {
       setDraft('');
       setReplyTo(null);
+      clearPendingFiles();
       setError('');
       if (textareaRef.current) {
         textareaRef.current.style.height = '';
@@ -221,10 +242,35 @@ export function ChatRoomView({ roomId }: Props) {
     return () => window.clearTimeout(timer);
   }, [toast]);
 
+  const clearPendingFiles = useCallback(() => {
+    setPendingFiles([]);
+  }, []);
+
   useEffect(() => {
     closeMessageMenu();
     setReplyTo(null);
-  }, [roomId, closeMessageMenu]);
+    clearPendingFiles();
+  }, [roomId, closeMessageMenu, clearPendingFiles]);
+
+  useEffect(() => {
+    const items = pendingFiles.map((file) => ({
+      file,
+      url: URL.createObjectURL(file),
+    }));
+    setPreviewItems(items);
+    return () => {
+      items.forEach((item) => URL.revokeObjectURL(item.url));
+    };
+  }, [pendingFiles]);
+
+  const handleFilesSelected = useCallback((files: File[]) => {
+    if (files.length === 0) return;
+    setPendingFiles((prev) => [...prev, ...files].slice(0, MAX_CHAT_ATTACHMENTS));
+  }, []);
+
+  const handleRemovePendingFile = useCallback((index: number) => {
+    setPendingFiles((prev) => prev.filter((_, i) => i !== index));
+  }, []);
 
   const handleStartReply = useCallback(
     (msg: ChatMessage) => {
@@ -409,19 +455,24 @@ export function ChatRoomView({ roomId }: Props) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const body = draft.trim();
-    if (body.length < messageSchema.min || body.length > messageSchema.max) {
-      setError('Введите сообщение от 1 до 2000 символов');
+    if (body.length > messageSchema.max) {
+      setError('Сообщение не длиннее 2000 символов');
+      return;
+    }
+    if (!body && pendingFiles.length === 0) {
+      setError('Введите текст или прикрепите изображение');
       return;
     }
     postMutation.mutate({
       body,
       replyToMessageId: replyTo?.id,
+      files: pendingFiles,
     });
   }
 
   const isBusy = postMutation.isPending;
   const avatarCacheBust = avatarVersion || undefined;
-  const canSend = !isBusy && draft.trim().length > 0;
+  const canSend = !isBusy && (draft.trim().length > 0 || pendingFiles.length > 0);
 
   return (
     <div className="chat-room chat-room--telegram">
@@ -572,7 +623,15 @@ export function ChatRoomView({ roomId }: Props) {
               onQuoteClick={() => void scrollToReplyTarget()}
             />
           ) : null}
-          <div className="chat-room__composer-field">
+          <ChatAttachmentPreviewStrip items={previewItems} onRemove={handleRemovePendingFile} />
+          <div className="chat-room__composer-row">
+            <ChatComposerMenu
+              disabled={isBusy}
+              maxFiles={MAX_CHAT_ATTACHMENTS}
+              currentCount={pendingFiles.length}
+              onFilesSelected={handleFilesSelected}
+            />
+            <div className="chat-room__composer-field">
             <textarea
               ref={textareaRef}
               id="chat-message"
@@ -608,6 +667,7 @@ export function ChatRoomView({ roomId }: Props) {
             >
               <SendIcon />
             </button>
+            </div>
           </div>
           {error ? <p className="form-message form-message--error chat-room__composer-error">{error}</p> : null}
         </form>
