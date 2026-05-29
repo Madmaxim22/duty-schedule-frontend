@@ -85,9 +85,10 @@ export function ChatMessageItem({
   onOpenAttachment,
 }: Props) {
   const preview = toAvatarPreviewUser(msg.author);
-  const reactions = msg.reactions ?? [];
-  const attachments = msg.attachments ?? [];
-  const hasBody = msg.body.trim().length > 0;
+  const isDeleted = Boolean(msg.deleted);
+  const reactions = isDeleted ? [] : (msg.reactions ?? []);
+  const attachments = isDeleted ? [] : (msg.attachments ?? []);
+  const hasBody = isDeleted || msg.body.trim().length > 0;
 
   const openPreview = () => {
     if (preview) onAvatarPreview(preview);
@@ -172,7 +173,7 @@ export function ChatMessageItem({
         <div
           role="button"
           tabIndex={0}
-          className="chat-room__bubble"
+          className={`chat-room__bubble${isDeleted ? ' chat-room__bubble--deleted' : ''}`}
           onClick={onBubbleClickHandler}
           onKeyDown={onBubbleKeyDown}
           aria-haspopup="dialog"
@@ -216,14 +217,20 @@ export function ChatMessageItem({
             />
           ) : null}
           <div className="chat-room__bubble-row">
-            {hasBody ? <p className="chat-room__body">{msg.body}</p> : null}
+            {hasBody ? (
+              <p className={`chat-room__body${isDeleted ? ' chat-room__body--deleted' : ''}`}>
+                {msg.body}
+              </p>
+            ) : null}
             <div className="chat-room__bubble-footer">
-              <ChatMessageReactions
-                reactions={reactions}
-                corner
-                isDirect={!isGroup}
-                onChipClick={(emoji, reactedByMe) => onReactionChipClick(msg, emoji, reactedByMe)}
-              />
+              {!isDeleted && reactions.length > 0 ? (
+                <ChatMessageReactions
+                  reactions={reactions}
+                  corner
+                  isDirect={!isGroup}
+                  onChipClick={(emoji, reactedByMe) => onReactionChipClick(msg, emoji, reactedByMe)}
+                />
+              ) : null}
               <span className="chat-room__meta">
                 <time className="chat-room__time" dateTime={msg.createdAt}>
                   {formatBubbleTime(msg.createdAt)}

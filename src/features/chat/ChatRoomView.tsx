@@ -3,6 +3,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteD
 import { Link } from 'react-router-dom';
 import arrowLeftIcon from '@/shared/assets/icons/Arrow Left.svg';
 import {
+  deleteChatMessage,
   getChatMessages,
   getChatRoom,
   markChatRoomRead,
@@ -11,7 +12,7 @@ import {
   setChatMessageReaction,
   uploadChatAttachments,
 } from '@/shared/api/chat';
-import type { ChatMessage } from '@/shared/api/types';
+import type { ChatDeleteMessageMode, ChatMessage } from '@/shared/api/types';
 import { useAuth } from '@/features/auth/AuthContext';
 import { AvatarPreviewModal } from '@/features/day-detail/AvatarPreviewModal';
 import { toAvatarPreviewUser, type AvatarPreviewUser } from '@/features/day-detail/avatarPreviewUser';
@@ -24,6 +25,7 @@ import { ChatComposerMenu } from './ChatComposerMenu';
 import { ChatAttachmentPreviewStrip } from './ChatAttachmentPreviewStrip';
 import { ChatMediaLightbox } from './ChatMediaLightbox';
 import { ChatMessageItem } from './ChatMessageItem';
+import { ChatDeleteMessageModal } from './ChatDeleteMessageModal';
 import { ChatMessageOverlay, type ChatMessageMenuAnchor } from './ChatMessageOverlay';
 import { ChatReplyComposerBar } from './ChatReplyComposerBar';
 import { scrollToChatMessage } from './chatScrollToMessage';
@@ -33,6 +35,8 @@ import { formatTypingLabel } from './formatTypingLabel';
 import {
   appendMessageToChatPagesAfterPost,
   mergeChatPages,
+  removeMessageFromChatPages,
+  updateMessageInChatPages,
   updateMessageReactions,
   type ChatMessagesPage,
 } from './chatMessagesCache';
@@ -90,6 +94,10 @@ export function ChatRoomView({ roomId }: Props) {
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [previewItems, setPreviewItems] = useState<{ file: File; url: string }[]>([]);
   const [mediaLightboxIndex, setMediaLightboxIndex] = useState<number | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    messageId: string;
+    mode: ChatDeleteMessageMode;
+  } | null>(null);
   const listEndRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLUListElement>(null);
   const topSentinelRef = useRef<HTMLDivElement>(null);
@@ -165,6 +173,48 @@ export function ChatRoomView({ roomId }: Props) {
       applyMessageReactions(messageId, data.reactions);
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: ({ messageId, mode }: { messageId: string; mode: ChatDeleteMessageMode }) =>
+      deleteChatMessage(roomId, messageId, mode),
+    onSuccess: (data, { messageId, mode }) => {
+      if (mode === 'everyone' && data.message) {
+        queryClient.setQueryData<InfiniteData<ChatMessagesPage>>(
+          ['chat', 'messages', roomId],
+          (old) => updateMessageInChatPages(old, messageId, data.message!) ?? old,
+        );
+      } else if (mode === 'me') {
+        queryClient.setQueryData<InfiniteData<ChatMessagesPage>>(
+          ['chat', 'messages', roomId],
+          (old) => removeMessageFromChatPages(old, messageId) ?? old,
+        );
+      }
+      queryClient.invalidateQueries({ queryKey: ['chat', 'rooms'] });
+      setDeleteConfirm(null);
+      setToast(mode === 'everyone' ? 'Сообщение удалено' : 'Сообщение скрыто');
+    },
+    onError: (e: Error, { mode }) => {
+      setToast(
+        mode === 'everyone'
+          ? e.message || 'Не удалось удалить'
+          : e.message || 'Не удалось скрыть',
+      );
+    },
+  });
+
+  const handleRequestDelete = useCallback(
+    (mode: ChatDeleteMessageMode) => {
+      if (!activeMessageMenu) return;
+      setDeleteConfirm({ messageId: activeMessageMenu.message.id, mode });
+      closeMessageMenu();
+    },
+    [activeMessageMenu, closeMessageMenu],
+  );
+
+  const confirmDeleteMessage = useCallback(() => {
+    if (!deleteConfirm) return;
+    deleteMutation.mutate(deleteConfirm);
+  }, [deleteConfirm, deleteMutation]);
 
   const postMutation = useMutation({
     mutationFn: async ({
@@ -340,6 +390,7 @@ export function ChatRoomView({ roomId }: Props) {
 
   const handleReactionChipClick = useCallback(
     (msg: ChatMessage, emoji: string, reactedByMe: boolean) => {
+      if (msg.deleted) return;
       if (reactedByMe) {
         removeReactionMutation.mutate(msg.id);
       } else {
@@ -351,7 +402,7 @@ export function ChatRoomView({ roomId }: Props) {
 
   const handleOverlayEmoji = useCallback(
     (emoji: string, fromRect: DOMRect) => {
-      if (!activeMessageMenu) return;
+      if (!activeMessageMenu || activeMessageMenu.message.deleted) return;
       const messageId = activeMessageMenu.message.id;
 
       holdChatReactionReveal(messageId);
@@ -703,6 +754,15 @@ export function ChatRoomView({ roomId }: Props) {
         onClose={closeMessageMenu}
         onToast={setToast}
         onReply={handleStartReply}
+        onRequestDelete={handleRequestDelete}
+      />
+
+      <ChatDeleteMessageModal
+        open={deleteConfirm !== null}
+        mode={deleteConfirm?.mode ?? null}
+        isPending={deleteMutation.isPending}
+        onConfirm={confirmDeleteMessage}
+        onClose={() => setDeleteConfirm(null)}
       />
 
       {toast ? (

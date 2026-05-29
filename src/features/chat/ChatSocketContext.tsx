@@ -21,6 +21,8 @@ import { deferChatReactionReveal } from './chatReactionRevealHold';
 import {
   appendMessageToChatPages,
   markMessagesReadByPeer,
+  removeMessageFromChatPages,
+  updateMessageInChatPages,
   updateMessageReactions,
   updateSingleMessageStatus,
   type ChatMessagesPage,
@@ -29,6 +31,8 @@ import {
 type ServerMessage =
   | { type: 'auth.ok'; userId: string }
   | { type: 'message.new'; roomId: string; message: ChatMessage }
+  | { type: 'message.updated'; roomId: string; message: ChatMessage }
+  | { type: 'message.hidden'; roomId: string; messageId: string }
   | { type: 'message.status'; roomId: string; messageId: string; status: 'delivered' | 'read' }
   | {
       type: 'message.reaction';
@@ -212,6 +216,22 @@ export function ChatSocketProvider({ children }: { children: ReactNode }) {
           });
         }
         // Список и счётчик непрочитанных обновляет room.updated (приходит сразу после отправки).
+        return;
+      }
+
+      if (msg.type === 'message.updated') {
+        queryClient.setQueryData<InfiniteData<ChatMessagesPage>>(
+          ['chat', 'messages', msg.roomId],
+          (old) => updateMessageInChatPages(old, msg.message.id, msg.message) ?? old,
+        );
+        return;
+      }
+
+      if (msg.type === 'message.hidden') {
+        queryClient.setQueryData<InfiniteData<ChatMessagesPage>>(
+          ['chat', 'messages', msg.roomId],
+          (old) => removeMessageFromChatPages(old, msg.messageId) ?? old,
+        );
         return;
       }
 

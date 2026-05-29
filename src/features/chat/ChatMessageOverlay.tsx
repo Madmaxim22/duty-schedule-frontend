@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { ChatMessage } from '@/shared/api/types';
+import type { ChatDeleteMessageMode, ChatMessage } from '@/shared/api/types';
 import {
   CHAT_REACTION_EMOJIS_MORE,
   CHAT_REACTION_EMOJIS_QUICK,
@@ -82,6 +82,7 @@ type Props = {
   onClose: () => void;
   onToast: (message: string) => void;
   onReply?: (message: ChatMessage) => void;
+  onRequestDelete?: (mode: ChatDeleteMessageMode) => void;
 };
 
 export function ChatMessageOverlay({
@@ -95,6 +96,7 @@ export function ChatMessageOverlay({
   onClose,
   onToast,
   onReply,
+  onRequestDelete,
 }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [cardStyle, setCardStyle] = useState<{ top: number; left: number } | null>(null);
@@ -129,6 +131,7 @@ export function ChatMessageOverlay({
     : CHAT_REACTION_EMOJIS_QUICK;
 
   const menuActions = buildChatMessageMenuActions(menuContext).filter((a) => !a.hidden);
+  const isDeleted = Boolean(message.deleted);
 
   return createPortal(
     <div className="chat-message-overlay" role="presentation">
@@ -146,40 +149,42 @@ export function ChatMessageOverlay({
         aria-label="Действия с сообщением"
         onClick={(e) => e.stopPropagation()}
       >
-        <section className="chat-message-overlay__emoji-panel" aria-label="Реакции">
-          <div
-            className={`chat-message-overlay__emoji-grid${
-              emojiExpanded ? ' chat-message-overlay__emoji-grid--expanded' : ''
-            }`}
-          >
-            {visibleEmojis.map((emoji) => (
-              <button
-                key={emoji}
-                type="button"
-                className="chat-message-overlay__emoji-btn"
-                aria-label={`Реакция ${emoji}`}
-                onClick={(e) => {
-                  const btn = e.currentTarget;
-                  btn.classList.add('chat-message-overlay__emoji-btn--picked');
-                  onSelectEmoji(emoji, btn.getBoundingClientRect());
-                }}
-              >
-                {emoji}
-              </button>
-            ))}
-            {!emojiExpanded && CHAT_REACTION_EMOJIS_MORE.length > 0 ? (
-              <button
-                type="button"
-                className="chat-message-overlay__emoji-more"
-                aria-label="Показать больше реакций"
-                aria-expanded={emojiExpanded}
-                onClick={() => onEmojiExpandedChange(true)}
-              >
-                <ChevronDownIcon />
-              </button>
-            ) : null}
-          </div>
-        </section>
+        {!isDeleted ? (
+          <section className="chat-message-overlay__emoji-panel" aria-label="Реакции">
+            <div
+              className={`chat-message-overlay__emoji-grid${
+                emojiExpanded ? ' chat-message-overlay__emoji-grid--expanded' : ''
+              }`}
+            >
+              {visibleEmojis.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  className="chat-message-overlay__emoji-btn"
+                  aria-label={`Реакция ${emoji}`}
+                  onClick={(e) => {
+                    const btn = e.currentTarget;
+                    btn.classList.add('chat-message-overlay__emoji-btn--picked');
+                    onSelectEmoji(emoji, btn.getBoundingClientRect());
+                  }}
+                >
+                  {emoji}
+                </button>
+              ))}
+              {!emojiExpanded && CHAT_REACTION_EMOJIS_MORE.length > 0 ? (
+                <button
+                  type="button"
+                  className="chat-message-overlay__emoji-more"
+                  aria-label="Показать больше реакций"
+                  aria-expanded={emojiExpanded}
+                  onClick={() => onEmojiExpandedChange(true)}
+                >
+                  <ChevronDownIcon />
+                </button>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
 
         {!emojiExpanded ? (
           <section className="chat-message-overlay__menu-panel" aria-label="Действия">
@@ -193,7 +198,14 @@ export function ChatMessageOverlay({
                     }${action.id === 'read' ? ' chat-message-overlay__action--meta' : ''}`}
                     disabled={action.id === 'read'}
                     onClick={() => {
-                      void runChatMessageMenuAction(action.id, menuContext, onToast, onClose, onReply);
+                      void runChatMessageMenuAction(
+                        action.id,
+                        menuContext,
+                        onToast,
+                        onClose,
+                        onReply,
+                        onRequestDelete,
+                      );
                     }}
                   >
                     {action.label}

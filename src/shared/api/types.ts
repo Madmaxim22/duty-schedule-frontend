@@ -266,12 +266,15 @@ export type ChatMessage = {
   id: string;
   body: string;
   createdAt: string;
+  deleted?: boolean;
   reactions: ChatReactionSummary[];
   attachments?: ChatAttachment[];
   replyTo?: ChatMessageReplyTo;
   status?: 'sent' | 'delivered' | 'read';
   author: ChatMessageAuthor;
 };
+
+export type ChatDeleteMessageMode = 'me' | 'everyone';
 
 export type ChatRoomMember = {
   id: string;

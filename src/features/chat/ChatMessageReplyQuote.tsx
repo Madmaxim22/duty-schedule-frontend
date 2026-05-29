@@ -21,9 +21,13 @@ export function ChatMessageReplyQuote({
   const authorLabel = getReplyQuoteAuthorLabel(replyTo, currentUserId, isDirect);
   const preview = truncateReplyPreview(replyTo.body);
 
+  const isDeletedQuote = replyTo.body === 'Сообщение удалено';
+
   return (
     <div
-      className={`chat-room__reply-quote${className ? ` ${className}` : ''}`}
+      className={`chat-room__reply-quote${isDeletedQuote ? ' chat-room__reply-quote--deleted' : ''}${
+        className ? ` ${className}` : ''
+      }`}
       role={onClick ? 'button' : undefined}
       aria-label={onClick ? clickLabel : undefined}
       tabIndex={onClick ? 0 : undefined}

@@ -2,6 +2,7 @@ import { apiMultipartRequest, apiRequest } from '@/shared/api/client';
 import type {
   ChatAttachment,
   ChatContact,
+  ChatDeleteMessageMode,
   ChatMessage,
   ChatReactionSummary,
   ChatRoomDetail,
@@ -119,6 +120,20 @@ export function removeChatMessageReaction(roomId: string, messageId: string) {
     `/chat/rooms/${roomId}/messages/${messageId}/reactions`,
     {
       method: 'DELETE',
+    },
+  );
+}
+
+export function deleteChatMessage(
+  roomId: string,
+  messageId: string,
+  mode: ChatDeleteMessageMode,
+) {
+  return apiRequest<{ message?: ChatMessage; ok?: boolean }>(
+    `/chat/rooms/${roomId}/messages/${messageId}`,
+    {
+      method: 'DELETE',
+      body: JSON.stringify({ mode }),
     },
   );
 }

@@ -12,6 +12,7 @@ export type ChatMediaGalleryItem = {
 export function buildChatRoomMediaGallery(messages: ChatMessage[]): ChatMediaGalleryItem[] {
   const items: ChatMediaGalleryItem[] = [];
   for (const msg of messages) {
+    if (msg.deleted) continue;
     const attachments = msg.attachments ?? [];
     for (const att of attachments) {
       items.push({

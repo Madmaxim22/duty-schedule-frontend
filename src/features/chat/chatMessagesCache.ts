@@ -93,3 +93,25 @@ export function markMessagesReadByPeer(
     return { ...message, status: 'read' };
   });
 }
+
+export function updateMessageInChatPages(
+  old: InfiniteData<ChatMessagesPage> | undefined,
+  messageId: string,
+  patch: ChatMessage,
+): InfiniteData<ChatMessagesPage> | undefined {
+  return mapPages(old, (message) => (message.id === messageId ? patch : message));
+}
+
+export function removeMessageFromChatPages(
+  old: InfiniteData<ChatMessagesPage> | undefined,
+  messageId: string,
+): InfiniteData<ChatMessagesPage> | undefined {
+  if (!old?.pages.length) return old;
+  return {
+    pageParams: old.pageParams,
+    pages: old.pages.map((page) => ({
+      ...page,
+      messages: page.messages.filter((m) => m.id !== messageId),
+    })),
+  };
+}
