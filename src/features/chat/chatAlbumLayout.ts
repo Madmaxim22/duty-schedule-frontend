@@ -14,10 +14,15 @@ export type AlbumLayoutRect = {
   height: number;
 };
 
+/** Сколько превью в пузыре при 5+ фото (как в Telegram). */
+export const CHAT_ALBUM_PREVIEW_MAX = 4;
+
 export type AlbumLayout = {
   width: number;
   height: number;
   rects: AlbumLayoutRect[];
+  /** На последней ячейке: «+N» (сколько фото не показано в сетке). */
+  overflowCount?: number;
 };
 
 function ratio(size: AlbumPhotoSize): number {
@@ -42,8 +47,11 @@ export function computeChatAlbumLayout(sizes: AlbumPhotoSize[]): AlbumLayout {
   if (n === 1) return layoutOne(ratios[0]);
   if (n === 2) return layoutTwo(ratios);
   if (n === 3) return layoutThree(ratios);
-  if (n === 4) return layoutFour();
-  return layoutGrid(ratios);
+  const layout = layoutFour();
+  if (n > CHAT_ALBUM_PREVIEW_MAX) {
+    return { ...layout, overflowCount: n - CHAT_ALBUM_PREVIEW_MAX };
+  }
+  return layout;
 }
 
 function layoutOne(r: number): AlbumLayout {
@@ -157,34 +165,3 @@ function layoutFour(): AlbumLayout {
   };
 }
 
-function layoutGrid(ratios: number[]): AlbumLayout {
-  const gap = CHAT_ALBUM_GAP;
-  const rects: AlbumLayoutRect[] = [];
-  let y = 0;
-  let maxW = 0;
-
-  for (let i = 0; i < ratios.length; ) {
-    const left = ratios.length - i;
-    const inRow = left === 1 ? 1 : 2;
-    const rowRatios = ratios.slice(i, i + inRow);
-    const sum = rowRatios.reduce((a, b) => a + b, 0);
-    const h = Math.min(180, (CHAT_ALBUM_MAX_WIDTH - (inRow - 1) * gap) / sum);
-    let x = 0;
-
-    for (let j = 0; j < inRow; j++) {
-      const w = h * rowRatios[j];
-      rects.push({ index: i + j, x, y, width: w, height: h });
-      x += w + gap;
-    }
-
-    maxW = Math.max(maxW, x - gap);
-    y += h + gap;
-    i += inRow;
-  }
-
-  return {
-    width: Math.min(CHAT_ALBUM_MAX_WIDTH, maxW),
-    height: Math.min(CHAT_ALBUM_MAX_HEIGHT, y - gap),
-    rects,
-  };
-}

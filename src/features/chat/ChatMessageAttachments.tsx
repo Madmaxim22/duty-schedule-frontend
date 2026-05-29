@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ChatAttachment } from '@/shared/api/types';
 import {
+  CHAT_ALBUM_PREVIEW_MAX,
   computeChatAlbumLayout,
   resolveAlbumPhotoSizes,
   type AlbumPhotoSize,
@@ -55,6 +56,9 @@ export function ChatMessageAttachments({ attachments, onOpenAttachment }: Props)
   const sizes = measuredSizes ?? resolveAlbumPhotoSizes(attachments);
   const layout = useMemo(() => computeChatAlbumLayout(sizes), [sizes]);
   const isAlbum = attachments.length > 1;
+  const overflowCount = layout.overflowCount ?? 0;
+  const previewAttachments =
+    overflowCount > 0 ? attachments.slice(0, CHAT_ALBUM_PREVIEW_MAX) : attachments;
 
   if (!attachments.length) return null;
 
@@ -67,7 +71,7 @@ export function ChatMessageAttachments({ attachments, onOpenAttachment }: Props)
           : { width: layout.width, maxWidth: 'min(280px, 72vw)' }
       }
     >
-      {attachments.map((att, index) => {
+      {previewAttachments.map((att, index) => {
         const rect = layout.rects[index];
         const cellStyle =
           rect != null
@@ -78,6 +82,11 @@ export function ChatMessageAttachments({ attachments, onOpenAttachment }: Props)
                 height: rect.height,
               }
             : undefined;
+        const showOverflowBadge =
+          overflowCount > 0 && index === CHAT_ALBUM_PREVIEW_MAX - 1;
+        const ariaLabel = showOverflowBadge
+          ? `Открыть альбом, ещё ${overflowCount} фото`
+          : `Открыть фото: ${att.fileName}`;
 
         return (
           <button
@@ -87,7 +96,7 @@ export function ChatMessageAttachments({ attachments, onOpenAttachment }: Props)
               isAlbum ? ' chat-room__attachment-link--cell' : ''
             }`}
             style={cellStyle}
-            aria-label={`Открыть фото: ${att.fileName}`}
+            aria-label={ariaLabel}
             onClick={(e) => {
               e.stopPropagation();
               onOpenAttachment?.(att.id);
@@ -102,6 +111,11 @@ export function ChatMessageAttachments({ attachments, onOpenAttachment }: Props)
               loading="lazy"
               draggable={false}
             />
+            {showOverflowBadge ? (
+              <span className="chat-room__attachment-overflow" aria-hidden>
+                +{overflowCount}
+              </span>
+            ) : null}
           </button>
         );
       })}
