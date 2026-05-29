@@ -232,6 +232,11 @@ export function ChatMessageItem({
                 />
               ) : null}
               <span className="chat-room__meta">
+                {msg.editedAt ? (
+                  <span className="chat-room__edited" aria-label="Изменено">
+                    изм.
+                  </span>
+                ) : null}
                 <time className="chat-room__time" dateTime={msg.createdAt}>
                   {formatBubbleTime(msg.createdAt)}
                 </time>

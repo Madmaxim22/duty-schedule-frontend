@@ -1,5 +1,6 @@
 import type { InfiniteData } from '@tanstack/react-query';
 import type { ChatMessage, ChatReactionSummary } from '@/shared/api/types';
+import { replyQuoteBodyFromMessage } from './chatReplyQuote';
 
 /** Одна страница ответа GET /chat/rooms/:id/messages (для useInfiniteQuery). */
 export type ChatMessagesPage = {
@@ -100,6 +101,30 @@ export function updateMessageInChatPages(
   patch: ChatMessage,
 ): InfiniteData<ChatMessagesPage> | undefined {
   return mapPages(old, (message) => (message.id === messageId ? patch : message));
+}
+
+export function updateMessageInChatPagesWithReplyQuotes(
+  old: InfiniteData<ChatMessagesPage> | undefined,
+  updated: ChatMessage,
+): InfiniteData<ChatMessagesPage> | undefined {
+  if (!old?.pages.length) return old;
+  const quoteBody = replyQuoteBodyFromMessage(updated);
+  return {
+    pageParams: old.pageParams,
+    pages: old.pages.map((page) => ({
+      ...page,
+      messages: page.messages.map((message) => {
+        if (message.id === updated.id) return updated;
+        if (message.replyTo?.id === updated.id) {
+          return {
+            ...message,
+            replyTo: { ...message.replyTo, body: quoteBody },
+          };
+        }
+        return message;
+      }),
+    })),
+  };
 }
 
 export function removeMessageFromChatPages(

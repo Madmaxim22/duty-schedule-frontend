@@ -83,6 +83,7 @@ type Props = {
   onToast: (message: string) => void;
   onReply?: (message: ChatMessage) => void;
   onRequestDelete?: (mode: ChatDeleteMessageMode) => void;
+  onStartEdit?: (message: ChatMessage) => void;
 };
 
 export function ChatMessageOverlay({
@@ -97,6 +98,7 @@ export function ChatMessageOverlay({
   onToast,
   onReply,
   onRequestDelete,
+  onStartEdit,
 }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [cardStyle, setCardStyle] = useState<{ top: number; left: number } | null>(null);
@@ -205,6 +207,7 @@ export function ChatMessageOverlay({
                         onClose,
                         onReply,
                         onRequestDelete,
+                        onStartEdit,
                       );
                     }}
                   >

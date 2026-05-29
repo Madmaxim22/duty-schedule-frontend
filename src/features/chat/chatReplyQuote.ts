@@ -1,10 +1,30 @@
 import type { ChatMessageReplyTo } from '@/shared/api/types';
 
 const COMPOSER_PREVIEW_MAX = 100;
+const REPLY_QUOTE_MAX = 120;
+
+export const DELETED_MESSAGE_BODY = 'Сообщение удалено';
 
 export function truncateReplyPreview(body: string, max = COMPOSER_PREVIEW_MAX): string {
   if (body.length <= max) return body;
   return `${body.slice(0, max - 1)}…`;
+}
+
+/** Текст цитаты для replyTo (как replyQuoteBody на backend). */
+export function replyQuoteBodyFromMessage(message: {
+  body: string;
+  deleted?: boolean;
+  attachments?: unknown[];
+}): string {
+  if (message.deleted) return DELETED_MESSAGE_BODY;
+  const trimmed = message.body.trim();
+  if (trimmed.length > 0) {
+    return trimmed.length <= REPLY_QUOTE_MAX
+      ? trimmed
+      : `${trimmed.slice(0, REPLY_QUOTE_MAX - 1)}…`;
+  }
+  if (message.attachments && message.attachments.length > 0) return 'Фото';
+  return '';
 }
 
 export function getReplyQuoteAuthorLabel(

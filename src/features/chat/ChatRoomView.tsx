@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import arrowLeftIcon from '@/shared/assets/icons/Arrow Left.svg';
 import {
   deleteChatMessage,
+  editChatMessage,
   getChatMessages,
   getChatRoom,
   markChatRoomRead,
@@ -23,6 +24,8 @@ import { Avatar } from '@/shared/ui/Avatar';
 import { buildChatRoomMediaGallery } from './buildChatRoomMediaGallery';
 import { ChatComposerMenu } from './ChatComposerMenu';
 import { ChatAttachmentPreviewStrip } from './ChatAttachmentPreviewStrip';
+import { ChatEditAttachmentsStrip } from './ChatEditAttachmentsStrip';
+import { ChatEditComposerBar } from './ChatEditComposerBar';
 import { ChatMediaLightbox } from './ChatMediaLightbox';
 import { ChatMessageItem } from './ChatMessageItem';
 import { ChatDeleteMessageModal } from './ChatDeleteMessageModal';
@@ -37,6 +40,7 @@ import {
   mergeChatPages,
   removeMessageFromChatPages,
   updateMessageInChatPages,
+  updateMessageInChatPagesWithReplyQuotes,
   updateMessageReactions,
   type ChatMessagesPage,
 } from './chatMessagesCache';
@@ -91,6 +95,8 @@ export function ChatRoomView({ roomId }: Props) {
   const [emojiExpanded, setEmojiExpanded] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
+  const [editTarget, setEditTarget] = useState<ChatMessage | null>(null);
+  const [keptAttachmentIds, setKeptAttachmentIds] = useState<string[]>([]);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [previewItems, setPreviewItems] = useState<{ file: File; url: string }[]>([]);
   const [mediaLightboxIndex, setMediaLightboxIndex] = useState<number | null>(null);
@@ -250,6 +256,37 @@ export function ChatRoomView({ roomId }: Props) {
     onError: (e: Error) => setError(e.message),
   });
 
+  const editMutation = useMutation({
+    mutationFn: async ({
+      messageId,
+      body,
+      keptIds,
+      files,
+    }: {
+      messageId: string;
+      body: string;
+      keptIds: string[];
+      files: File[];
+    }) => {
+      let newIds: string[] = [];
+      if (files.length > 0) {
+        const uploaded = await uploadChatAttachments(roomId, files);
+        newIds = uploaded.attachments.map((a) => a.id);
+      }
+      return editChatMessage(roomId, messageId, body, [...keptIds, ...newIds]);
+    },
+    onSuccess: (data) => {
+      cancelEdit();
+      queryClient.setQueryData<InfiniteData<ChatMessagesPage>>(
+        ['chat', 'messages', roomId],
+        (old) => updateMessageInChatPagesWithReplyQuotes(old, data.message) ?? old,
+      );
+      queryClient.invalidateQueries({ queryKey: ['chat', 'rooms'] });
+      setToast('Сообщение изменено');
+    },
+    onError: (e: Error) => setError(e.message),
+  });
+
   const room = roomQuery.data?.room;
   const messages = useMemo(() => mergeChatPages(messagesQuery.data), [messagesQuery.data]);
   const mediaGalleryItems = useMemo(
@@ -314,11 +351,22 @@ export function ChatRoomView({ roomId }: Props) {
     setPendingFiles([]);
   }, []);
 
+  const cancelEdit = useCallback(() => {
+    setEditTarget(null);
+    setKeptAttachmentIds([]);
+    setDraft('');
+    clearPendingFiles();
+    setError('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = '';
+    }
+  }, [clearPendingFiles]);
+
   useEffect(() => {
     closeMessageMenu();
     setReplyTo(null);
-    clearPendingFiles();
-  }, [roomId, closeMessageMenu, clearPendingFiles]);
+    cancelEdit();
+  }, [roomId, closeMessageMenu, cancelEdit]);
 
   useEffect(() => {
     const items = pendingFiles.map((file) => ({
@@ -331,10 +379,17 @@ export function ChatRoomView({ roomId }: Props) {
     };
   }, [pendingFiles]);
 
-  const handleFilesSelected = useCallback((files: File[]) => {
-    if (files.length === 0) return;
-    setPendingFiles((prev) => [...prev, ...files].slice(0, MAX_CHAT_ATTACHMENTS));
-  }, []);
+  const handleFilesSelected = useCallback(
+    (files: File[]) => {
+      if (files.length === 0) return;
+      setPendingFiles((prev) => {
+        const keptCount = editTarget ? keptAttachmentIds.length : 0;
+        const maxTotal = MAX_CHAT_ATTACHMENTS - keptCount;
+        return [...prev, ...files].slice(0, maxTotal);
+      });
+    },
+    [editTarget, keptAttachmentIds.length],
+  );
 
   const handleRemovePendingFile = useCallback((index: number) => {
     setPendingFiles((prev) => prev.filter((_, i) => i !== index));
@@ -342,12 +397,37 @@ export function ChatRoomView({ roomId }: Props) {
 
   const handleStartReply = useCallback(
     (msg: ChatMessage) => {
+      cancelEdit();
       setReplyTo(msg);
       closeMessageMenu();
       requestAnimationFrame(() => textareaRef.current?.focus());
     },
-    [closeMessageMenu],
+    [closeMessageMenu, cancelEdit],
   );
+
+  const handleStartEdit = useCallback(
+    (msg: ChatMessage) => {
+      setReplyTo(null);
+      clearPendingFiles();
+      setEditTarget(msg);
+      setKeptAttachmentIds(msg.attachments?.map((a) => a.id) ?? []);
+      setDraft(msg.body);
+      setError('');
+      closeMessageMenu();
+      requestAnimationFrame(() => {
+        const el = textareaRef.current;
+        if (!el) return;
+        el.focus();
+        el.setSelectionRange(el.value.length, el.value.length);
+        handleTextareaInput();
+      });
+    },
+    [closeMessageMenu, clearPendingFiles],
+  );
+
+  const handleRemoveKeptAttachment = useCallback((attachmentId: string) => {
+    setKeptAttachmentIds((prev) => prev.filter((id) => id !== attachmentId));
+  }, []);
 
   const scrollToMessageById = useCallback(
     async (messageId: string) => {
@@ -528,6 +608,22 @@ export function ChatRoomView({ roomId }: Props) {
       setError('Сообщение не длиннее 2000 символов');
       return;
     }
+
+    if (editTarget) {
+      const attachmentCount = keptAttachmentIds.length + pendingFiles.length;
+      if (!body && attachmentCount === 0) {
+        setError('Введите текст или прикрепите изображение');
+        return;
+      }
+      editMutation.mutate({
+        messageId: editTarget.id,
+        body,
+        keptIds: keptAttachmentIds,
+        files: pendingFiles,
+      });
+      return;
+    }
+
     if (!body && pendingFiles.length === 0) {
       setError('Введите текст или прикрепите изображение');
       return;
@@ -539,9 +635,30 @@ export function ChatRoomView({ roomId }: Props) {
     });
   }
 
-  const isBusy = postMutation.isPending;
+  const isBusy = postMutation.isPending || editMutation.isPending;
   const avatarCacheBust = avatarVersion || undefined;
-  const canSend = !isBusy && (draft.trim().length > 0 || pendingFiles.length > 0);
+
+  const editKeptAttachments = useMemo(() => {
+    if (!editTarget?.attachments) return [];
+    const kept = new Set(keptAttachmentIds);
+    return editTarget.attachments.filter((a) => kept.has(a.id));
+  }, [editTarget, keptAttachmentIds]);
+
+  const editHasChanges = useMemo(() => {
+    if (!editTarget) return false;
+    const originalIds = editTarget.attachments?.map((a) => a.id) ?? [];
+    const idsChanged =
+      keptAttachmentIds.length !== originalIds.length ||
+      keptAttachmentIds.some((id) => !originalIds.includes(id)) ||
+      pendingFiles.length > 0;
+    return draft.trim() !== editTarget.body.trim() || idsChanged;
+  }, [editTarget, draft, keptAttachmentIds, pendingFiles.length]);
+
+  const canSend = editTarget
+    ? !isBusy &&
+      editHasChanges &&
+      (draft.trim().length > 0 || keptAttachmentIds.length + pendingFiles.length > 0)
+    : !isBusy && (draft.trim().length > 0 || pendingFiles.length > 0);
 
   return (
     <div className="chat-room chat-room--telegram">
@@ -684,7 +801,9 @@ export function ChatRoomView({ roomId }: Props) {
           <label className="visually-hidden" htmlFor="chat-message">
             Сообщение
           </label>
-          {replyTo ? (
+          {editTarget ? (
+            <ChatEditComposerBar onCancel={cancelEdit} />
+          ) : replyTo ? (
             <ChatReplyComposerBar
               replyTo={replyTo}
               currentUserId={user?.id}
@@ -693,11 +812,24 @@ export function ChatRoomView({ roomId }: Props) {
               onQuoteClick={() => void scrollToReplyTarget()}
             />
           ) : null}
-          <ChatAttachmentPreviewStrip items={previewItems} onRemove={handleRemovePendingFile} />
+          {editTarget ? (
+            <ChatEditAttachmentsStrip
+              keptAttachments={editKeptAttachments}
+              pendingItems={previewItems}
+              onRemoveKept={handleRemoveKeptAttachment}
+              onRemovePending={handleRemovePendingFile}
+            />
+          ) : (
+            <ChatAttachmentPreviewStrip items={previewItems} onRemove={handleRemovePendingFile} />
+          )}
           <div className="chat-room__composer-row">
             <ChatComposerMenu
               disabled={isBusy}
-              maxFiles={MAX_CHAT_ATTACHMENTS}
+              maxFiles={
+                editTarget
+                  ? MAX_CHAT_ATTACHMENTS - keptAttachmentIds.length - pendingFiles.length
+                  : MAX_CHAT_ATTACHMENTS
+              }
               currentCount={pendingFiles.length}
               onFilesSelected={handleFilesSelected}
             />
@@ -716,6 +848,11 @@ export function ChatRoomView({ roomId }: Props) {
                 handleTextareaInput();
               }}
               onKeyDown={(e) => {
+                if (e.key === 'Escape' && editTarget) {
+                  e.preventDefault();
+                  cancelEdit();
+                  return;
+                }
                 if (e.key === 'Escape' && replyTo) {
                   e.preventDefault();
                   setReplyTo(null);
@@ -755,6 +892,7 @@ export function ChatRoomView({ roomId }: Props) {
         onToast={setToast}
         onReply={handleStartReply}
         onRequestDelete={handleRequestDelete}
+        onStartEdit={handleStartEdit}
       />
 
       <ChatDeleteMessageModal

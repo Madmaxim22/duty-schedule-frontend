@@ -74,6 +74,7 @@ export async function runChatMessageMenuAction(
   onClose: () => void,
   onReply?: (message: ChatMessage) => void,
   onRequestDelete?: (mode: ChatDeleteMessageMode) => void,
+  onStartEdit?: (message: ChatMessage) => void,
 ): Promise<void> {
   switch (actionId) {
     case 'copy': {
@@ -98,6 +99,11 @@ export async function runChatMessageMenuAction(
     }
     case 'deleteMe': {
       onRequestDelete?.('me');
+      onClose();
+      return;
+    }
+    case 'edit': {
+      onStartEdit?.(ctx.message);
       onClose();
       return;
     }

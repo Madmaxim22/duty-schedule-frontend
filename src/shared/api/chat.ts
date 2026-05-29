@@ -137,3 +137,15 @@ export function deleteChatMessage(
     },
   );
 }
+
+export function editChatMessage(
+  roomId: string,
+  messageId: string,
+  body: string,
+  attachmentIds: string[],
+) {
+  return apiRequest<{ message: ChatMessage }>(`/chat/rooms/${roomId}/messages/${messageId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ body, attachmentIds }),
+  });
+}

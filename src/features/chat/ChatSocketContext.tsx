@@ -22,7 +22,7 @@ import {
   appendMessageToChatPages,
   markMessagesReadByPeer,
   removeMessageFromChatPages,
-  updateMessageInChatPages,
+  updateMessageInChatPagesWithReplyQuotes,
   updateMessageReactions,
   updateSingleMessageStatus,
   type ChatMessagesPage,
@@ -222,7 +222,7 @@ export function ChatSocketProvider({ children }: { children: ReactNode }) {
       if (msg.type === 'message.updated') {
         queryClient.setQueryData<InfiniteData<ChatMessagesPage>>(
           ['chat', 'messages', msg.roomId],
-          (old) => updateMessageInChatPages(old, msg.message.id, msg.message) ?? old,
+          (old) => updateMessageInChatPagesWithReplyQuotes(old, msg.message) ?? old,
         );
         return;
       }
