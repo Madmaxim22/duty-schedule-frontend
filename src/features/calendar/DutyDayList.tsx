@@ -116,6 +116,7 @@ export function DutyDayList({
   onDutyProfile,
   onAvatarPreview,
 }: Props) {
+  const scrollRef = useRef<HTMLUListElement>(null);
   const todayRef = useRef<HTMLLIElement>(null);
   const rows = useMemo(
     () => buildMonthRows(month, days, incompleteDates),
@@ -128,7 +129,14 @@ export function DutyDayList({
     month.getMonth() === new Date().getMonth();
 
   useLayoutEffect(() => {
-    if (!isCurrentMonth) return;
+    const scrollEl = scrollRef.current;
+    if (!scrollEl) return;
+
+    if (!isCurrentMonth) {
+      scrollEl.scrollTop = 0;
+      return;
+    }
+
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     todayRef.current?.scrollIntoView({
       block: 'center',
@@ -139,7 +147,7 @@ export function DutyDayList({
   return (
     <section className="duty-day-list" aria-label="Расписание по дням">
       <ScheduleMonthNav month={month} onMonthChange={onMonthChange} />
-      <ul className="duty-day-list__scroll">
+      <ul ref={scrollRef} className="duty-day-list__scroll">
         {rows.map((row) => {
           const rowClass = [
             'duty-day-list__row',
