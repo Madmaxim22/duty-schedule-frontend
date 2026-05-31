@@ -141,11 +141,19 @@ export type AdminStatisticsResponse = {
   users: AdminStatisticsUser[];
 };
 
+export type AdminActivityDailyParticipant = {
+  name: string;
+  count: number;
+};
+
 export type AdminActivityDaily = {
   date: string;
   activeUsers: number;
+  activeParticipants: AdminActivityDailyParticipant[];
   logins: number;
+  loginParticipants: AdminActivityDailyParticipant[];
   chatMessages: number;
+  chatParticipants: AdminActivityDailyParticipant[];
 };
 
 export type AdminActivityUser = {

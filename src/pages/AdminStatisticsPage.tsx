@@ -1,9 +1,19 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import arrowLeftIcon from '@/shared/assets/icons/Arrow Left.svg';
 import { apiRequest } from '@/shared/api/client';
 import type {
+  AdminActivityDailyParticipant,
   AdminActivityResponse,
   AdminActivityUser,
   AdminStatisticsResponse,
@@ -33,6 +43,9 @@ const SORT_GROUP_ORDER = [
   'По типу за год',
 ] as const;
 
+const TOOLTIP_VIEWPORT_MARGIN = 8;
+const TOOLTIP_GAP = 8;
+
 function formatShortDate(iso: string | null): string {
   if (!iso) return '—';
   return new Date(iso).toLocaleDateString('ru-RU', {
@@ -53,6 +66,122 @@ function formatDayLabel(date: string): string {
 function roomLabel(room: AdminActivityResponse['summary']['topRooms'][0]): string {
   if (room.title?.trim()) return room.title;
   return room.type === 'direct' ? 'Личный чат' : 'Группа';
+}
+
+function formatParticipantLabel(participant: AdminActivityDailyParticipant): string {
+  return participant.count > 1
+    ? `${participant.name} (${participant.count})`
+    : participant.name;
+}
+
+function DailyValueWithTooltip({
+  value,
+  participants,
+  label,
+}: {
+  value: number;
+  participants: AdminActivityDailyParticipant[];
+  label: string;
+}) {
+  const anchorRef = useRef<HTMLSpanElement>(null);
+  const tooltipRef = useRef<HTMLSpanElement>(null);
+  const [open, setOpen] = useState(false);
+  const [tooltipStyle, setTooltipStyle] = useState<CSSProperties>({
+    position: 'fixed',
+    left: 0,
+    top: 0,
+    visibility: 'hidden',
+  });
+
+  const updatePosition = useCallback(() => {
+    const anchor = anchorRef.current;
+    const tooltip = tooltipRef.current;
+    if (!anchor || !tooltip) return;
+
+    const anchorRect = anchor.getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    let top = anchorRect.top - tooltipRect.height - TOOLTIP_GAP;
+    let left =
+      anchorRect.left + anchorRect.width / 2 - tooltipRect.width / 2;
+
+    left = Math.max(
+      TOOLTIP_VIEWPORT_MARGIN,
+      Math.min(left, viewportWidth - tooltipRect.width - TOOLTIP_VIEWPORT_MARGIN),
+    );
+
+    if (top < TOOLTIP_VIEWPORT_MARGIN) {
+      top = anchorRect.bottom + TOOLTIP_GAP;
+    }
+
+    top = Math.max(
+      TOOLTIP_VIEWPORT_MARGIN,
+      Math.min(top, viewportHeight - tooltipRect.height - TOOLTIP_VIEWPORT_MARGIN),
+    );
+
+    setTooltipStyle({
+      position: 'fixed',
+      left: `${left}px`,
+      top: `${top}px`,
+      visibility: 'visible',
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    updatePosition();
+  }, [open, updatePosition, participants, label, value]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleReposition = () => updatePosition();
+    window.addEventListener('scroll', handleReposition, true);
+    window.addEventListener('resize', handleReposition);
+
+    return () => {
+      window.removeEventListener('scroll', handleReposition, true);
+      window.removeEventListener('resize', handleReposition);
+    };
+  }, [open, updatePosition]);
+
+  if (value === 0 || participants.length === 0) {
+    return <span>{value}</span>;
+  }
+
+  return (
+    <span
+      ref={anchorRef}
+      className="admin-statistics-page__daily-value"
+      tabIndex={0}
+      aria-label={`${label}: ${participants.map(formatParticipantLabel).join(', ')}`}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      onFocus={() => setOpen(true)}
+      onBlur={() => setOpen(false)}
+    >
+      {value}
+      {open ? (
+        <span
+          ref={tooltipRef}
+          className="admin-statistics-page__daily-tooltip admin-statistics-page__daily-tooltip--open"
+          style={tooltipStyle}
+          role="tooltip"
+        >
+          <span className="admin-statistics-page__daily-tooltip-title">{label}</span>
+          <ul className="admin-statistics-page__daily-tooltip-list">
+            {participants.map((participant, index) => (
+              <li key={`${participant.name}-${index}`}>
+                {formatParticipantLabel(participant)}
+              </li>
+            ))}
+          </ul>
+        </span>
+      ) : null}
+    </span>
+  );
 }
 
 function AbsenceBreakdown({
@@ -428,6 +557,9 @@ function ActivityTabContent({
           {data.daily.length > 0 ? (
             <div className="admin-statistics-page__daily">
               <p className="admin-statistics-page__breakdown-title">По дням</p>
+              <p className="admin-statistics-page__meta">
+                Наведите на число — покажется список пользователей.
+              </p>
               <div className="admin-statistics-page__daily-table-wrap">
                 <table className="admin-statistics-page__daily-table">
                   <thead>
@@ -442,8 +574,20 @@ function ActivityTabContent({
                     {data.daily.map((row) => (
                       <tr key={row.date}>
                         <td>{formatDayLabel(row.date)}</td>
-                        <td>{row.activeUsers}</td>
-                        <td>{row.logins}</td>
+                        <td>
+                          <DailyValueWithTooltip
+                            value={row.activeUsers}
+                            participants={row.activeParticipants}
+                            label="Активные"
+                          />
+                        </td>
+                        <td>
+                          <DailyValueWithTooltip
+                            value={row.logins}
+                            participants={row.loginParticipants}
+                            label="Входы"
+                          />
+                        </td>
                         <td>
                           <span className="admin-statistics-page__daily-chat">
                             <span
@@ -452,9 +596,11 @@ function ActivityTabContent({
                                 width: `${(row.chatMessages / maxDailyMessages) * 100}%`,
                               }}
                             />
-                            <span className="admin-statistics-page__daily-count">
-                              {row.chatMessages}
-                            </span>
+                            <DailyValueWithTooltip
+                              value={row.chatMessages}
+                              participants={row.chatParticipants}
+                              label="Сообщения"
+                            />
                           </span>
                         </td>
                       </tr>

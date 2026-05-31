@@ -2710,6 +2710,7 @@ body {
 
 .admin-statistics-page__daily-table-wrap {
   overflow-x: auto;
+  overflow-y: visible;
   border: 1px solid var(--color-input-border);
   border-radius: var(--radius);
   background: var(--color-surface);
@@ -2743,6 +2744,55 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+.admin-statistics-page__daily-value {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+  border-bottom: 1px dotted var(--color-muted);
+  outline: none;
+}
+
+.admin-statistics-page__daily-tooltip {
+  display: none;
+  z-index: 1000;
+  min-width: 9rem;
+  max-width: min(14rem, calc(100vw - 16px));
+  padding: 8px 10px;
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: 0 8px 24px var(--color-modal-overlay);
+  text-align: left;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.admin-statistics-page__daily-tooltip--open {
+  display: block;
+}
+
+.admin-statistics-page__daily-tooltip-title {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.admin-statistics-page__daily-tooltip-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.admin-statistics-page__daily-tooltip-list li + li {
+  margin-top: 4px;
+}
+
 .admin-statistics-page__daily-chat {
   display: flex;
   align-items: center;
@@ -2757,10 +2807,6 @@ body {
   max-width: 4rem;
   border-radius: 3px;
   background: var(--color-darkest);
-}
-
-.admin-statistics-page__daily-count {
-  flex-shrink: 0;
 }
 
 .admin-statistics-page__hint {
