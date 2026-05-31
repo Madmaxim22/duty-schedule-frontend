@@ -1,7 +1,5 @@
 # Варианты иконок PWA («Добавить на экран»)
 
-[![Документация](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://madmaxim22.github.io/duty-schedule-frontend/)
-
 ## Варианты
 
 | ID | Файл | Описание |

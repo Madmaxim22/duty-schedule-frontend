@@ -1,7 +1,5 @@
 # График дежурств — Frontend
 
-[![GitHub Pages](https://img.shields.io/badge/demo-GitHub%20Pages-blue)](https://madmaxim22.github.io/duty-schedule-frontend/)
-
 Мобильное веб-приложение (mobile-first) для просмотра и управления графиком дежурств по кабинетам.
 
 **Расположение:** `C:\Users\Максим\Documents\Frontend\Duty\duty-schedule-frontend`  
@@ -18,7 +16,6 @@
 - [Доступ с телефона](#доступ-с-телефона)
 - [Переменные окружения](#переменные-окружения)
 - [Сборка и Docker](#сборка-и-docker)
-- [GitHub Pages](#github-pages)
 - [Структура проекта](#структура-проекта)
 - [Лицензия](#лицензия)
 
@@ -188,19 +185,6 @@ npm run preview
 cd ../duty-schedule-backend
 docker compose up -d --build
 ```
-
-## GitHub Pages
-
-Для деплоя статики на GitHub Pages:
-
-1. В `vite.config.ts` при необходимости задайте `base: '/duty-schedule-frontend/'`.
-2. Соберите: `npm run build`.
-3. Опубликуйте содержимое `dist/` (Actions или ветка `gh-pages`).
-
-Демо (после настройки репозитория):  
-**https://madmaxim22.github.io/duty-schedule-frontend/**
-
-> Для работы с GitHub Pages укажите `VITE_API_URL` на публичный URL вашего API.
 
 ## Структура проекта
 
