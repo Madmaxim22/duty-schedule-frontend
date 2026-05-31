@@ -2651,6 +2651,118 @@ body {
   margin-bottom: 12px;
 }
 
+.admin-statistics-page__tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.admin-statistics-page__tab {
+  flex: 1;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-statistics-page__tab--active {
+  background: var(--color-darkest);
+  border-color: var(--color-darkest);
+  color: var(--color-surface);
+}
+
+.admin-statistics-page__summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.admin-statistics-page__stat--activity {
+  background: color-mix(in srgb, var(--color-secondary-bg) 70%, var(--color-darkest) 30%);
+}
+
+.admin-statistics-page__stat-value--sm {
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+}
+
+.admin-statistics-page__meta {
+  margin: 0 0 12px;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  line-height: 1.4;
+}
+
+.admin-statistics-page__top-rooms {
+  margin-bottom: 16px;
+}
+
+.admin-statistics-page__daily {
+  margin-bottom: 16px;
+}
+
+.admin-statistics-page__daily-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.admin-statistics-page__daily-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.admin-statistics-page__daily-table th,
+.admin-statistics-page__daily-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-input-border);
+}
+
+.admin-statistics-page__daily-table th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  background: var(--color-secondary-bg);
+}
+
+.admin-statistics-page__daily-table tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-statistics-page__daily-table td {
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-statistics-page__daily-chat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 5rem;
+}
+
+.admin-statistics-page__daily-bar {
+  display: block;
+  height: 6px;
+  min-width: 2px;
+  max-width: 4rem;
+  border-radius: 3px;
+  background: var(--color-darkest);
+}
+
+.admin-statistics-page__daily-count {
+  flex-shrink: 0;
+}
+
 .admin-statistics-page__hint {
   font-size: 0.875rem;
   color: var(--color-muted);

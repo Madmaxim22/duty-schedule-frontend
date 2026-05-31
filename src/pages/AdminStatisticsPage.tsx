@@ -1,16 +1,29 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import arrowLeftIcon from '@/shared/assets/icons/Arrow Left.svg';
 import { apiRequest } from '@/shared/api/client';
-import type { AdminStatisticsResponse, AdminStatisticsUser } from '@/shared/api/types';
+import type {
+  AdminActivityResponse,
+  AdminActivityUser,
+  AdminStatisticsResponse,
+  AdminStatisticsUser,
+} from '@/shared/api/types';
 import { ScheduleMonthNav } from '@/features/calendar/ScheduleMonthNav';
+import {
+  ACTIVITY_SORT_OPTIONS,
+  sortActivityUsers,
+  type ActivitySortDirection,
+  type ActivitySortKey,
+} from '@/features/statistics/sortActivityUsers';
 import {
   buildSortOptions,
   sortStatisticsUsers,
   type StatisticsSortDirection,
   type StatisticsSortKey,
 } from '@/features/statistics/sortStatisticsUsers';
+
+type StatisticsTab = 'duties' | 'activity';
 
 const SORT_GROUP_ORDER = [
   'Общее',
@@ -19,6 +32,28 @@ const SORT_GROUP_ORDER = [
   'По типу за месяц',
   'По типу за год',
 ] as const;
+
+function formatShortDate(iso: string | null): string {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function formatDayLabel(date: string): string {
+  return new Date(`${date}T12:00:00`).toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+  });
+}
+
+function roomLabel(room: AdminActivityResponse['summary']['topRooms'][0]): string {
+  if (room.title?.trim()) return room.title;
+  return room.type === 'direct' ? 'Личный чат' : 'Группа';
+}
 
 function AbsenceBreakdown({
   label,
@@ -122,17 +157,85 @@ function UserStatsCard({
   );
 }
 
-export function AdminStatisticsPage() {
-  const [month, setMonth] = useState(() => {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
-  });
+function ActivityUserCard({ user }: { user: AdminActivityUser }) {
+  return (
+    <li className="admin-statistics-page__card">
+      <p className="admin-statistics-page__name">{user.fullName}</p>
+      <dl className="admin-statistics-page__stats">
+        <div className="admin-statistics-page__stat">
+          <dt>Последняя активность</dt>
+          <dd className="admin-statistics-page__stat-value--sm">
+            {formatShortDate(user.lastActiveAt)}
+          </dd>
+        </div>
+        <div className="admin-statistics-page__stat">
+          <dt>Входы за месяц</dt>
+          <dd>{user.loginsMonth}</dd>
+        </div>
+        <div className="admin-statistics-page__stat admin-statistics-page__stat--activity">
+          <dt>Сообщения</dt>
+          <dd>{user.chatMessagesMonth}</dd>
+        </div>
+        <div className="admin-statistics-page__stat admin-statistics-page__stat--activity">
+          <dt>Вложения</dt>
+          <dd>{user.chatAttachmentsMonth}</dd>
+        </div>
+      </dl>
+    </li>
+  );
+}
+
+function SortToolbar({
+  sortKey,
+  sortDirection,
+  onSortKeyChange,
+  onDirectionToggle,
+  children,
+}: {
+  sortKey: string;
+  sortDirection: 'asc' | 'desc';
+  onSortKeyChange: (key: string) => void;
+  onDirectionToggle: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="admin-statistics-page__toolbar">
+      <label className="admin-statistics-page__sort-label">
+        <span className="admin-statistics-page__sort-caption">Сортировка</span>
+        <select
+          className="admin-statistics-page__select"
+          value={sortKey}
+          onChange={(e) => onSortKeyChange(e.target.value)}
+        >
+          {children}
+        </select>
+      </label>
+      <button
+        type="button"
+        className="admin-statistics-page__direction"
+        onClick={onDirectionToggle}
+        aria-label={
+          sortDirection === 'desc'
+            ? 'Сортировать по убыванию'
+            : 'Сортировать по возрастанию'
+        }
+      >
+        {sortDirection === 'desc' ? '↓ Убыв.' : '↑ Возр.'}
+      </button>
+    </div>
+  );
+}
+
+function DutiesTabContent({
+  year,
+  monthNum,
+}: {
+  year: number;
+  monthNum: number;
+}) {
   const [sortKey, setSortKey] = useState<StatisticsSortKey>('duties_month');
   const [sortDirection, setSortDirection] =
     useState<StatisticsSortDirection>('desc');
-
-  const year = month.getFullYear();
-  const monthNum = month.getMonth() + 1;
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin', 'statistics', year, monthNum],
@@ -162,61 +265,33 @@ export function AdminStatisticsPage() {
   }, [sortOptions]);
 
   return (
-    <div className="admin-statistics-page">
-      <header className="subpage-header">
-        <Link to="/" className="subpage-header__back" aria-label="Назад к календарю">
-          <img src={arrowLeftIcon} alt="" width={24} height={24} aria-hidden />
-        </Link>
-        <h1 className="subpage-header__title">Статистика</h1>
-      </header>
-
-      <ScheduleMonthNav
-        month={month}
-        onMonthChange={(m) => setMonth(new Date(m.getFullYear(), m.getMonth(), 1))}
-      />
-
+    <>
       <p className="admin-statistics-page__hint">
         Дежурства — назначенные слоты. Отсутствия — записи из импорта графика с указанной
         причиной.
       </p>
 
       {!isLoading && !error && users.length > 0 ? (
-        <div className="admin-statistics-page__toolbar">
-          <label className="admin-statistics-page__sort-label">
-            <span className="admin-statistics-page__sort-caption">Сортировка</span>
-            <select
-              className="admin-statistics-page__select"
-              value={sortKey}
-              onChange={(e) => setSortKey(e.target.value as StatisticsSortKey)}
-            >
-              {sortGroups.map((group) => (
-                <optgroup key={group} label={group}>
-                  {sortOptions
-                    .filter((o) => o.group === group)
-                    .map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                </optgroup>
-              ))}
-            </select>
-          </label>
-          <button
-            type="button"
-            className="admin-statistics-page__direction"
-            onClick={() =>
-              setSortDirection((d) => (d === 'asc' ? 'desc' : 'asc'))
-            }
-            aria-label={
-              sortDirection === 'desc'
-                ? 'Сортировать по убыванию'
-                : 'Сортировать по возрастанию'
-            }
-          >
-            {sortDirection === 'desc' ? '↓ Убыв.' : '↑ Возр.'}
-          </button>
-        </div>
+        <SortToolbar
+          sortKey={sortKey}
+          sortDirection={sortDirection}
+          onSortKeyChange={(v) => setSortKey(v as StatisticsSortKey)}
+          onDirectionToggle={() =>
+            setSortDirection((d) => (d === 'asc' ? 'desc' : 'asc'))
+          }
+        >
+          {sortGroups.map((group) => (
+            <optgroup key={group} label={group}>
+              {sortOptions
+                .filter((o) => o.group === group)
+                .map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+            </optgroup>
+          ))}
+        </SortToolbar>
       ) : null}
 
       {isLoading ? <p className="page-loading">Загрузка…</p> : null}
@@ -240,6 +315,244 @@ export function AdminStatisticsPage() {
           ))}
         </ul>
       ) : null}
+    </>
+  );
+}
+
+function ActivityTabContent({
+  year,
+  monthNum,
+}: {
+  year: number;
+  monthNum: number;
+}) {
+  const [sortKey, setSortKey] = useState<ActivitySortKey>('chat_messages');
+  const [sortDirection, setSortDirection] =
+    useState<ActivitySortDirection>('desc');
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['admin', 'statistics', 'activity', year, monthNum],
+    queryFn: () =>
+      apiRequest<AdminActivityResponse>(
+        `/admin/statistics/activity?year=${year}&month=${monthNum}`,
+      ),
+  });
+
+  const users = data?.users ?? [];
+  const sortedUsers = useMemo(
+    () => sortActivityUsers(users, sortKey, sortDirection),
+    [users, sortKey, sortDirection],
+  );
+
+  const maxDailyMessages = useMemo(() => {
+    if (!data?.daily.length) return 1;
+    return Math.max(1, ...data.daily.map((d) => d.chatMessages));
+  }, [data?.daily]);
+
+  const summary = data?.summary;
+
+  return (
+    <>
+      <p className="admin-statistics-page__hint">
+        {data?.trackingNote ??
+          'Активные пользователи — те, кто заходил, входил в систему или писал в чат.'}
+      </p>
+
+      {isLoading ? <p className="page-loading">Загрузка…</p> : null}
+      {error ? (
+        <p className="form-message form-message--error">{(error as Error).message}</p>
+      ) : null}
+
+      {summary ? (
+        <>
+          <div className="admin-statistics-page__summary">
+            <div className="admin-statistics-page__stat">
+              <dt>Активных за месяц</dt>
+              <dd>{summary.activeUsersMonth}</dd>
+            </div>
+            <div className="admin-statistics-page__stat">
+              <dt>WAU (7 дней)</dt>
+              <dd>{summary.wau}</dd>
+            </div>
+            <div className="admin-statistics-page__stat">
+              <dt>Сегодня активных</dt>
+              <dd>{summary.dauToday}</dd>
+            </div>
+            <div className="admin-statistics-page__stat">
+              <dt>Средн. активных/день</dt>
+              <dd>{summary.dauMonthAvg}</dd>
+            </div>
+            <div className="admin-statistics-page__stat admin-statistics-page__stat--activity">
+              <dt>Входов</dt>
+              <dd>{summary.logins}</dd>
+            </div>
+            <div className="admin-statistics-page__stat admin-statistics-page__stat--activity">
+              <dt>Регистраций</dt>
+              <dd>{summary.registrations}</dd>
+            </div>
+            <div className="admin-statistics-page__stat admin-statistics-page__stat--activity">
+              <dt>Сообщений</dt>
+              <dd>{summary.chatMessages}</dd>
+            </div>
+            <div className="admin-statistics-page__stat admin-statistics-page__stat--activity">
+              <dt>Вложений</dt>
+              <dd>{summary.chatAttachments}</dd>
+            </div>
+          </div>
+
+          <p className="admin-statistics-page__meta">
+            Чатов: {summary.roomsTotal} (личных {summary.roomsDirect}, групп{' '}
+            {summary.roomsGroup}) · реакций {summary.chatReactions}
+          </p>
+
+          {summary.topRooms.length > 0 ? (
+            <div className="admin-statistics-page__top-rooms">
+              <p className="admin-statistics-page__breakdown-title">
+                Топ комнат за месяц
+              </p>
+              <ul className="admin-statistics-page__breakdown-list">
+                {summary.topRooms.map((room) => (
+                  <li key={room.roomId} className="admin-statistics-page__breakdown-item">
+                    <span className="admin-statistics-page__breakdown-type">
+                      {roomLabel(room)}
+                    </span>
+                    <span className="admin-statistics-page__breakdown-count">
+                      {room.messages}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {data.daily.length > 0 ? (
+            <div className="admin-statistics-page__daily">
+              <p className="admin-statistics-page__breakdown-title">По дням</p>
+              <div className="admin-statistics-page__daily-table-wrap">
+                <table className="admin-statistics-page__daily-table">
+                  <thead>
+                    <tr>
+                      <th>День</th>
+                      <th>Актив.</th>
+                      <th>Входы</th>
+                      <th>Чат</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.daily.map((row) => (
+                      <tr key={row.date}>
+                        <td>{formatDayLabel(row.date)}</td>
+                        <td>{row.activeUsers}</td>
+                        <td>{row.logins}</td>
+                        <td>
+                          <span className="admin-statistics-page__daily-chat">
+                            <span
+                              className="admin-statistics-page__daily-bar"
+                              style={{
+                                width: `${(row.chatMessages / maxDailyMessages) * 100}%`,
+                              }}
+                            />
+                            <span className="admin-statistics-page__daily-count">
+                              {row.chatMessages}
+                            </span>
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : null}
+        </>
+      ) : null}
+
+      {!isLoading && !error && users.length > 0 ? (
+        <SortToolbar
+          sortKey={sortKey}
+          sortDirection={sortDirection}
+          onSortKeyChange={(v) => setSortKey(v as ActivitySortKey)}
+          onDirectionToggle={() =>
+            setSortDirection((d) => (d === 'asc' ? 'desc' : 'asc'))
+          }
+        >
+          {ACTIVITY_SORT_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </SortToolbar>
+      ) : null}
+
+      {!isLoading && !error && users.length === 0 ? (
+        <p className="admin-statistics-page__empty">Нет одобренных пользователей</p>
+      ) : null}
+
+      {!isLoading && !error && sortedUsers.length > 0 ? (
+        <ul className="admin-statistics-page__list">
+          {sortedUsers.map((user) => (
+            <ActivityUserCard key={user.id} user={user} />
+          ))}
+        </ul>
+      ) : null}
+    </>
+  );
+}
+
+export function AdminStatisticsPage() {
+  const [tab, setTab] = useState<StatisticsTab>('duties');
+  const [month, setMonth] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+
+  const year = month.getFullYear();
+  const monthNum = month.getMonth() + 1;
+
+  return (
+    <div className="admin-statistics-page">
+      <header className="subpage-header">
+        <Link to="/" className="subpage-header__back" aria-label="Назад к календарю">
+          <img src={arrowLeftIcon} alt="" width={24} height={24} aria-hidden />
+        </Link>
+        <h1 className="subpage-header__title">Статистика</h1>
+      </header>
+
+      <div
+        className="admin-statistics-page__tabs"
+        role="tablist"
+        aria-label="Раздел статистики"
+      >
+        <button
+          type="button"
+          role="tab"
+          className={`admin-statistics-page__tab${tab === 'duties' ? ' admin-statistics-page__tab--active' : ''}`}
+          aria-selected={tab === 'duties'}
+          onClick={() => setTab('duties')}
+        >
+          Дежурства
+        </button>
+        <button
+          type="button"
+          role="tab"
+          className={`admin-statistics-page__tab${tab === 'activity' ? ' admin-statistics-page__tab--active' : ''}`}
+          aria-selected={tab === 'activity'}
+          onClick={() => setTab('activity')}
+        >
+          Активность
+        </button>
+      </div>
+
+      <ScheduleMonthNav
+        month={month}
+        onMonthChange={(m) => setMonth(new Date(m.getFullYear(), m.getMonth(), 1))}
+      />
+
+      {tab === 'duties' ? (
+        <DutiesTabContent year={year} monthNum={monthNum} />
+      ) : (
+        <ActivityTabContent year={year} monthNum={monthNum} />
+      )}
     </div>
   );
 }

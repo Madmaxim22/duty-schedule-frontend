@@ -141,6 +141,51 @@ export type AdminStatisticsResponse = {
   users: AdminStatisticsUser[];
 };
 
+export type AdminActivityDaily = {
+  date: string;
+  activeUsers: number;
+  logins: number;
+  chatMessages: number;
+};
+
+export type AdminActivityUser = {
+  id: string;
+  fullName: string;
+  lastActiveAt: string | null;
+  loginsMonth: number;
+  chatMessagesMonth: number;
+  chatAttachmentsMonth: number;
+};
+
+export type AdminActivityResponse = {
+  year: number;
+  month: number;
+  trackingNote: string;
+  summary: {
+    approvedUsers: number;
+    registrations: number;
+    logins: number;
+    chatMessages: number;
+    chatAttachments: number;
+    chatReactions: number;
+    activeUsersMonth: number;
+    dauToday: number;
+    dauMonthAvg: number;
+    wau: number;
+    roomsTotal: number;
+    roomsDirect: number;
+    roomsGroup: number;
+    topRooms: Array<{
+      roomId: string;
+      title: string | null;
+      type: string;
+      messages: number;
+    }>;
+  };
+  daily: AdminActivityDaily[];
+  users: AdminActivityUser[];
+};
+
 export type PhotoLikeStatus = {
   likeCount: number;
   likedByMe: boolean;
