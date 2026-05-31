@@ -26,6 +26,7 @@ type AdminUser = {
 };
 
 type Tab = 'pending' | 'all';
+type RoleAction = 'promote' | 'demote';
 
 const STATUS_LABELS: Record<UserStatus, string> = {
   pending: 'Ожидает',
@@ -45,6 +46,8 @@ function formatDate(iso: string) {
 export function AdminUsersPage() {
   const [tab, setTab] = useState<Tab>('pending');
   const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
+  const [userToPromote, setUserToPromote] = useState<AdminUser | null>(null);
+  const [userToDemote, setUserToDemote] = useState<AdminUser | null>(null);
   const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
 
@@ -82,13 +85,38 @@ export function AdminUsersPage() {
     },
   });
 
+  const roleMutation = useMutation({
+    mutationFn: ({ id, action }: { id: string; action: RoleAction }) =>
+      apiRequest(`/admin/users/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ action }),
+      }),
+    onSuccess: () => {
+      setUserToPromote(null);
+      setUserToDemote(null);
+      queryClient.invalidateQueries({ queryKey: ['admin', 'all'] });
+      queryClient.invalidateQueries({ queryKey: ['users', 'approved'] });
+    },
+  });
+
   const isLoading = tab === 'pending' ? pendingQuery.isLoading : allQuery.isLoading;
   const error = tab === 'pending' ? pendingQuery.error : allQuery.error;
-  const isBusy = statusMutation.isPending || deleteMutation.isPending;
+  const isBusy = statusMutation.isPending || deleteMutation.isPending || roleMutation.isPending;
+  const adminCount = allQuery.data?.users.filter((u) => u.role === 'admin').length ?? 0;
 
   function confirmDelete() {
     if (!userToDelete) return;
     deleteMutation.mutate(userToDelete.id);
+  }
+
+  function confirmPromote() {
+    if (!userToPromote) return;
+    roleMutation.mutate({ id: userToPromote.id, action: 'promote' });
+  }
+
+  function confirmDemote() {
+    if (!userToDemote) return;
+    roleMutation.mutate({ id: userToDemote.id, action: 'demote' });
   }
 
   return (
@@ -168,10 +196,14 @@ export function AdminUsersPage() {
           <ul className="admin-page__list">
             {allQuery.data?.users.map((u) => {
               const canDelete = u.role !== 'admin' && u.id !== currentUser?.id;
+              const canPromote = u.role === 'user' && u.status === 'approved';
+              const canDemote =
+                u.role === 'admin' && u.id !== currentUser?.id && adminCount > 1;
+              const hasActions = canDelete || canPromote || canDemote;
               return (
                 <li
                   key={u.id}
-                  className={`admin-page__card${canDelete ? ' admin-page__card--with-delete' : ''}`}
+                  className={`admin-page__card${hasActions ? ' admin-page__card--with-delete' : ''}`}
                 >
                   <div className="admin-page__card-body">
                     <div className="admin-page__card-head">
@@ -186,6 +218,28 @@ export function AdminUsersPage() {
                     <p className="admin-page__meta">
                       {ROLE_LABELS[u.role]} · с {formatDate(u.createdAt)}
                     </p>
+                    {canPromote || canDemote ? (
+                      <div className="admin-page__card-actions admin-page__card-actions--inline">
+                        {canPromote ? (
+                          <Button
+                            variant="secondary"
+                            disabled={isBusy}
+                            onClick={() => setUserToPromote(u)}
+                          >
+                            Сделать администратором
+                          </Button>
+                        ) : null}
+                        {canDemote ? (
+                          <Button
+                            variant="secondary"
+                            disabled={isBusy}
+                            onClick={() => setUserToDemote(u)}
+                          >
+                            Снять права администратора
+                          </Button>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </div>
                   {canDelete ? (
                     <button
@@ -230,6 +284,64 @@ export function AdminUsersPage() {
           <p>
             Учётная запись «<strong>{userToDelete.fullName}</strong>» ({userToDelete.email}) будет
             удалена без возможности восстановления.
+          </p>
+        ) : null}
+      </Modal>
+
+      <Modal
+        open={userToPromote !== null}
+        title="Назначить администратором?"
+        onClose={() => {
+          if (!roleMutation.isPending) setUserToPromote(null);
+        }}
+        footer={
+          <div className="modal__footer-actions">
+            <Button
+              variant="secondary"
+              disabled={roleMutation.isPending}
+              onClick={() => setUserToPromote(null)}
+            >
+              Отмена
+            </Button>
+            <Button variant="primary" disabled={roleMutation.isPending} onClick={confirmPromote}>
+              {roleMutation.isPending ? 'Сохранение…' : 'Назначить'}
+            </Button>
+          </div>
+        }
+      >
+        {userToPromote ? (
+          <p>
+            Пользователь «<strong>{userToPromote.fullName}</strong>» ({userToPromote.email}) получит
+            права администратора и должен будет войти заново.
+          </p>
+        ) : null}
+      </Modal>
+
+      <Modal
+        open={userToDemote !== null}
+        title="Снять права администратора?"
+        onClose={() => {
+          if (!roleMutation.isPending) setUserToDemote(null);
+        }}
+        footer={
+          <div className="modal__footer-actions">
+            <Button
+              variant="secondary"
+              disabled={roleMutation.isPending}
+              onClick={() => setUserToDemote(null)}
+            >
+              Отмена
+            </Button>
+            <Button variant="danger" disabled={roleMutation.isPending} onClick={confirmDemote}>
+              {roleMutation.isPending ? 'Сохранение…' : 'Снять права'}
+            </Button>
+          </div>
+        }
+      >
+        {userToDemote ? (
+          <p>
+            У «<strong>{userToDemote.fullName}</strong>» ({userToDemote.email}) будут сняты права
+            администратора. Пользователю потребуется войти заново.
           </p>
         ) : null}
       </Modal>

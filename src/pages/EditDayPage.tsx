@@ -2,18 +2,35 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import arrowLeftIcon from '@/shared/assets/icons/Arrow Left.svg';
-import { apiRequest } from '@/shared/api/client';
+import { ApiError, apiRequest } from '@/shared/api/client';
 import type { ApprovedUserForAssign, DaySchedule } from '@/shared/api/types';
 import { DUTY_SECTIONS } from '@/shared/constants/offices';
 import { Button } from '@/shared/ui/Button';
+import { Modal } from '@/shared/ui/Modal';
 
 type SlotValue = { section: 'A' | 'B'; office: string; userId: string | null };
+
+function slotsFromDayData(dayData: DaySchedule): SlotValue[] {
+  const next: SlotValue[] = [];
+  for (const section of dayData.sections) {
+    for (const office of section.offices) {
+      next.push({
+        section: section.id,
+        office: office.office,
+        userId: office.user?.id ?? null,
+      });
+    }
+  }
+  return next;
+}
 
 export function EditDayPage() {
   const { date } = useParams<{ date: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [slots, setSlots] = useState<SlotValue[]>([]);
+  const [expectedRevision, setExpectedRevision] = useState(0);
+  const [conflictRevision, setConflictRevision] = useState<number | null>(null);
 
   const {
     data: dayData,
@@ -33,28 +50,28 @@ export function EditDayPage() {
 
   useEffect(() => {
     if (!dayData) return;
-    const next: SlotValue[] = [];
-    for (const section of dayData.sections) {
-      for (const office of section.offices) {
-        next.push({
-          section: section.id,
-          office: office.office,
-          userId: office.user?.id ?? null,
-        });
-      }
-    }
-    setSlots(next);
+    setExpectedRevision(dayData.revision);
+    setSlots(slotsFromDayData(dayData));
   }, [dayData]);
 
   const saveMutation = useMutation({
-    mutationFn: () =>
+    mutationFn: (revision: number) =>
       apiRequest<DaySchedule>(`/schedule/day/${date}`, {
         method: 'PUT',
-        body: JSON.stringify({ assignments: slots }),
+        body: JSON.stringify({ expectedRevision: revision, assignments: slots }),
       }),
     onSuccess: () => {
+      setConflictRevision(null);
       queryClient.invalidateQueries({ queryKey: ['schedule'] });
       navigate('/');
+    },
+    onError: (err) => {
+      if (err instanceof ApiError && err.status === 409) {
+        const currentRevision = err.body?.currentRevision;
+        if (typeof currentRevision === 'number') {
+          setConflictRevision(currentRevision);
+        }
+      }
     },
   });
 
@@ -77,6 +94,25 @@ export function EditDayPage() {
       prev.map((s) => (s.section === section && s.office === office ? { ...s, userId } : s)),
     );
   }
+
+  async function reloadFromServer() {
+    setConflictRevision(null);
+    const data = await queryClient.fetchQuery({
+      queryKey: ['schedule', 'day', date],
+      queryFn: () => apiRequest<DaySchedule>(`/schedule/day/${date}`),
+    });
+    setExpectedRevision(data.revision);
+    setSlots(slotsFromDayData(data));
+  }
+
+  function saveWithRevision(revision: number) {
+    saveMutation.mutate(revision);
+  }
+
+  const saveError =
+    saveMutation.error instanceof ApiError && saveMutation.error.status === 409
+      ? null
+      : saveMutation.error;
 
   return (
     <div className="edit-day-page">
@@ -117,11 +153,7 @@ export function EditDayPage() {
                       >
                         <option value="">— Не назначен —</option>
                         {usersData?.users.map((u) => (
-                          <option
-                            key={u.id}
-                            value={u.id}
-                            disabled={u.isAbsent}
-                          >
+                          <option key={u.id} value={u.id} disabled={u.isAbsent}>
                             {u.fullName}
                             {u.isAbsent && u.absenceType
                               ? ` (${u.absenceType})`
@@ -139,19 +171,50 @@ export function EditDayPage() {
           ))
         : null}
 
-      {saveMutation.error ? (
-        <p className="form-message form-message--error">
-          {(saveMutation.error as Error).message}
-        </p>
+      {saveError ? (
+        <p className="form-message form-message--error">{(saveError as Error).message}</p>
       ) : null}
 
       <Button
         className="edit-day-page__save"
         disabled={saveMutation.isPending || isLoading || Boolean(dayError) || slots.length === 0}
-        onClick={() => saveMutation.mutate()}
+        onClick={() => saveWithRevision(expectedRevision)}
       >
         {saveMutation.isPending ? 'Сохранение…' : 'Сохранить'}
       </Button>
+
+      <Modal
+        open={conflictRevision !== null}
+        title="График изменён"
+        onClose={() => {
+          if (!saveMutation.isPending) setConflictRevision(null);
+        }}
+        footer={
+          <div className="modal__footer-actions">
+            <Button
+              variant="secondary"
+              disabled={saveMutation.isPending}
+              onClick={() => void reloadFromServer()}
+            >
+              Загрузить актуальную версию
+            </Button>
+            <Button
+              variant="danger"
+              disabled={saveMutation.isPending || conflictRevision === null}
+              onClick={() => {
+                if (conflictRevision !== null) saveWithRevision(conflictRevision);
+              }}
+            >
+              {saveMutation.isPending ? 'Сохранение…' : 'Сохранить мои изменения'}
+            </Button>
+          </div>
+        }
+      >
+        <p>
+          Другой администратор уже изменил график на эту дату. Загрузите актуальную версию или
+          сохраните свои изменения, перезаписав текущий график.
+        </p>
+      </Modal>
     </div>
   );
 }

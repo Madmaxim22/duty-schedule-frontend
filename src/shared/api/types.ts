@@ -70,6 +70,7 @@ export type DaySlot = {
 
 export type DaySchedule = {
   date: string;
+  revision: number;
   sections: Array<{
     id: 'A' | 'B';
     label: string;

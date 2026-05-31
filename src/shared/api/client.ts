@@ -25,6 +25,17 @@ export function getAccessToken() {
 
 type RequestOptions = RequestInit & { skipAuth?: boolean };
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public body?: Record<string, unknown>,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 async function fetchWithAuth(path: string, options: RequestOptions = {}): Promise<Response> {
   const headers = new Headers(options.headers);
   if (!headers.has('Content-Type') && options.body && !(options.body instanceof FormData)) {
@@ -64,7 +75,12 @@ async function parseResponse<T>(response: Response): Promise<T> {
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error((data as { message?: string }).message ?? 'Ошибка запроса');
+    const payload = data as Record<string, unknown>;
+    throw new ApiError(
+      (payload.message as string | undefined) ?? 'Ошибка запроса',
+      response.status,
+      payload,
+    );
   }
 
   return data as T;

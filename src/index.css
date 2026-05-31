@@ -2482,6 +2482,14 @@ body {
   flex: 1;
 }
 
+.admin-page__card-actions--inline {
+  flex-wrap: wrap;
+}
+
+.admin-page__card-actions--inline .btn {
+  flex: unset;
+}
+
 .admin-page__empty {
   text-align: center;
   color: var(--color-muted);
