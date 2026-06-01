@@ -293,11 +293,20 @@ body {
 .app-shell__footer {
   margin-top: auto;
   padding-top: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   text-align: center;
   font-size: 0.75rem;
   color: var(--color-muted);
   letter-spacing: 0.02em;
   border-top: 1px solid color-mix(in srgb, var(--color-border) 45%, transparent);
+}
+
+.app-shell__version {
+  font-size: 0.6875rem;
+  opacity: 0.85;
 }
 
 .page-loading {
@@ -5726,4 +5735,112 @@ body {
 
 .duty-swap-modal__success {
   margin: 0 0 16px;
+}
+
+/* ——— Onboarding: release notes & achievements ——— */
+
+.onboarding-modal__lead {
+  margin: 0 0 12px;
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+}
+
+.updates-page {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.updates-page__version {
+  margin: 0 0 20px;
+  font-size: 0.9375rem;
+  color: var(--color-muted);
+}
+
+.updates-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.release-card {
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.release-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.release-card__title {
+  margin: 0 0 4px;
+  font-size: 1.0625rem;
+  color: var(--color-primary);
+}
+
+.release-card__meta {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+}
+
+.release-card__badge {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--color-duty-bg);
+  color: var(--color-duty);
+}
+
+.release-card__list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.release-card__list li + li {
+  margin-top: 6px;
+}
+
+.achievement-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.achievement-list__item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  border-radius: var(--radius);
+  background: var(--color-muted-bg);
+}
+
+.achievement-list__icon {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.achievement-list__title {
+  margin: 0 0 4px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.achievement-list__desc {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-muted);
 }

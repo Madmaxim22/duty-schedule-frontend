@@ -4,6 +4,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { fetchChatUnreadCount } from '@/shared/api/chat';
 import { listMyDutySwaps } from '@/shared/api/duty-swaps';
 import { fetchUnreadNotificationsCount } from '@/shared/api/notifications';
+import { fetchOnboarding } from '@/shared/api/onboarding';
 import { apiRequest } from '@/shared/api/client';
 import type { MonthSchedule } from '@/shared/api/types';
 import { DutyCalendar } from '@/features/calendar/DutyCalendar';
@@ -102,6 +103,12 @@ export function HomePage() {
     queryFn: fetchChatUnreadCount,
   });
 
+  const onboardingQuery = useQuery({
+    queryKey: ['onboarding'],
+    queryFn: fetchOnboarding,
+    staleTime: 60_000,
+  });
+
   const incomingSwaps = useQuery({
     queryKey: ['duty-swaps', 'mine', 'incoming', 'pending_counterparty'],
     queryFn: () =>
@@ -144,6 +151,7 @@ export function HomePage() {
   const unreadNotificationsCount = unreadNotifications.data?.count ?? 0;
   const unreadChatCount = unreadChat.data?.count ?? 0;
   const incomingSwapCount = incomingSwaps.data?.requests.length ?? 0;
+  const releaseNeedsAck = onboardingQuery.data?.release?.needsAck ?? false;
   const menuBadgeTotal = unreadNotificationsCount + unreadChatCount + incomingSwapCount;
 
   function formatBadgeCount(n: number) {
@@ -406,6 +414,16 @@ export function HomePage() {
             </ul>
           ) : null}
           <ul className="side-menu__actions side-menu__actions--footer">
+            <li>
+              <Link to="/updates" className="side-menu__action" onClick={closeMenu}>
+                Обновления
+                {releaseNeedsAck ? (
+                  <span className="side-menu__badge" aria-label="Новое обновление">
+                    !
+                  </span>
+                ) : null}
+              </Link>
+            </li>
             <li>
               <Link to="/settings" className="side-menu__action" onClick={closeMenu}>
                 Настройки

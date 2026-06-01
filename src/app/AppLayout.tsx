@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom';
+import { AppVersionFooter } from '@/features/onboarding/AppVersionFooter';
 
 export function AppLayout() {
   return (
@@ -7,7 +8,8 @@ export function AppLayout() {
         <Outlet />
       </main>
       <footer className="app-shell__footer">
-        Copyright © 2026 Muhomedyarov
+        <span>Copyright © 2026 Muhomedyarov</span>
+        <AppVersionFooter />
       </footer>
     </div>
   );

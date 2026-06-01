@@ -491,3 +491,53 @@ export type NotificationsResponse = {
   notifications: NotificationItem[];
   nextCursor: string | null;
 };
+
+export type AppVersionInfo = {
+  version: string;
+  releaseId: string;
+  environment: string;
+};
+
+export type ReleaseNotesItem = {
+  id: string;
+  version: string;
+  title: string;
+  publishedAt: string;
+  items: string[];
+  isCurrent?: boolean;
+};
+
+export type ReleasesResponse = {
+  currentReleaseId: string;
+  releases: ReleaseNotesItem[];
+};
+
+export type OnboardingRelease = {
+  id: string;
+  version: string;
+  title: string;
+  publishedAt: string;
+  items: string[];
+  needsAck: boolean;
+};
+
+export type OnboardingAchievement = {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  unlockedAt: string;
+  isUnseen: boolean;
+};
+
+export type OnboardingAchievementsBlock = {
+  period: string;
+  periodLabel: string;
+  unseen: OnboardingAchievement[];
+  all: OnboardingAchievement[];
+};
+
+export type OnboardingResponse = {
+  release: OnboardingRelease | null;
+  achievements: OnboardingAchievementsBlock | null;
+};

@@ -15,6 +15,7 @@ import { AdminChangesPage } from '@/pages/AdminChangesPage';
 import { AdminStatisticsPage } from '@/pages/AdminStatisticsPage';
 import { NotificationsPage } from '@/pages/NotificationsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
+import { UpdatesPage } from '@/pages/UpdatesPage';
 import { SupportPage } from '@/pages/SupportPage';
 import { SupportThreadPage } from '@/pages/SupportThreadPage';
 import { AdminSupportPage } from '@/pages/AdminSupportPage';
@@ -34,6 +35,7 @@ export function AppRouter() {
               <Route path="/" element={<HomePage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/updates" element={<UpdatesPage />} />
               <Route path="/duty-swaps" element={<DutySwapsPage />} />
               <Route path="/support" element={<SupportPage />} />
               <Route path="/support/:threadId" element={<SupportThreadPage />} />

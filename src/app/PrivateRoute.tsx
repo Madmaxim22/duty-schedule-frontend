@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/features/auth/AuthContext';
 import { ChatSocketProvider } from '@/features/chat/ChatSocketContext';
+import { PostLoginModals } from '@/features/onboarding/PostLoginModals';
 
 export function PrivateRoute() {
   const { user, isLoading } = useAuth();
@@ -15,6 +16,7 @@ export function PrivateRoute() {
 
   return (
     <ChatSocketProvider>
+      <PostLoginModals />
       <Outlet />
     </ChatSocketProvider>
   );

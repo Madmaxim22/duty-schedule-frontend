@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { fetchAppVersion } from '@/shared/api/onboarding';
 import arrowLeftIcon from '@/shared/assets/icons/Arrow Left.svg';
 import { useAuth } from '@/features/auth/AuthContext';
 import { ThemePicker } from '@/features/settings/ThemePicker';
@@ -17,6 +19,11 @@ import { PushBanner } from '@/features/push/AdminPushBanner';
 export function SettingsPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const versionQuery = useQuery({
+    queryKey: ['app-version'],
+    queryFn: fetchAppVersion,
+    staleTime: 300_000,
+  });
   const [theme, setTheme] = useState<AppTheme>(() => loadTheme());
   const [pwaIcon, setPwaIcon] = useState<PwaIconId>(() => loadPwaIcon());
 
@@ -40,6 +47,20 @@ export function SettingsPage() {
         </Link>
         <h1 className="subpage-header__title">Настройки</h1>
       </header>
+
+      <section className="settings-page__section" aria-labelledby="settings-about-title">
+        <h2 id="settings-about-title" className="settings-page__section-title">
+          О приложении
+        </h2>
+        <p className="settings-page__section-hint">
+          {versionQuery.data?.version
+            ? `Версия ${versionQuery.data.version}`
+            : 'Версия загружается…'}
+        </p>
+        <p className="settings-page__section-hint">
+          <Link to="/updates">История обновлений</Link>
+        </p>
+      </section>
 
       <section className="settings-page__section" aria-labelledby="settings-appearance-title">
         <h2 id="settings-appearance-title" className="settings-page__section-title">
