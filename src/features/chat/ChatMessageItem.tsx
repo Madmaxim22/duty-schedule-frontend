@@ -3,6 +3,7 @@ import { Avatar } from '@/shared/ui/Avatar';
 import { toAvatarPreviewUser, type AvatarPreviewUser } from '@/features/day-detail/avatarPreviewUser';
 import type { DutyProfileTarget } from '@/features/profile/dutyProfileTarget';
 import { ChatMessageAttachments } from './ChatMessageAttachments';
+import { ChatDutySwapCard } from './ChatDutySwapCard';
 import { ChatMessageReactions } from './ChatMessageReactions';
 import { ChatMessageReplyQuote } from './ChatMessageReplyQuote';
 import type { ChatMessageMenuAnchor } from './ChatMessageOverlay';
@@ -86,9 +87,10 @@ export function ChatMessageItem({
 }: Props) {
   const preview = toAvatarPreviewUser(msg.author);
   const isDeleted = Boolean(msg.deleted);
+  const isSwapCard = !isDeleted && msg.kind === 'duty_swap_request' && msg.payload;
   const reactions = isDeleted ? [] : (msg.reactions ?? []);
-  const attachments = isDeleted ? [] : (msg.attachments ?? []);
-  const hasBody = isDeleted || msg.body.trim().length > 0;
+  const attachments = isDeleted || isSwapCard ? [] : (msg.attachments ?? []);
+  const hasBody = isDeleted || (!isSwapCard && msg.body.trim().length > 0);
 
   const openPreview = () => {
     if (preview) onAvatarPreview(preview);
@@ -215,6 +217,9 @@ export function ChatMessageItem({
               attachments={attachments}
               onOpenAttachment={onOpenAttachment}
             />
+          ) : null}
+          {isSwapCard ? (
+            <ChatDutySwapCard payload={msg.payload!} currentUserId={currentUserId} />
           ) : null}
           <div className="chat-room__bubble-row">
             {hasBody ? (

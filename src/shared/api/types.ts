@@ -97,7 +97,7 @@ export type ScheduleImportResult = {
 };
 
 export type DutyChangeType = 'assigned' | 'removed' | 'replaced';
-export type DutyChangeSource = 'import' | 'manual';
+export type DutyChangeSource = 'import' | 'manual' | 'swap';
 
 export type DutyAssignmentChangeItem = {
   id: string;
@@ -234,9 +234,61 @@ export type AvatarLikeStatus = PhotoLikeStatus;
 export type NotificationType =
   | 'photo_like'
   | 'duty_change'
+  | 'duty_swap'
   | 'user_registration'
   | 'support_message'
   | 'chat_message';
+
+export type DutySwapStatus =
+  | 'pending_counterparty'
+  | 'rejected_counterparty'
+  | 'pending_admin'
+  | 'approved'
+  | 'rejected_admin'
+  | 'cancelled';
+
+export type DutySwapSlot = {
+  date: string;
+  section: 'A' | 'B';
+  office: string;
+};
+
+export type DutySwapUserMini = {
+  id: string;
+  fullName: string;
+  email: string;
+};
+
+export type DutySwapRequest = {
+  id: string;
+  status: DutySwapStatus;
+  reason: string;
+  requesterSlot: DutySwapSlot;
+  counterpartySlot: DutySwapSlot;
+  counterpartyRejectReason: string | null;
+  counterpartyRespondedAt: string | null;
+  adminComment: string | null;
+  reviewedAt: string | null;
+  chatRoomId: string | null;
+  chatMessageId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  requester: DutySwapUserMini;
+  counterparty: DutySwapUserMini;
+  reviewer: { id: string; fullName: string; email: string } | null;
+};
+
+export type DutySwapCardPayload = {
+  swapRequestId: string;
+  status: DutySwapStatus;
+  requesterSlot: DutySwapSlot;
+  counterpartySlot: DutySwapSlot;
+  reason: string;
+  counterpartyRejectReason: string | null;
+  adminComment: string | null;
+  requester: { id: string; fullName: string };
+  counterparty: { id: string; fullName: string };
+};
 
 export type NotificationPayload = {
   dutyDate?: string;
@@ -248,6 +300,9 @@ export type NotificationPayload = {
   userId?: string;
   threadId?: string;
   roomId?: string;
+  requestId?: string;
+  chatRoomId?: string | null;
+  status?: DutySwapStatus;
 };
 
 export type ChatRoomType = 'direct' | 'group';
@@ -318,7 +373,9 @@ export type ChatAttachment = {
 
 export type ChatMessage = {
   id: string;
+  kind?: 'text' | 'duty_swap_request';
   body: string;
+  payload?: DutySwapCardPayload;
   createdAt: string;
   deleted?: boolean;
   editedAt?: string;

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { fetchChatUnreadCount } from '@/shared/api/chat';
+import { listMyDutySwaps } from '@/shared/api/duty-swaps';
 import { fetchUnreadNotificationsCount } from '@/shared/api/notifications';
 import { apiRequest } from '@/shared/api/client';
 import type { MonthSchedule } from '@/shared/api/types';
@@ -101,6 +102,13 @@ export function HomePage() {
     queryFn: fetchChatUnreadCount,
   });
 
+  const incomingSwaps = useQuery({
+    queryKey: ['duty-swaps', 'mine', 'incoming', 'pending_counterparty'],
+    queryFn: () =>
+      listMyDutySwaps({ role: 'incoming', status: 'pending_counterparty' }),
+    enabled: !isAdmin,
+  });
+
   useEffect(() => {
     const date = (location.state as HomeLocationState | null)?.selectedDate;
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
@@ -135,7 +143,8 @@ export function HomePage() {
   const avatarCacheBust = avatarVersion || undefined;
   const unreadNotificationsCount = unreadNotifications.data?.count ?? 0;
   const unreadChatCount = unreadChat.data?.count ?? 0;
-  const menuBadgeTotal = unreadNotificationsCount + unreadChatCount;
+  const incomingSwapCount = incomingSwaps.data?.requests.length ?? 0;
+  const menuBadgeTotal = unreadNotificationsCount + unreadChatCount + incomingSwapCount;
 
   function formatBadgeCount(n: number) {
     return n > 99 ? '99+' : n;
@@ -346,6 +355,16 @@ export function HomePage() {
             </li>
             {!isAdmin ? (
               <li>
+                <Link to="/duty-swaps" className="side-menu__action" onClick={closeMenu}>
+                  Смена дежурств
+                  {incomingSwapCount > 0 ? (
+                    <span className="side-menu__badge">{formatBadgeCount(incomingSwapCount)}</span>
+                  ) : null}
+                </Link>
+              </li>
+            ) : null}
+            {!isAdmin ? (
+              <li>
                 <Link to="/support" className="side-menu__action" onClick={closeMenu}>
                   Обращения
                 </Link>
@@ -372,6 +391,11 @@ export function HomePage() {
               <li>
                 <Link to="/admin/changes" className="side-menu__action" onClick={closeMenu}>
                   Изменения дежурств
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/duty-swaps" className="side-menu__action" onClick={closeMenu}>
+                  Заявки на смену
                 </Link>
               </li>
               <li>

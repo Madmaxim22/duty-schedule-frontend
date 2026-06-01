@@ -12,11 +12,21 @@ import {
 
 export type { AvatarPreviewUser };
 
+export type DayDetailSwapSlot = {
+  date: string;
+  section: 'A' | 'B';
+  office: string;
+  userId: string;
+  fullName: string;
+};
+
 type Props = {
   data: DaySchedule;
   isAdmin?: boolean;
+  currentUserId?: string;
   onAvatarPreview?: (user: AvatarPreviewUser) => void;
   onUserProfile?: (target: DutyProfileTarget) => void;
+  onProposeSwap?: (counterpartySlot: DayDetailSwapSlot) => void;
 };
 
 type OfficeRow = DaySchedule['sections'][number]['offices'][number];
@@ -62,7 +72,10 @@ function DutyPerson({
           type="button"
           className="day-detail__avatar-btn"
           aria-label={`Показать фото: ${user.fullName}`}
-          onClick={openPreview}
+          onClick={(e) => {
+            e.stopPropagation();
+            openPreview();
+          }}
         >
           <Avatar
             fullName={user.fullName}
@@ -82,7 +95,14 @@ function DutyPerson({
         />
       )}
       {onUserProfile ? (
-        <button type="button" className="day-detail__name-btn" onClick={openProfile}>
+        <button
+          type="button"
+          className="day-detail__name-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            openProfile();
+          }}
+        >
           {name}
         </button>
       ) : (
@@ -124,7 +144,26 @@ function DayDetailSummary({
   );
 }
 
-export function DayDetailContent({ data, isAdmin = false, onAvatarPreview, onUserProfile }: Props) {
+function canSwapWithRow(
+  office: OfficeRow,
+  currentUserId: string | undefined,
+  isAdmin: boolean,
+  onProposeSwap?: (slot: DayDetailSwapSlot) => void,
+): office is OfficeRow & { user: NonNullable<OfficeRow['user']> } {
+  return (
+    Boolean(onProposeSwap && currentUserId && !isAdmin && office.user) &&
+    office.user!.id !== currentUserId
+  );
+}
+
+export function DayDetailContent({
+  data,
+  isAdmin = false,
+  currentUserId,
+  onAvatarPreview,
+  onUserProfile,
+  onProposeSwap,
+}: Props) {
   const sections = data.sections
     .map((section) => ({
       ...section,
@@ -137,6 +176,8 @@ export function DayDetailContent({ data, isAdmin = false, onAvatarPreview, onUse
   const totalCount = allOffices.length;
   const missingMandatory = allOffices.filter((office) => office.mandatory && !office.user).length;
 
+  const hasSwapableRows = !isAdmin && Boolean(onProposeSwap && currentUserId);
+
   if (sections.length === 0) {
     return (
       <div className="day-detail__empty-state">
@@ -148,6 +189,9 @@ export function DayDetailContent({ data, isAdmin = false, onAvatarPreview, onUse
 
   return (
     <div className="day-detail">
+      {hasSwapableRows ? (
+        <p className="day-detail__swap-hint">Нажмите на дежурство коллеги, чтобы предложить смену</p>
+      ) : null}
       {data.myAbsence ? (
         <p className="day-detail__absence-banner" role="status">
           <AbsenceIcon className="day-detail__absence-icon" />
@@ -177,27 +221,58 @@ export function DayDetailContent({ data, isAdmin = false, onAvatarPreview, onUse
               ) : null}
             </header>
             <ul className="day-detail__list">
-              {section.offices.map((office) => (
-                <li
-                  key={`${section.id}-${office.office}`}
-                  className={rowClassName(isAdmin, office)}
-                >
-                  <span className="day-detail__office-badge">Каб. {office.office}</span>
-                  <div className="day-detail__row-body">
-                    {office.user ? (
-                      <DutyPerson
-                        user={office.user}
-                        onAvatarPreview={onAvatarPreview}
-                        onUserProfile={onUserProfile}
-                      />
-                    ) : (
-                      <span className="day-detail__unassigned">
-                        {office.mandatory ? 'Не назначен' : '—'}
-                      </span>
-                    )}
-                  </div>
-                </li>
-              ))}
+              {section.offices.map((office) => {
+                const swapable = canSwapWithRow(office, currentUserId, isAdmin, onProposeSwap);
+
+                function openSwap() {
+                  if (!swapable || !onProposeSwap) return;
+                  onProposeSwap({
+                    date: data.date,
+                    section: office.section,
+                    office: office.office,
+                    userId: office.user.id,
+                    fullName: office.user.fullName,
+                  });
+                }
+
+                return (
+                  <li
+                    key={`${section.id}-${office.office}`}
+                    className={`${rowClassName(isAdmin, office)}${
+                      swapable ? ' day-detail__row--swapable' : ''
+                    }`}
+                    {...(swapable
+                      ? {
+                          role: 'button' as const,
+                          tabIndex: 0,
+                          onClick: openSwap,
+                          onKeyDown: (e: React.KeyboardEvent) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              openSwap();
+                            }
+                          },
+                          'aria-label': `${office.user.fullName}, кабинет ${office.office}`,
+                        }
+                      : {})}
+                  >
+                    <span className="day-detail__office-badge">Каб. {office.office}</span>
+                    <div className="day-detail__row-body">
+                      {office.user ? (
+                        <DutyPerson
+                          user={office.user}
+                          onAvatarPreview={onAvatarPreview}
+                          onUserProfile={onUserProfile}
+                        />
+                      ) : (
+                        <span className="day-detail__unassigned">
+                          {office.mandatory ? 'Не назначен' : '—'}
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </section>
         );

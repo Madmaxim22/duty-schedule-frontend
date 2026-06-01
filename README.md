@@ -14,6 +14,7 @@
 - [Вход в систему](#вход-в-систему)
 - [Роли и экраны](#роли-и-экраны)
 - [Доступ с телефона](#доступ-с-телефона)
+- [Android APK (Capacitor)](#android-apk-capacitor)
 - [Переменные окружения](#переменные-окружения)
 - [Сборка и Docker](#сборка-и-docker)
 - [Структура проекта](#структура-проекта)
@@ -151,6 +152,10 @@ npm run dev
 5. На телефоне: `http://192.168.1.105:5173`.
 
 > `localhost` на телефоне не откроет приложение с ПК — нужен IP компьютера.
+
+## Android APK (Capacitor)
+
+Отдельный каталог **[duty-schedule-android](../duty-schedule-android)** — оболочка под APK без Google Play (WebView → https://duty-w.ru). Сборка: `npm run cap:sync` и Android Studio. Подробности — [README android](../duty-schedule-android/README.md).
 
 ## Переменные окружения
 

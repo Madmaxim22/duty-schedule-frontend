@@ -3,10 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { apiRequest } from '@/shared/api/client';
 import type { DaySchedule } from '@/shared/api/types';
+import { SwapRequestModal } from '@/features/duty-swaps/SwapRequestModal';
 import { Modal } from '@/shared/ui/Modal';
 import { Button } from '@/shared/ui/Button';
 import { AvatarPreviewModal } from './AvatarPreviewModal';
-import { DayDetailContent, type AvatarPreviewUser } from './DayDetailContent';
+import { DayDetailContent, type AvatarPreviewUser, type DayDetailSwapSlot } from './DayDetailContent';
 import { DayDetailSkeleton } from './DayDetailSkeleton';
 import { UserProfileModal } from '@/features/profile/UserProfileModal';
 import type { DutyProfileTarget } from '@/features/profile/dutyProfileTarget';
@@ -38,6 +39,8 @@ export function DayDetailModal({ date, onClose, onUserProfile }: Props) {
   const navigate = useNavigate();
   const [previewUser, setPreviewUser] = useState<AvatarPreviewUser | null>(null);
   const [profileTarget, setProfileTarget] = useState<DutyProfileTarget | null>(null);
+  const [swapOpen, setSwapOpen] = useState(false);
+  const [swapCounterpartySlot, setSwapCounterpartySlot] = useState<DayDetailSwapSlot | null>(null);
 
   useEffect(() => {
     if (!date) {
@@ -100,8 +103,13 @@ export function DayDetailModal({ date, onClose, onUserProfile }: Props) {
           <DayDetailContent
             data={data}
             isAdmin={user?.role === 'admin'}
+            currentUserId={user?.id}
             onAvatarPreview={setPreviewUser}
             onUserProfile={handleUserProfile}
+            onProposeSwap={(slot) => {
+              setSwapCounterpartySlot(slot);
+              setSwapOpen(true);
+            }}
           />
         ) : null}
       </Modal>
@@ -119,6 +127,14 @@ export function DayDetailModal({ date, onClose, onUserProfile }: Props) {
       <UserProfileModal
         target={profileTarget}
         onClose={() => setProfileTarget(null)}
+      />
+      <SwapRequestModal
+        open={swapOpen}
+        initialCounterpartySlot={swapCounterpartySlot}
+        onClose={() => {
+          setSwapOpen(false);
+          setSwapCounterpartySlot(null);
+        }}
       />
     </>
   );

@@ -3,6 +3,8 @@ import { AuthProvider } from '@/features/auth/AuthContext';
 import { PrivateRoute } from './PrivateRoute';
 import { AdminRoute } from './AdminRoute';
 import { AppLayout } from './AppLayout';
+import { DutySwapsPage } from '@/pages/DutySwapsPage';
+import { AdminDutySwapsPage } from '@/pages/AdminDutySwapsPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { HomePage } from '@/pages/HomePage';
@@ -32,6 +34,7 @@ export function AppRouter() {
               <Route path="/" element={<HomePage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/duty-swaps" element={<DutySwapsPage />} />
               <Route path="/support" element={<SupportPage />} />
               <Route path="/support/:threadId" element={<SupportThreadPage />} />
               <Route path="/chat" element={<ChatPage />} />
@@ -43,6 +46,7 @@ export function AppRouter() {
                 <Route path="/admin/import" element={<AdminImportPage />} />
                 <Route path="/admin/changes" element={<AdminChangesPage />} />
                 <Route path="/admin/statistics" element={<AdminStatisticsPage />} />
+                <Route path="/admin/duty-swaps" element={<AdminDutySwapsPage />} />
                 <Route path="/admin/schedule/:date" element={<EditDayPage />} />
               </Route>
             </Route>

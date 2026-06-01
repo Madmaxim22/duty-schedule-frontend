@@ -32,6 +32,12 @@ function notificationMeta(item: NotificationItem): string | null {
   if (item.type === 'support_message') {
     return 'Обращение';
   }
+  if (item.type === 'chat_message') {
+    return 'Чат';
+  }
+  if (item.type === 'duty_swap') {
+    return 'Смена дежурств';
+  }
   if (item.type === 'photo_like') {
     return 'Лайк';
   }
@@ -98,6 +104,17 @@ export function NotificationsPage() {
         navigate(`/admin/schedule/${item.payload.dutyDate}`);
       } else {
         navigate('/', { state: { selectedDate: item.payload.dutyDate } });
+      }
+      return;
+    }
+
+    if (item.type === 'duty_swap') {
+      if (isAdmin) {
+        navigate('/admin/duty-swaps');
+      } else if (item.payload?.chatRoomId) {
+        navigate(`/chat/${item.payload.chatRoomId}`);
+      } else {
+        navigate('/duty-swaps');
       }
     }
   }
