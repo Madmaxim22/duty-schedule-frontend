@@ -8,6 +8,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import arrowLeftIcon from '@/shared/assets/icons/Arrow Left.svg';
@@ -163,23 +164,26 @@ function DailyValueWithTooltip({
       onBlur={() => setOpen(false)}
     >
       {value}
-      {open ? (
-        <span
-          ref={tooltipRef}
-          className="admin-statistics-page__daily-tooltip admin-statistics-page__daily-tooltip--open"
-          style={tooltipStyle}
-          role="tooltip"
-        >
-          <span className="admin-statistics-page__daily-tooltip-title">{label}</span>
-          <ul className="admin-statistics-page__daily-tooltip-list">
-            {participants.map((participant, index) => (
-              <li key={`${participant.name}-${index}`}>
-                {formatParticipantLabel(participant)}
-              </li>
-            ))}
-          </ul>
-        </span>
-      ) : null}
+      {open
+        ? createPortal(
+            <span
+              ref={tooltipRef}
+              className="admin-statistics-page__daily-tooltip"
+              style={tooltipStyle}
+              role="tooltip"
+            >
+              <span className="admin-statistics-page__daily-tooltip-title">{label}</span>
+              <ul className="admin-statistics-page__daily-tooltip-list">
+                {participants.map((participant, index) => (
+                  <li key={`${participant.name}-${index}`}>
+                    {formatParticipantLabel(participant)}
+                  </li>
+                ))}
+              </ul>
+            </span>,
+            document.body,
+          )
+        : null}
     </span>
   );
 }

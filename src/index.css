@@ -263,6 +263,14 @@ body {
   z-index: 1;
 }
 
+/* Фиксированная высота shell — иначе main растягивается по контенту, overflow-y не срабатывает,
+   а overscroll-behavior: contain блокирует прокрутку документа. */
+.app-shell:not(:has(.home-page--list, .chat-page--telegram, .chat-room--telegram)) {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
 .app-shell:not(:has(.home-page--list, .chat-page--telegram, .chat-room--telegram)) .app-shell__main {
   padding: 12px;
   margin-bottom: var(--space-xs);
@@ -288,6 +296,10 @@ body {
 
 .app-shell:has(.home-page--list, .chat-page--telegram, .chat-room--telegram) .app-shell__main::after {
   display: none;
+}
+
+.app-shell:not(:has(.home-page--list, .chat-page--telegram, .chat-room--telegram)) .app-shell__footer {
+  flex-shrink: 0;
 }
 
 .app-shell__footer {
@@ -2849,7 +2861,6 @@ body {
 }
 
 .admin-statistics-page__daily-tooltip {
-  display: none;
   z-index: 1000;
   min-width: 9rem;
   max-width: min(14rem, calc(100vw - 16px));
@@ -2861,10 +2872,6 @@ body {
   text-align: left;
   pointer-events: none;
   box-sizing: border-box;
-}
-
-.admin-statistics-page__daily-tooltip--open {
-  display: block;
 }
 
 .admin-statistics-page__daily-tooltip-title {
