@@ -623,6 +623,11 @@ body {
   animation: slideInLeft 0.2s ease-out;
 }
 
+/* Capacitor: fixed-меню привязано к layout viewport; safe-area-inset-top дублирует отступ шторки (app-shell без этого). */
+html.native-app .side-menu__panel {
+  padding-top: 16px;
+}
+
 @keyframes slideInLeft {
   from {
     transform: translateX(-100%);
