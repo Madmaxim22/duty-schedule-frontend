@@ -74,6 +74,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
+      const { unsubscribePushOnLogout } = await import('@/features/push/unsubscribePushOnLogout');
+      await unsubscribePushOnLogout();
       await apiRequest('/auth/logout', { method: 'POST' });
     } finally {
       setAccessToken(null);

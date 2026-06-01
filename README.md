@@ -155,7 +155,9 @@ npm run dev
 
 ## Android APK (Capacitor)
 
-Отдельный каталог **[duty-schedule-android](../duty-schedule-android)** — оболочка под APK без Google Play (WebView → https://duty-w.ru). Сборка: `npm run cap:sync` и Android Studio. Подробности — [README android](../duty-schedule-android/README.md).
+Отдельный каталог **[duty-schedule-android](../duty-schedule-android)** — оболочка под APK без Google Play (WebView → https://duty-w.ru). Сборка: `npm run cap:sync` и Android Studio.
+
+**Push в APK:** FCM через Capacitor (`@capacitor/push-notifications`), включение в **Настройки → Уведомления**; backend шлёт на FCM и Web Push параллельно. Настройка Firebase и QA — [README android](../duty-schedule-android/README.md#fcm-push-android-apk).
 
 ## Переменные окружения
 

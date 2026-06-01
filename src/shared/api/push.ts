@@ -18,3 +18,21 @@ export function unsubscribePush(endpoint: string): Promise<void> {
     body: JSON.stringify({ endpoint }),
   });
 }
+
+export function getFcmPushStatus(): Promise<{ enabled: boolean }> {
+  return apiRequest<{ enabled: boolean }>('/push/fcm-status', { skipAuth: true });
+}
+
+export function subscribeFcmPush(token: string, platform: 'android' | 'ios' = 'android') {
+  return apiRequest<{ message: string }>('/push/fcm-subscribe', {
+    method: 'POST',
+    body: JSON.stringify({ token, platform }),
+  });
+}
+
+export function unsubscribeFcmPush(token: string): Promise<void> {
+  return apiRequest<void>('/push/fcm-subscribe', {
+    method: 'DELETE',
+    body: JSON.stringify({ token }),
+  });
+}

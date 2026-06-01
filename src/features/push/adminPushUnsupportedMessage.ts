@@ -21,3 +21,10 @@ export function getPushUnsupportedMessage(reason: PushUnsupportedReason | null):
       );
   }
 }
+
+export function getNativePushDeniedMessage(): string {
+  return (
+    'Уведомления отключены в системе. Откройте Настройки → Приложения → ' +
+    '«График дежурств» → Уведомления и разрешите их.'
+  );
+}

@@ -89,7 +89,8 @@ export function SettingsPage() {
           Уведомления
         </h2>
         <p className="settings-page__section-hint">
-          Push-сообщения в браузере, когда приложение закрыто. Лента событий — в разделе «Оповещения».
+          Push в шторке, когда приложение закрыто (браузер или APK). Лента событий — в разделе
+          «Оповещения».
         </p>
         <PushBanner
           description={
