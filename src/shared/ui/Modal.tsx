@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { useNativeBackHandler } from '@/shared/capacitor/nativeBackHandler';
 
 type Props = {
   open: boolean;
@@ -19,6 +20,8 @@ export function Modal({
   closeOnEscape = true,
   titleClassName,
 }: Props) {
+  useNativeBackHandler(open, onClose);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {

@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { NativeBackHandlerProvider } from '@/shared/capacitor/nativeBackHandler';
 import { AuthProvider } from '@/features/auth/AuthContext';
 import { PrivateRoute } from './PrivateRoute';
 import { AdminRoute } from './AdminRoute';
@@ -26,8 +27,9 @@ import { ChatRoomPage } from '@/pages/ChatRoomPage';
 export function AppRouter() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Routes>
+      <NativeBackHandlerProvider>
+        <AuthProvider>
+          <Routes>
           <Route element={<AppLayout />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -54,8 +56,9 @@ export function AppRouter() {
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
-        </Routes>
-      </AuthProvider>
+          </Routes>
+        </AuthProvider>
+      </NativeBackHandlerProvider>
     </BrowserRouter>
   );
 }

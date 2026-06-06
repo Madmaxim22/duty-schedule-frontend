@@ -8,6 +8,7 @@ import { resolveAvatarUrl } from '@/shared/lib/avatarUrl';
 import { AvatarLikeButton } from './AvatarLikeButton';
 import { AvatarLikeHeartsOverlay, useAvatarLikeHeartsBurst } from './AvatarLikeHeartsBurst';
 import { useDebouncedLikeSync } from './useDebouncedLikeSync';
+import { useNativeBackHandler } from '@/shared/capacitor/nativeBackHandler';
 
 type Props = {
   open: boolean;
@@ -75,6 +76,8 @@ export function AvatarPreviewModal({
     },
     [queryClient, photoId],
   );
+
+  useNativeBackHandler(open, onClose);
 
   const { localLiked, displayCount, toggleLike } = useDebouncedLikeSync({
     photoId,

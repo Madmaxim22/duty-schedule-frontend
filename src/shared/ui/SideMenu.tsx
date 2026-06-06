@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { useNativeBackHandler } from '@/shared/capacitor/nativeBackHandler';
 
 type Props = {
   open: boolean;
@@ -8,6 +9,8 @@ type Props = {
 };
 
 export function SideMenu({ open, onClose, children }: Props) {
+  useNativeBackHandler(open, onClose);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
