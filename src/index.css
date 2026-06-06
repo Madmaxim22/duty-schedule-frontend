@@ -237,7 +237,17 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
   isolation: isolate;
+}
+
+.app-shell__main-scroll {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  z-index: 1;
 }
 
 .app-shell__main::before {
@@ -263,11 +273,25 @@ body {
   z-index: 0;
 }
 
-.app-shell__main > * {
+.app-shell__main-scroll > * {
   position: relative;
 }
 
-/* Фиксированная высота shell — иначе main растягивается по контенту, overflow-y не срабатывает,
+/* Обёртка растёт с контентом; margin-top: auto у footer считается от неё, а не от viewport scroll-области. */
+.app-shell__page-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.app-shell:has(.home-page--list) .app-shell__page-wrap,
+.app-shell:has(.chat-page--telegram) .app-shell__page-wrap,
+.app-shell:has(.chat-room--telegram) .app-shell__page-wrap {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Фиксированная высота shell — иначе scroll-область растягивается по контенту, overflow-y не срабатывает,
    а overscroll-behavior: contain блокирует прокрутку документа. */
 .app-shell:not(:has(.home-page--list, .chat-page--telegram, .chat-room--telegram)) {
   height: 100dvh;
@@ -294,8 +318,10 @@ body {
     var(--shadow);
 }
 
-/* Прокрутка всей main (сетка и остальные страницы). */
-.app-shell:not(:has(.home-page--list, .chat-page--telegram, .chat-room--telegram)) .app-shell__main {
+/* Прокрутка в inner-scroll: main держит ::before/::after на viewport, контент листается внутри.
+   display: block — иначе flex-ребёнок page-wrap не растёт по контенту и footer «липнет» к viewport. */
+.app-shell:not(:has(.home-page--list, .chat-page--telegram, .chat-room--telegram)) .app-shell__main-scroll {
+  display: block;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
@@ -1021,11 +1047,16 @@ html.native-app .side-menu__panel {
 }
 
 .app-shell:has(.home-page--list) .app-shell__main {
+  gap: 4px;
+}
+
+.app-shell:has(.home-page--list) .app-shell__main-scroll {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
   overflow: hidden;
+}
+
+.app-shell:has(.home-page--list) .app-shell__page-wrap {
   gap: 4px;
 }
 
@@ -2653,28 +2684,17 @@ html.native-app .side-menu__panel {
   padding: 32px;
 }
 
-.admin-push {
-  margin-bottom: 16px;
-  padding: 12px 14px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface);
-}
-
-.admin-push--muted {
-  opacity: 0.9;
-}
-
-.admin-push__text {
-  margin: 0 0 8px;
-  font-size: 0.875rem;
-  line-height: 1.4;
-}
-
+.settings-page__section-hint,
+.admin-push__text,
 .admin-push__hint {
-  margin: 0 0 8px;
-  font-size: 0.8125rem;
+  margin: 0 0 16px;
+  font-size: 0.875rem;
+  line-height: 1.45;
   color: var(--color-muted);
+}
+
+.admin-push + .admin-push__actions {
+  margin-top: 0;
 }
 
 .admin-push__actions {
@@ -3298,7 +3318,6 @@ html.native-app .side-menu__panel {
   padding: 16px;
   max-width: 480px;
   margin: 0 auto;
-  min-height: 100%;
 }
 
 .notifications-page__badge {
@@ -3404,7 +3423,6 @@ html.native-app .side-menu__panel {
   padding: 16px;
   max-width: 480px;
   margin: 0 auto;
-  min-height: 100%;
 }
 
 .settings-page .subpage-header {
@@ -3423,16 +3441,6 @@ html.native-app .side-menu__panel {
   font-weight: 600;
 }
 
-.settings-page__section-hint {
-  margin: 0 0 16px;
-  font-size: 0.875rem;
-  line-height: 1.45;
-  color: var(--color-muted);
-}
-
-.settings-page .admin-push {
-  margin-top: 0;
-}
 
 .icon-picker {
   display: grid;
@@ -3518,18 +3526,6 @@ html.native-app .side-menu__panel {
   outline-offset: 2px;
 }
 
-.pwa-install__hint {
-  margin: 12px 0 0;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  color: var(--color-muted);
-}
-
-.pwa-install__hint--muted {
-  margin-top: 8px;
-  font-size: 0.75rem;
-}
-
 .pwa-install__status {
   margin: 0;
   font-size: 0.875rem;
@@ -3557,11 +3553,8 @@ html.native-app .side-menu__panel {
   font-size: 1.1em;
 }
 
-.support-page {
-  padding: 16px;
-  max-width: 480px;
-  margin: 0 auto;
-  min-height: 100%;
+.support-page .subpage-header {
+  margin-bottom: 20px;
 }
 
 .support-page__toolbar {
@@ -3680,7 +3673,6 @@ html.native-app .side-menu__panel {
   flex-direction: column;
   max-width: 480px;
   margin: 0 auto;
-  min-height: 100%;
   padding: 16px;
   padding-bottom: max(16px, env(safe-area-inset-bottom));
 }
@@ -3864,12 +3856,14 @@ html.native-app .side-menu__panel {
 
 .app-shell:has(.chat-page--telegram) .app-shell__main,
 .app-shell:has(.chat-room--telegram) .app-shell__main {
+  padding-bottom: 0;
+}
+
+.app-shell:has(.chat-page--telegram) .app-shell__main-scroll,
+.app-shell:has(.chat-room--telegram) .app-shell__main-scroll {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
   overflow: hidden;
-  padding-bottom: 0;
 }
 
 .app-shell:has(.chat-room--telegram) .app-shell__footer {
@@ -5521,7 +5515,6 @@ html.native-app .side-menu__panel {
 
 /* Duty swaps page */
 .duty-swaps-page {
-  min-height: 100%;
 }
 
 .duty-swaps-page .subpage-header {

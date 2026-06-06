@@ -6,19 +6,33 @@ import { useNativeFcmPush } from './useNativeFcmPush';
 
 type Props = {
   description: string;
+  intro?: string;
   ariaLabel?: string;
 };
 
-function BrowserPushBanner({ description, ariaLabel }: Props) {
+function PushIntroBlock({ intro }: { intro?: string }) {
+  if (!intro) {
+    return null;
+  }
+
+  return (
+    <div className="admin-push" role="status">
+      <p className="admin-push__text">{intro}</p>
+    </div>
+  );
+}
+
+function BrowserPushBanner({ description, intro, ariaLabel }: Props) {
   const { status, unsupportedReason, errorMessage, busy, enable, disable } = useBrowserPush();
 
   if (status === 'loading') {
-    return null;
+    return <PushIntroBlock intro={intro} />;
   }
 
   if (status === 'unsupported') {
     return (
-      <div className="admin-push admin-push--muted" role="status">
+      <div className="admin-push" role="status">
+        {intro ? <p className="admin-push__text">{intro}</p> : null}
         <p className="admin-push__text">{getPushUnsupportedMessage(unsupportedReason)}</p>
       </div>
     );
@@ -26,7 +40,8 @@ function BrowserPushBanner({ description, ariaLabel }: Props) {
 
   if (status === 'server_disabled') {
     return (
-      <div className="admin-push admin-push--muted" role="status">
+      <div className="admin-push" role="status">
+        {intro ? <p className="admin-push__text">{intro}</p> : null}
         <p className="admin-push__text">Push на сервере не настроен (VAPID-ключи в .env backend).</p>
       </div>
     );
@@ -35,6 +50,7 @@ function BrowserPushBanner({ description, ariaLabel }: Props) {
   return (
     <PushBannerControls
       description={description}
+      intro={intro}
       ariaLabel={ariaLabel}
       status={status}
       errorMessage={errorMessage}
@@ -46,16 +62,17 @@ function BrowserPushBanner({ description, ariaLabel }: Props) {
   );
 }
 
-function NativePushBanner({ description, ariaLabel }: Props) {
+function NativePushBanner({ description, intro, ariaLabel }: Props) {
   const { status, errorMessage, busy, enable, disable } = useNativeFcmPush();
 
   if (status === 'loading' || status === 'unsupported') {
-    return null;
+    return <PushIntroBlock intro={intro} />;
   }
 
   if (status === 'server_disabled') {
     return (
-      <div className="admin-push admin-push--muted" role="status">
+      <div className="admin-push" role="status">
+        {intro ? <p className="admin-push__text">{intro}</p> : null}
         <p className="admin-push__text">
           FCM на сервере не настроен (Firebase в .env backend). Лента в разделе «Оповещения» работает.
         </p>
@@ -66,6 +83,7 @@ function NativePushBanner({ description, ariaLabel }: Props) {
   return (
     <PushBannerControls
       description={description}
+      intro={intro}
       ariaLabel={ariaLabel}
       status={status}
       errorMessage={errorMessage}
@@ -79,6 +97,7 @@ function NativePushBanner({ description, ariaLabel }: Props) {
 
 type ControlsProps = {
   description: string;
+  intro?: string;
   ariaLabel?: string;
   status: 'idle' | 'subscribed' | 'denied' | 'error';
   errorMessage: string | null;
@@ -90,6 +109,7 @@ type ControlsProps = {
 
 function PushBannerControls({
   description,
+  intro,
   ariaLabel,
   status,
   errorMessage,
@@ -99,10 +119,13 @@ function PushBannerControls({
   deniedHint,
 }: ControlsProps) {
   return (
-    <div className="admin-push" role="region" aria-label={ariaLabel ?? 'Push-уведомления'}>
-      <p className="admin-push__text">{description}</p>
-      {status === 'denied' ? <p className="admin-push__hint">{deniedHint}</p> : null}
-      {errorMessage ? <p className="form-message form-message--error">{errorMessage}</p> : null}
+    <div role="region" aria-label={ariaLabel ?? 'Push-уведомления'}>
+      <div className="admin-push">
+        {intro ? <p className="admin-push__text">{intro}</p> : null}
+        <p className="admin-push__text">{description}</p>
+        {status === 'denied' ? <p className="admin-push__hint">{deniedHint}</p> : null}
+        {errorMessage ? <p className="form-message form-message--error">{errorMessage}</p> : null}
+      </div>
       <div className="admin-push__actions">
         {status === 'subscribed' ? (
           <Button variant="secondary" disabled={busy} onClick={() => void disable()}>

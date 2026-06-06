@@ -34,9 +34,6 @@ export function PwaInstallSection() {
         <button type="button" className="pwa-install__btn" onClick={() => void promptInstall()}>
           Установить на устройство
         </button>
-        <p className="pwa-install__hint">
-          Сначала выберите иконку выше — она будет использована при установке.
-        </p>
       </div>
     );
   }
@@ -62,10 +59,6 @@ export function PwaInstallSection() {
   if (isYandexBrowser()) {
     return (
       <div className="pwa-install">
-        <p className="pwa-install__hint">
-          В Яндекс Браузере кнопка «Установить» в приложении часто <strong>недоступна</strong> —
-          браузер не передаёт сайту событие установки PWA (в отличие от Chrome).
-        </p>
         <ol className="pwa-install__steps">
           {isAndroidDevice() ? (
             <>
@@ -88,22 +81,9 @@ export function PwaInstallSection() {
             </>
           )}
         </ol>
-        <p className="pwa-install__hint pwa-install__hint--muted">Нужен HTTPS (например duty-w.ru).</p>
       </div>
     );
   }
 
-  return (
-    <div className="pwa-install">
-      <p className="pwa-install__hint">
-        Установка через браузер: меню{' '}
-        <strong>⋮ → Установить приложение</strong> (Chrome, Edge) или{' '}
-        <strong>⋯ → Поделиться → Установить</strong> (Samsung Internet). Нужен HTTPS.
-      </p>
-      <p className="pwa-install__hint pwa-install__hint--muted">
-        Кнопка «Установить» в приложении появляется только если браузер отправил событие{' '}
-        <code>beforeinstallprompt</code> (обычно Chrome/Edge на Android и desktop).
-      </p>
-    </div>
-  );
+  return null;
 }
