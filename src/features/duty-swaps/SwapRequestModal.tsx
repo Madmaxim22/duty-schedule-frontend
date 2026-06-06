@@ -18,6 +18,7 @@ import { formatDutySwapSlot } from '@/shared/lib/formatDutySwap';
 import { formatSurnameWithInitials } from '@/shared/lib/formatName';
 import { Modal } from '@/shared/ui/Modal';
 import { Button } from '@/shared/ui/Button';
+import { DutySlotSelect } from '@/features/duty-swaps/DutySlotSelect';
 
 const reasonSchema = z.object({
   reason: z
@@ -224,24 +225,13 @@ export function SwapRequestModal({ open, initialCounterpartySlot, onClose }: Pro
           {isLoadingSlots ? (
             <p className="form-message">Загрузка ваших дежурств…</p>
           ) : mySlots.length > 0 ? (
-            <select
+            <DutySlotSelect
               id="requesterSlot"
-              className="duty-swap-modal__select"
-              value={requesterSlot ? slotKey(requesterSlot) : ''}
-              onChange={(e) => {
-                const picked = mySlots.find((s) => slotKey(s) === e.target.value);
-                setRequesterSlot(picked ?? null);
-              }}
-            >
-              {mySlots.length > 1 ? (
-                <option value="">Выберите дежурство</option>
-              ) : null}
-              {mySlots.map((slot) => (
-                <option key={slotKey(slot)} value={slotKey(slot)}>
-                  {formatDutySwapSlot(slot)}
-                </option>
-              ))}
-            </select>
+              slots={mySlots}
+              value={requesterSlot}
+              onChange={setRequesterSlot}
+              placeholder={mySlots.length > 1 ? 'Выберите дежурство' : undefined}
+            />
           ) : (
             <p className="form-message">
               Нет ваших дежурств в пределах {SWAP_SLOT_WINDOW_DAYS} дней от даты

@@ -7,7 +7,6 @@
   --space-lg: 24px;
   --transition-fast: 150ms ease;
   --transition-normal: 200ms ease;
-  --shell-main-radius: calc(var(--radius) + 6px);
   font-family: 'Fira Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
 }
@@ -229,11 +228,7 @@ body {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100dvh;
-  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px env(safe-area-inset-bottom, 0px);
-  background:
-    radial-gradient(120% 80% at 50% -25%, color-mix(in srgb, var(--color-darkest) 13%, transparent), transparent 58%),
-    radial-gradient(85% 55% at 100% 100%, color-mix(in srgb, var(--color-duty) 11%, transparent), transparent 52%),
-    var(--color-bg);
+  background: var(--color-bg);
 }
 
 .app-shell__main {
@@ -242,15 +237,25 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding-bottom: var(--space-lg);
   isolation: isolate;
+}
+
+.app-shell__main::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 80% at 50% -25%, color-mix(in srgb, var(--color-darkest) 13%, transparent), transparent 58%),
+    radial-gradient(85% 55% at 100% 100%, color-mix(in srgb, var(--color-duty) 11%, transparent), transparent 52%),
+    var(--color-bg);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .app-shell__main::after {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: var(--shell-main-radius);
   background:
     radial-gradient(circle at 92% 8%, color-mix(in srgb, var(--color-darkest) 7%, transparent), transparent 38%),
     radial-gradient(circle at 6% 92%, color-mix(in srgb, var(--color-duty) 6%, transparent), transparent 42%);
@@ -260,7 +265,6 @@ body {
 
 .app-shell__main > * {
   position: relative;
-  z-index: 1;
 }
 
 /* Фиксированная высота shell — иначе main растягивается по контенту, overflow-y не срабатывает,
@@ -271,10 +275,9 @@ body {
   overflow: hidden;
 }
 
-.app-shell:not(:has(.home-page--list, .chat-page--telegram, .chat-room--telegram)) .app-shell__main {
+/* Общая «стеклянная» карточка main: главная (сетка и список) и прочие страницы, кроме чата. */
+.app-shell:not(:has(.chat-page--telegram, .chat-room--telegram)) .app-shell__main {
   padding: 12px;
-  margin-bottom: var(--space-xs);
-  border-radius: var(--shell-main-radius);
   background: color-mix(in srgb, var(--color-surface) 90%, transparent);
   backdrop-filter: blur(16px) saturate(1.15);
   -webkit-backdrop-filter: blur(16px) saturate(1.15);
@@ -282,29 +285,36 @@ body {
   box-shadow:
     0 1px 0 color-mix(in srgb, #fff 35%, transparent) inset,
     var(--shadow);
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
 }
 
-[data-theme='dark'] .app-shell:not(:has(.home-page--list, .chat-page--telegram, .chat-room--telegram)) .app-shell__main {
+[data-theme='dark'] .app-shell:not(:has(.chat-page--telegram, .chat-room--telegram)) .app-shell__main {
   background: color-mix(in srgb, var(--color-surface) 78%, transparent);
   box-shadow:
     0 1px 0 color-mix(in srgb, #fff 6%, transparent) inset,
     var(--shadow);
 }
 
-.app-shell:has(.home-page--list, .chat-page--telegram, .chat-room--telegram) .app-shell__main::after {
+/* Прокрутка всей main (сетка и остальные страницы). */
+.app-shell:not(:has(.home-page--list, .chat-page--telegram, .chat-room--telegram)) .app-shell__main {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.app-shell:has(.chat-page--telegram, .chat-room--telegram) .app-shell__main::after,
+.app-shell:has(.home-page) .app-shell__main::after {
   display: none;
 }
 
-.app-shell:not(:has(.home-page--list, .chat-page--telegram, .chat-room--telegram)) .app-shell__footer {
-  flex-shrink: 0;
+.app-shell:has(.chat-page--telegram, .chat-room--telegram) .app-shell__main::before {
+  display: none;
 }
 
 .app-shell__footer {
+  flex-shrink: 0;
   margin-top: auto;
   padding-top: var(--space-md);
+  padding-bottom: calc(var(--space-xs) + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -313,12 +323,17 @@ body {
   font-size: 0.75rem;
   color: var(--color-muted);
   letter-spacing: 0.02em;
-  border-top: 1px solid color-mix(in srgb, var(--color-border) 45%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 35%, transparent);
 }
 
-.app-shell__version {
-  font-size: 0.6875rem;
-  opacity: 0.85;
+.side-menu__version {
+  flex-shrink: 0;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  text-align: center;
 }
 
 .page-loading {
@@ -492,11 +507,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 40px;
-}
-
-.home-page:not(.home-page--list) .home-page__header {
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
 .home-page__menu-btn {
@@ -617,7 +628,8 @@ body {
   width: min(280px, 85vw);
   display: flex;
   flex-direction: column;
-  padding: calc(16px + env(safe-area-inset-top, 0px)) 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  overflow: hidden;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 20px calc(16px + env(safe-area-inset-bottom, 0px));
   background: var(--color-surface);
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
   animation: slideInLeft 0.2s ease-out;
@@ -641,6 +653,7 @@ html.native-app .side-menu__panel {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
   width: 100%;
   padding: 0 0 20px;
   margin: 0 0 12px;
@@ -696,6 +709,9 @@ html.native-app .side-menu__panel {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .side-menu__actions {
@@ -1000,18 +1016,20 @@ html.native-app .side-menu__panel {
   overflow: hidden;
 }
 
+.app-shell:has(.home-page) .app-shell__main {
+  padding: 8px;
+}
+
 .app-shell:has(.home-page--list) .app-shell__main {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  padding-bottom: 0;
-  gap: var(--space-sm);
+  gap: 4px;
 }
 
 .app-shell:has(.home-page--list) .app-shell__footer {
-  flex-shrink: 0;
   padding-top: 8px;
 }
 
@@ -1024,19 +1042,19 @@ html.native-app .side-menu__panel {
 }
 
 .home-page--list .home-page__header {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   flex-shrink: 0;
 }
 
 .home-page--list .home-page__schedule-toolbar {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   flex-shrink: 0;
 }
 
 .home-page--list .home-page__legend {
   flex-shrink: 0;
   margin-top: 0;
-  padding: 10px 0 4px;
+  padding: 4px 0 0;
 }
 
 .home-page--list .page-loading,
@@ -1062,8 +1080,10 @@ html.native-app .side-menu__panel {
   flex-direction: column;
 }
 
+/* На главной shell уже карточка — обёртка расписания без своего фона. */
 .home-page__schedule {
   position: relative;
+  background: transparent;
 }
 
 .home-page__schedule-placeholder {
@@ -1075,6 +1095,7 @@ html.native-app .side-menu__panel {
 
 .home-page__schedule-view {
   position: relative;
+  background: transparent;
 }
 
 .home-page__schedule-view--loading {
@@ -1085,7 +1106,14 @@ html.native-app .side-menu__panel {
 .home-page__schedule-toolbar {
   display: flex;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
+}
+
+/* На главной shell уже карточка — внутренняя не нужна. */
+.home-page .duty-calendar {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
 }
 
 .schedule-view-toggle {
@@ -1128,11 +1156,15 @@ html.native-app .side-menu__panel {
   margin-bottom: 12px;
 }
 
+.schedule-month-nav__label,
+.duty-calendar .rdp-caption_label {
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
 .schedule-month-nav__label {
   flex: 1;
   text-align: center;
-  font-weight: 700;
-  color: var(--color-primary);
 }
 
 .schedule-month-nav__btn,
@@ -1177,7 +1209,7 @@ html.native-app .side-menu__panel {
 .duty-day-list {
   display: flex;
   flex-direction: column;
-  background: var(--color-surface);
+  background: transparent;
   border-radius: var(--radius);
   padding: 12px;
 }
@@ -1187,9 +1219,8 @@ html.native-app .side-menu__panel {
   min-height: 0;
   width: 100%;
   margin-inline: 0;
-  border-radius: var(--radius);
-  background: var(--color-surface);
-  padding: 12px;
+  border-radius: 0;
+  padding: 0;
   overflow: hidden;
 }
 
@@ -1199,8 +1230,8 @@ html.native-app .side-menu__panel {
   top: 0;
   z-index: 1;
   margin-bottom: 0;
-  padding: 4px 0 10px;
-  background: var(--color-surface);
+  padding: 2px 0 6px;
+  background: transparent;
 }
 
 .duty-day-list__scroll {
@@ -1227,7 +1258,7 @@ html.native-app .side-menu__panel {
   align-items: start;
   width: 100%;
   padding: 10px 8px;
-  border: none;
+  border: 1px solid color-mix(in srgb, var(--color-border) 75%, transparent);
   border-radius: calc(var(--radius) - 4px);
   background: var(--color-list-row-bg);
   text-align: left;
@@ -1427,7 +1458,8 @@ html.native-app .side-menu__panel {
 }
 
 .duty-calendar .rdp-month_caption {
-  color: var(--color-primary);
+  font-weight: inherit;
+  font-size: inherit;
 }
 
 .duty-calendar .rdp-weekday {
@@ -1534,10 +1566,14 @@ html.native-app .side-menu__panel {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 12px 16px;
-  margin-top: 16px;
+  gap: 8px 12px;
+  margin-top: 8px;
   font-size: 0.8rem;
   color: var(--color-muted);
+}
+
+.app-shell:has(.home-page:not(.home-page--list)) .app-shell__footer {
+  padding-top: 8px;
 }
 
 .home-page__legend-item::before {
@@ -1654,6 +1690,23 @@ html.native-app .side-menu__panel {
   .duty-day-list__date-trigger,
   .duty-day-list__name-btn {
     transition: none;
+  }
+
+  .duty-swap-modal__select-chevron,
+  .duty-swap-modal__select-list,
+  .duty-swap-modal__select-option,
+  .duty-swap-modal__select-trigger {
+    transition: none;
+  }
+
+  .duty-swap-modal__select-wrap--open .duty-swap-modal__select-chevron {
+    transform: rotate(180deg);
+  }
+
+  .duty-swap-modal__select-wrap--open .duty-swap-modal__select-list,
+  .duty-swap-modal__select-wrap--open .duty-swap-modal__select-option {
+    opacity: 1;
+    transform: none;
   }
 
   .home-page__schedule-view--loading {
@@ -5722,6 +5775,133 @@ html.native-app .side-menu__panel {
   font: inherit;
   background: var(--color-surface);
   color: var(--color-text);
+}
+
+.duty-swap-modal__select-wrap {
+  position: relative;
+}
+
+.duty-swap-modal__select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.duty-swap-modal__select-wrap--open .duty-swap-modal__select-trigger {
+  border-color: var(--color-darkest);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-darkest) 18%, transparent);
+}
+
+.duty-swap-modal__select-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.duty-swap-modal__select-value--placeholder {
+  color: var(--color-muted);
+}
+
+.duty-swap-modal__select-chevron {
+  flex-shrink: 0;
+  color: var(--color-muted);
+  transition:
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    color var(--transition-fast);
+}
+
+.duty-swap-modal__select-wrap--open .duty-swap-modal__select-chevron {
+  transform: rotate(180deg);
+  color: var(--color-darkest);
+}
+
+.duty-swap-modal__select-list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  box-shadow: var(--shadow), 0 10px 28px rgba(15, 23, 42, 0.14);
+  max-height: min(240px, 40vh);
+  overflow-y: auto;
+  overflow-x: hidden;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-8px) scale(0.97);
+  transform-origin: top center;
+  transition:
+    opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0.22s;
+}
+
+.duty-swap-modal__select-wrap--open .duty-swap-modal__select-list {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.duty-swap-modal__select-option {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9375rem;
+  text-align: left;
+  color: var(--color-text);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    opacity 0.18s ease,
+    transform 0.18s ease;
+  transition-delay: 0ms;
+}
+
+.duty-swap-modal__select-wrap--open .duty-swap-modal__select-option {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: calc(var(--option-index, 0) * 35ms + 45ms);
+}
+
+.duty-swap-modal__select-option:hover {
+  background: var(--color-list-row-hover);
+}
+
+.duty-swap-modal__select-option--selected {
+  background: var(--color-list-row-selected);
+  font-weight: 600;
+  color: var(--color-darkest);
+}
+
+.duty-swap-modal__select-option:focus-visible {
+  outline: 2px solid var(--color-darkest);
+  outline-offset: -2px;
+}
+
+.modal__body:has(.duty-swap-modal__select-wrap--open) {
+  overflow: visible;
 }
 
 .duty-swap-modal__textarea {

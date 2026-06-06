@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
 type Props = {
   open: boolean;
@@ -22,10 +23,11 @@ export function SideMenu({ open, onClose, children }: Props) {
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="side-menu" role="dialog" aria-modal="true" aria-label="Меню">
       <button type="button" className="side-menu__overlay" aria-label="Закрыть меню" onClick={onClose} />
       <nav className="side-menu__panel">{children}</nav>
-    </div>
+    </div>,
+    document.body,
   );
 }

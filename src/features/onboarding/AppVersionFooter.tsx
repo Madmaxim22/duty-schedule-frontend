@@ -1,7 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchAppVersion } from '@/shared/api/onboarding';
 
-export function AppVersionFooter() {
+type Props = {
+  className?: string;
+};
+
+export function AppVersionFooter({ className = 'side-menu__version' }: Props) {
   const { data } = useQuery({
     queryKey: ['app-version'],
     queryFn: fetchAppVersion,
@@ -11,5 +15,5 @@ export function AppVersionFooter() {
 
   if (!data?.version) return null;
 
-  return <span className="app-shell__version">Версия {data.version}</span>;
+  return <span className={className}>Версия {data.version}</span>;
 }

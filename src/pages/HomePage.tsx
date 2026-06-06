@@ -24,6 +24,7 @@ import { useAuth } from '@/features/auth/AuthContext';
 import { SideMenu } from '@/shared/ui/SideMenu';
 import { Avatar } from '@/shared/ui/Avatar';
 import { ProfileModal } from '@/features/settings/ProfileModal';
+import { AppVersionFooter } from '@/features/onboarding/AppVersionFooter';
 
 function MenuIcon() {
   return (
@@ -436,6 +437,7 @@ export function HomePage() {
             </li>
           </ul>
         </div>
+        <AppVersionFooter />
       </SideMenu>
 
       <ProfileModal
