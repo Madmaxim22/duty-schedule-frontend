@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { NativeBackHandlerProvider } from '@/shared/capacitor/nativeBackHandler';
 import { AuthProvider } from '@/features/auth/AuthContext';
+import { NativePushListeners } from '@/features/push/NativePushListeners';
 import { PrivateRoute } from './PrivateRoute';
 import { AdminRoute } from './AdminRoute';
 import { AppLayout } from './AppLayout';
@@ -29,6 +30,7 @@ export function AppRouter() {
     <BrowserRouter>
       <NativeBackHandlerProvider>
         <AuthProvider>
+          <NativePushListeners />
           <Routes>
           <Route element={<AppLayout />}>
             <Route path="/login" element={<LoginPage />} />

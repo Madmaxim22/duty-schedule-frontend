@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/AuthContext';
 import { Input } from '@/shared/ui/Input';
 import { PasswordInput } from '@/shared/ui/PasswordInput';
@@ -18,6 +18,11 @@ type FormData = z.infer<typeof schema>;
 export function LoginPage() {
   const { login, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo =
+    typeof location.state?.from === 'string' && location.state.from.startsWith('/')
+      ? location.state.from
+      : '/';
   const [error, setError] = useState('');
   const {
     register,
@@ -26,14 +31,14 @@ export function LoginPage() {
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={returnTo} replace />;
   }
 
   const onSubmit = handleSubmit(async (data) => {
     setError('');
     try {
       await login(data.email, data.password);
-      navigate('/');
+      navigate(returnTo, { replace: true });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Ошибка входа');
     }

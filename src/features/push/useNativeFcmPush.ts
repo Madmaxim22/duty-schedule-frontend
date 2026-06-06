@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { isNativeApp } from '@/shared/capacitor/isNativeApp';
 import {
@@ -31,7 +30,6 @@ async function syncFcmRegistration(token: string): Promise<void> {
 }
 
 export function useNativeFcmPush() {
-  const navigate = useNavigate();
   const [status, setStatus] = useState<NativePushStatus>('loading');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -139,17 +137,6 @@ export function useNativeFcmPush() {
       }),
     );
 
-    registrations.push(
-      PushNotifications.addListener('pushNotificationActionPerformed', (event) => {
-        const url = event.notification.data?.url;
-        if (typeof url === 'string' && url.startsWith('/')) {
-          navigate(url);
-        } else {
-          navigate('/notifications');
-        }
-      }),
-    );
-
     void refresh();
 
     const onVisible = () => {
@@ -166,7 +153,7 @@ export function useNativeFcmPush() {
       });
       listenersReady.current = false;
     };
-  }, [navigate, refresh]);
+  }, [refresh]);
 
   const enable = useCallback(async () => {
     if (!isNativeApp()) return;
