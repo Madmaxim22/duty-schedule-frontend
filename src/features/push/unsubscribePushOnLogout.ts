@@ -1,18 +1,19 @@
 import { isNativeApp } from '@/shared/capacitor/isNativeApp';
 import { unsubscribeFcmPush } from '@/shared/api/push';
-import { getStoredFcmToken, setStoredFcmToken } from './fcmTokenStore';
+import { clearFcmPushLocalState, getStoredFcmToken } from './fcmTokenStore';
+
 /** Снимает Web Push и FCM-подписку текущего устройства (best-effort). */
 export async function unsubscribePushOnLogout(): Promise<void> {
   if (isNativeApp()) {
-    const token = getStoredFcmToken();
+    const token = await getStoredFcmToken();
     if (token) {
       try {
         await unsubscribeFcmPush(token);
       } catch {
         /* ignore */
       }
-      setStoredFcmToken(null);
     }
+    await clearFcmPushLocalState();
     return;
   }
 

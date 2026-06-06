@@ -7,7 +7,13 @@ import {
   subscribeFcmPush,
   unsubscribeFcmPush,
 } from '@/shared/api/push';
-import { getStoredFcmToken, setStoredFcmToken } from './fcmTokenStore';
+import {
+  clearFcmPushLocalState,
+  getFcmSubscribedFlag,
+  getStoredFcmToken,
+  setFcmSubscribedFlag,
+  setStoredFcmToken,
+} from './fcmTokenStore';
 
 export type NativePushStatus =
   | 'loading'
@@ -17,6 +23,12 @@ export type NativePushStatus =
   | 'subscribed'
   | 'denied'
   | 'error';
+
+async function syncFcmRegistration(token: string): Promise<void> {
+  await setStoredFcmToken(token);
+  await subscribeFcmPush(token);
+  await setFcmSubscribedFlag(true);
+}
 
 export function useNativeFcmPush() {
   const navigate = useNavigate();
@@ -48,14 +60,24 @@ export function useNativeFcmPush() {
       return;
     }
 
-    const stored = getStoredFcmToken();
-    if (stored) {
+    const [stored, subscribed] = await Promise.all([
+      getStoredFcmToken(),
+      getFcmSubscribedFlag(),
+    ]);
+
+    if (stored || subscribed) {
       setStatus('subscribed');
+      if (perm.receive === 'granted') {
+        try {
+          await PushNotifications.register();
+        } catch {
+          /* token listener обновит состояние при успехе */
+        }
+      }
       return;
     }
 
     if (perm.receive === 'granted') {
-      // Холодный старт: разрешение есть, токен в памяти потерян — перерегистрация FCM.
       try {
         await PushNotifications.register();
       } catch {
@@ -77,8 +99,7 @@ export function useNativeFcmPush() {
     registrations.push(
       PushNotifications.addListener('registration', (event) => {
         const token = event.value;
-        setStoredFcmToken(token);
-        void subscribeFcmPush(token)
+        void syncFcmRegistration(token)
           .then(() => setStatus('subscribed'))
           .catch((err) => {
             setErrorMessage(
@@ -169,11 +190,11 @@ export function useNativeFcmPush() {
     setErrorMessage(null);
 
     try {
-      const token = getStoredFcmToken();
+      const token = await getStoredFcmToken();
       if (token) {
         await unsubscribeFcmPush(token);
       }
-      setStoredFcmToken(null);
+      await clearFcmPushLocalState();
       setStatus('idle');
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Не удалось отключить уведомления');
