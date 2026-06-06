@@ -110,7 +110,7 @@ npm run dev
 | `/chat` | approved | Список чатов, новый диалог / группа |
 | `/chat/:roomId` | member | Переписка в комнате (WebSocket + REST) |
 | `/notifications` | авторизован | Лента оповещений (в т.ч. ответы админа) |
-| `/settings` | авторизован | Тема, Web Push (админ) |
+| `/settings` | авторизован | Тема, push; в браузере — PWA; в APK — подсказки по Android |
 | `/admin/support` | admin | Обращения пользователей (открытые / закрытые) |
 | `/admin/support/:threadId` | admin | Ответ и закрытие обращения |
 | `/admin/users` | admin | Заявки, список учётных записей, удаление; **Web Push** о новых заявках |
@@ -135,6 +135,16 @@ npm run dev
 ## Web Push (админ)
 
 В меню: **Чаты** — счётчик непрочитанных; **Оповещения** — лента событий (график, лайки, обращения; без дублирования чата); **Настройки** — тема и push (в т.ч. сообщения в чате в системной шторке). Нужны VAPID-ключи в backend `.env` и HTTPS (production). Service worker: `public/sw.js`, manifest: `public/manifest.webmanifest`.
+
+Страница **Настройки** (`/settings`) собирается из секций в `src/features/settings/sections/`:
+
+| Секция | Браузер | APK |
+|--------|---------|-----|
+| О приложении | ✓ | ✓ |
+| Оформление (тема) | ✓ | ✓ |
+| Браузер (PWA, иконка ярлыка) | ✓ | — |
+| Приложение Android (обновления, системные уведомления) | — | ✓ |
+| Уведомления (Web Push / FCM) | ✓ | ✓ |
 
 Подробнее: [корневой README — Web Push](../README.md#web-push-для-администратора).
 
@@ -202,7 +212,8 @@ duty-schedule-frontend/
 │   ├── features/
 │   │   ├── auth/         # AuthContext
 │   │   ├── calendar/     # DutyCalendar
-│   │   └── day-detail/   # модалка дня
+│   │   ├── day-detail/   # модалка дня
+│   │   └── settings/     # тема, PWA; sections/ — секции страницы настроек
 │   ├── pages/            # Login, Register, Home, Admin, EditDay
 │   └── shared/
 │       ├── api/          # client, types
