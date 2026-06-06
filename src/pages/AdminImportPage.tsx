@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import arrowLeftIcon from '@/shared/assets/icons/Arrow Left.svg';
 import { apiRequest } from '@/shared/api/client';
 import type { ScheduleImportResult } from '@/shared/api/types';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
+import { SubpageLayout } from '@/shared/ui/SubpageLayout';
 
 type ImportRecord = {
   fio: string;
@@ -114,14 +114,7 @@ export function AdminImportPage() {
   const canImport = Boolean(records?.length && replaceFrom && replaceTo);
 
   return (
-    <div className="admin-import-page">
-      <header className="subpage-header">
-        <Link to="/" className="subpage-header__back" aria-label="Назад к календарю">
-          <img src={arrowLeftIcon} alt="" width={24} height={24} aria-hidden />
-        </Link>
-        <h1 className="subpage-header__title">Импорт графика</h1>
-      </header>
-
+    <SubpageLayout className="admin-import-page" title="Импорт графика">
       <p className="admin-import-page__hint">{importHint}</p>
 
       <label className="admin-import-page__file-label">
@@ -205,6 +198,6 @@ export function AdminImportPage() {
           </Link>
         </section>
       ) : null}
-    </div>
+    </SubpageLayout>
   );
 }

@@ -1,6 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import arrowLeftIcon from '@/shared/assets/icons/Arrow Left.svg';
 import {
   fetchNotifications,
   fetchUnreadNotificationsCount,
@@ -11,6 +10,7 @@ import type { NotificationItem } from '@/shared/api/types';
 import { useAuth } from '@/features/auth/AuthContext';
 import { Avatar } from '@/shared/ui/Avatar';
 import { Button } from '@/shared/ui/Button';
+import { SubpageLayout } from '@/shared/ui/SubpageLayout';
 import { formatChangeSource } from '@/shared/lib/formatDutyChange';
 
 function formatTime(iso: string) {
@@ -120,19 +120,17 @@ export function NotificationsPage() {
   }
 
   return (
-    <div className="notifications-page">
-      <header className="subpage-header">
-        <Link to="/" className="subpage-header__back" aria-label="Назад к календарю">
-          <img src={arrowLeftIcon} alt="" width={24} height={24} aria-hidden />
-        </Link>
-        <h1 className="subpage-header__title">Оповещения</h1>
-        {unreadCount > 0 ? (
+    <SubpageLayout
+      className="notifications-page"
+      title="Оповещения"
+      headerExtra={
+        unreadCount > 0 ? (
           <span className="notifications-page__badge" aria-label={`Непрочитанных: ${unreadCount}`}>
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
-        ) : null}
-      </header>
-
+        ) : null
+      }
+    >
       {unreadCount > 0 ? (
         <div className="notifications-page__toolbar">
           <Button
@@ -204,6 +202,6 @@ export function NotificationsPage() {
           {listQuery.isFetchingNextPage ? 'Загрузка…' : 'Загрузить ещё'}
         </Button>
       ) : null}
-    </div>
+    </SubpageLayout>
   );
 }

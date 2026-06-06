@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import arrowLeftIcon from '@/shared/assets/icons/Arrow Left.svg';
 import { adminReviewDutySwap, listAdminDutySwaps } from '@/shared/api/duty-swaps';
 import type { DutySwapRequest } from '@/shared/api/types';
 import {
@@ -15,6 +13,7 @@ import {
 import { formatSurnameWithInitials } from '@/shared/lib/formatName';
 import { Button } from '@/shared/ui/Button';
 import { Modal } from '@/shared/ui/Modal';
+import { SubpageLayout } from '@/shared/ui/SubpageLayout';
 
 type Tab = 'pending' | 'history';
 
@@ -174,14 +173,7 @@ export function AdminDutySwapsPage() {
   });
 
   return (
-    <div className="duty-swaps-page">
-      <header className="subpage-header">
-        <Link to="/" className="subpage-header__back" aria-label="Назад к календарю">
-          <img src={arrowLeftIcon} alt="" width={24} height={24} aria-hidden />
-        </Link>
-        <h1 className="subpage-header__title">Заявки на смену</h1>
-      </header>
-
+    <SubpageLayout className="duty-swaps-page" title="Заявки на смену">
       <div className="duty-swaps-page__tabs" role="tablist">
         <button
           type="button"
@@ -250,6 +242,6 @@ export function AdminDutySwapsPage() {
           </div>
         </form>
       </Modal>
-    </div>
+    </SubpageLayout>
   );
 }

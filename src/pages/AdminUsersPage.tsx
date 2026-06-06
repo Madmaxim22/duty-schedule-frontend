@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import arrowLeftIcon from '@/shared/assets/icons/Arrow Left.svg';
 import deleteIcon from '@/shared/assets/icons/Delete.svg';
 import { apiRequest } from '@/shared/api/client';
 import type { UserRole, UserStatus } from '@/shared/api/types';
 import { useAuth } from '@/features/auth/AuthContext';
 import { Button } from '@/shared/ui/Button';
 import { Modal } from '@/shared/ui/Modal';
+import { SubpageLayout } from '@/shared/ui/SubpageLayout';
 
 type PendingUser = {
   id: string;
@@ -120,14 +119,7 @@ export function AdminUsersPage() {
   }
 
   return (
-    <div className="admin-page">
-      <header className="subpage-header">
-        <Link to="/" className="subpage-header__back" aria-label="Назад к календарю">
-          <img src={arrowLeftIcon} alt="" width={24} height={24} aria-hidden />
-        </Link>
-        <h1 className="subpage-header__title">Пользователи</h1>
-      </header>
-
+    <SubpageLayout className="admin-page" title="Пользователи">
       <div className="admin-page__tabs" role="tablist">
         <button
           type="button"
@@ -345,6 +337,6 @@ export function AdminUsersPage() {
           </p>
         ) : null}
       </Modal>
-    </div>
+    </SubpageLayout>
   );
 }

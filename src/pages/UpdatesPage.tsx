@@ -1,8 +1,7 @@
-import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import arrowLeftIcon from '@/shared/assets/icons/Arrow Left.svg';
 import { fetchAppVersion, fetchReleases } from '@/shared/api/onboarding';
 import { ReleaseNotesList } from '@/features/onboarding/ReleaseNotesList';
+import { SubpageLayout } from '@/shared/ui/SubpageLayout';
 
 export function UpdatesPage() {
   const versionQuery = useQuery({
@@ -19,14 +18,7 @@ export function UpdatesPage() {
   const releases = releasesQuery.data?.releases ?? [];
 
   return (
-    <div className="updates-page">
-      <header className="subpage-header">
-        <Link to="/" className="subpage-header__back" aria-label="Назад к календарю">
-          <img src={arrowLeftIcon} alt="" width={24} height={24} aria-hidden />
-        </Link>
-        <h1 className="subpage-header__title">Обновления</h1>
-      </header>
-
+    <SubpageLayout className="updates-page" title="Обновления">
       {version ? (
         <p className="updates-page__version">Текущая версия: {version}</p>
       ) : null}
@@ -50,6 +42,6 @@ export function UpdatesPage() {
           />
         ))}
       </div>
-    </div>
+    </SubpageLayout>
   );
 }

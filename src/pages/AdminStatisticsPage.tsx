@@ -9,9 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import arrowLeftIcon from '@/shared/assets/icons/Arrow Left.svg';
 import { apiRequest } from '@/shared/api/client';
 import type {
   AdminActivityDailyParticipant,
@@ -33,6 +31,7 @@ import {
   type StatisticsSortDirection,
   type StatisticsSortKey,
 } from '@/features/statistics/sortStatisticsUsers';
+import { SubpageLayout } from '@/shared/ui/SubpageLayout';
 
 type StatisticsTab = 'duties' | 'activity';
 
@@ -660,14 +659,7 @@ export function AdminStatisticsPage() {
   const monthNum = month.getMonth() + 1;
 
   return (
-    <div className="admin-statistics-page">
-      <header className="subpage-header">
-        <Link to="/" className="subpage-header__back" aria-label="Назад к календарю">
-          <img src={arrowLeftIcon} alt="" width={24} height={24} aria-hidden />
-        </Link>
-        <h1 className="subpage-header__title">Статистика</h1>
-      </header>
-
+    <SubpageLayout className="admin-statistics-page" title="Статистика">
       <div
         className="admin-statistics-page__tabs"
         role="tablist"
@@ -703,6 +695,6 @@ export function AdminStatisticsPage() {
       ) : (
         <ActivityTabContent year={year} monthNum={monthNum} />
       )}
-    </div>
+    </SubpageLayout>
   );
 }
