@@ -1,5 +1,5 @@
 import { Button } from '@/shared/ui/Button';
-import { isNativeApp } from '@/shared/capacitor/isNativeApp';
+import { useIsNativeApp } from '@/shared/capacitor/useIsNativeApp';
 import { getPushUnsupportedMessage, getNativePushDeniedMessage } from './adminPushUnsupportedMessage';
 import { useBrowserPush } from './useAdminPush';
 import { useNativeFcmPush } from './useNativeFcmPush';
@@ -119,7 +119,8 @@ function PushBannerControls({
 }
 
 export function PushBanner(props: Props) {
-  if (isNativeApp()) {
+  const native = useIsNativeApp();
+  if (native) {
     return <NativePushBanner {...props} />;
   }
   return <BrowserPushBanner {...props} />;

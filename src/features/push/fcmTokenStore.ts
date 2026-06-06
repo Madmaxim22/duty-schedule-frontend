@@ -1,5 +1,5 @@
 import { Preferences } from '@capacitor/preferences';
-import { isNativeApp } from '@/shared/capacitor/isNativeApp';
+import { hasNativeStorage } from '@/shared/capacitor/isNativeApp';
 
 const TOKEN_KEY = 'duty_fcm_token';
 const SUBSCRIBED_KEY = 'duty_fcm_subscribed';
@@ -25,7 +25,7 @@ export async function getStoredFcmToken(): Promise<string | null> {
     return cachedToken;
   }
 
-  if (isNativeApp()) {
+  if (hasNativeStorage()) {
     cachedToken = await readNative(TOKEN_KEY);
     return cachedToken;
   }
@@ -41,7 +41,7 @@ export async function getStoredFcmToken(): Promise<string | null> {
 export async function setStoredFcmToken(token: string | null): Promise<void> {
   cachedToken = token;
 
-  if (isNativeApp()) {
+  if (hasNativeStorage()) {
     await writeNative(TOKEN_KEY, token);
     return;
   }
@@ -62,7 +62,7 @@ export async function getFcmSubscribedFlag(): Promise<boolean> {
     return cachedSubscribed;
   }
 
-  if (isNativeApp()) {
+  if (hasNativeStorage()) {
     const value = await readNative(SUBSCRIBED_KEY);
     cachedSubscribed = value === '1';
     return cachedSubscribed;
@@ -75,7 +75,7 @@ export async function getFcmSubscribedFlag(): Promise<boolean> {
 export async function setFcmSubscribedFlag(subscribed: boolean): Promise<void> {
   cachedSubscribed = subscribed;
 
-  if (!isNativeApp()) {
+  if (!hasNativeStorage()) {
     return;
   }
 

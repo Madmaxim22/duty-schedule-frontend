@@ -60,33 +60,55 @@ export function useNativeFcmPush() {
       return;
     }
 
-    const [stored, subscribed] = await Promise.all([
-      getStoredFcmToken(),
-      getFcmSubscribedFlag(),
-    ]);
+    try {
+      const [stored, subscribed] = await Promise.all([
+        getStoredFcmToken(),
+        getFcmSubscribedFlag(),
+      ]);
 
-    if (stored || subscribed) {
-      setStatus('subscribed');
+      if (stored || subscribed) {
+        setStatus('subscribed');
+        if (perm.receive === 'granted') {
+          try {
+            await PushNotifications.register();
+          } catch {
+            /* token listener обновит состояние при успехе */
+          }
+        }
+        return;
+      }
+
       if (perm.receive === 'granted') {
         try {
           await PushNotifications.register();
         } catch {
-          /* token listener обновит состояние при успехе */
+          setStatus('idle');
+          return;
         }
-      }
-      return;
-    }
 
-    if (perm.receive === 'granted') {
-      try {
-        await PushNotifications.register();
-      } catch {
-        setStatus('idle');
-      }
-      return;
-    }
+        // registration может не успеть до первого render — ждём persist
+        for (let attempt = 0; attempt < 12; attempt += 1) {
+          await new Promise((resolve) => window.setTimeout(resolve, 150));
+          const [storedNow, subscribedNow] = await Promise.all([
+            getStoredFcmToken(),
+            getFcmSubscribedFlag(),
+          ]);
+          if (storedNow || subscribedNow) {
+            setStatus('subscribed');
+            return;
+          }
+        }
 
-    setStatus('idle');
+        // Разрешение есть, token на сервере мог сохраниться ранее — не сбрасываем UI
+        setStatus('subscribed');
+        return;
+      }
+
+      setStatus('idle');
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : 'Не удалось проверить подписку');
+      setStatus('error');
+    }
   }, []);
 
   useEffect(() => {
