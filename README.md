@@ -169,6 +169,8 @@ npm run dev
 
 **Push в APK:** FCM через Capacitor (`@capacitor/push-notifications`), включение в **Настройки → Уведомления**; backend шлёт на FCM и Web Push параллельно. Настройка Firebase и QA — [README android](../duty-schedule-android/README.md#fcm-push-android-apk).
 
+**Safe-area в APK:** отступы шторки/навигации — на нативном слое (`adjustMarginsForEdgeToEdge`); в CSS для APK класс `native-app` обнуляет `--safe-*`. Подробнее — [README android](../duty-schedule-android/README.md#шторка-и-safe-area-edge-to-edge).
+
 ## Переменные окружения
 
 Файл `.env` (опционально):

@@ -7,8 +7,20 @@
   --space-lg: 24px;
   --transition-fast: 150ms ease;
   --transition-normal: 200ms ease;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
   font-family: 'Fira Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
+}
+
+/* Capacitor APK: adjustMarginsForEdgeToEdge — insets уже на WebView, env(safe-area-*) дублирует отступ. */
+html.native-app {
+  --safe-top: 0px;
+  --safe-bottom: 0px;
+  --safe-left: 0px;
+  --safe-right: 0px;
 }
 
 :root,
@@ -340,7 +352,7 @@ body {
   flex-shrink: 0;
   margin-top: auto;
   padding-top: var(--space-md);
-  padding-bottom: calc(var(--space-xs) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--space-xs) + var(--safe-bottom));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -655,15 +667,14 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: calc(16px + env(safe-area-inset-top, 0px)) 20px calc(16px + env(safe-area-inset-bottom, 0px));
+  padding:
+    calc(var(--space-md) + var(--safe-top))
+    calc(var(--space-md) + var(--safe-right))
+    calc(var(--space-md) + var(--safe-bottom))
+    calc(var(--space-md) + var(--safe-left));
   background: var(--color-surface);
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
   animation: slideInLeft 0.2s ease-out;
-}
-
-/* Capacitor: fixed-меню привязано к layout viewport; safe-area-inset-top дублирует отступ шторки (app-shell без этого). */
-html.native-app .side-menu__panel {
-  padding-top: 16px;
 }
 
 @keyframes slideInLeft {
@@ -2824,13 +2835,6 @@ html.native-app .side-menu__panel {
   margin-top: 8px;
 }
 
-.admin-import-page,
-.admin-changes-page,
-.admin-statistics-page {
-  padding: 16px;
-  max-width: 480px;
-  margin: 0 auto;
-}
 
 .admin-statistics-page .schedule-month-nav {
   margin-bottom: 12px;
@@ -3314,12 +3318,6 @@ html.native-app .side-menu__panel {
   text-align: center;
 }
 
-.notifications-page {
-  padding: 16px;
-  max-width: 480px;
-  margin: 0 auto;
-}
-
 .notifications-page__badge {
   min-width: 1.5rem;
   padding: 4px 8px;
@@ -3417,12 +3415,6 @@ html.native-app .side-menu__panel {
 .notifications-page__more {
   width: 100%;
   margin-top: 16px;
-}
-
-.settings-page {
-  padding: 16px;
-  max-width: 480px;
-  margin: 0 auto;
 }
 
 .settings-page .subpage-header {
@@ -3671,10 +3663,6 @@ html.native-app .side-menu__panel {
 .support-thread-page {
   display: flex;
   flex-direction: column;
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 16px;
-  padding-bottom: max(16px, env(safe-area-inset-bottom));
 }
 
 .support-thread-page .subpage-header {
@@ -4982,7 +4970,7 @@ html.native-app .side-menu__panel {
 .chat-room__toast {
   position: fixed;
   left: 50%;
-  bottom: calc(80px + env(safe-area-inset-bottom));
+  bottom: calc(80px + var(--safe-bottom));
   z-index: 210;
   transform: translateX(-50%);
   padding: 10px 16px;
@@ -4999,7 +4987,7 @@ html.native-app .side-menu__panel {
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 8px;
-  padding: 8px 10px max(8px, env(safe-area-inset-bottom));
+  padding: 8px 10px max(8px, var(--safe-bottom));
   border-top: 1px solid var(--color-border);
   background: var(--color-surface);
 }
@@ -5216,9 +5204,9 @@ html.native-app .side-menu__panel {
   align-items: center;
   gap: 12px;
   flex-shrink: 0;
-  padding: max(10px, env(safe-area-inset-top)) 12px 10px;
-  padding-left: max(12px, env(safe-area-inset-left));
-  padding-right: max(12px, env(safe-area-inset-right));
+  padding: max(10px, var(--safe-top)) 12px 10px;
+  padding-left: max(12px, var(--safe-left));
+  padding-right: max(12px, var(--safe-right));
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent);
 }
 
@@ -5300,8 +5288,7 @@ html.native-app .side-menu__panel {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px max(8px, env(safe-area-inset-left)) max(8px, env(safe-area-inset-bottom))
-    max(8px, env(safe-area-inset-right));
+  padding: 8px max(8px, var(--safe-left)) max(8px, var(--safe-bottom)) max(8px, var(--safe-right));
   box-sizing: border-box;
 }
 
@@ -5344,12 +5331,12 @@ html.native-app .side-menu__panel {
 }
 
 .chat-media-lightbox__nav--prev {
-  left: max(0px, env(safe-area-inset-left));
+  left: max(0px, var(--safe-left));
   border-radius: 0 8px 8px 0;
 }
 
 .chat-media-lightbox__nav--next {
-  right: max(0px, env(safe-area-inset-right));
+  right: max(0px, var(--safe-right));
   border-radius: 8px 0 0 8px;
 }
 
@@ -5927,11 +5914,6 @@ html.native-app .side-menu__panel {
   margin: 0 0 12px;
   color: var(--color-muted);
   font-size: 0.9375rem;
-}
-
-.updates-page {
-  max-width: 640px;
-  margin: 0 auto;
 }
 
 .updates-page__version {
