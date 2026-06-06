@@ -49,7 +49,22 @@ export function useNativeFcmPush() {
     }
 
     const stored = getStoredFcmToken();
-    setStatus(stored ? 'subscribed' : 'idle');
+    if (stored) {
+      setStatus('subscribed');
+      return;
+    }
+
+    if (perm.receive === 'granted') {
+      // Холодный старт: разрешение есть, токен в памяти потерян — перерегистрация FCM.
+      try {
+        await PushNotifications.register();
+      } catch {
+        setStatus('idle');
+      }
+      return;
+    }
+
+    setStatus('idle');
   }, []);
 
   useEffect(() => {
@@ -94,7 +109,15 @@ export function useNativeFcmPush() {
 
     void refresh();
 
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        void refresh();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
     return () => {
+      document.removeEventListener('visibilitychange', onVisible);
       void Promise.all(registrations).then((handles) => {
         handles.forEach((h) => h.remove());
       });
