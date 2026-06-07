@@ -101,6 +101,56 @@ export async function apiMultipartRequest<T>(
   return parseResponse<T>(response);
 }
 
+/** Multipart POST с прогрессом загрузки (для крупных видео). */
+export async function apiMultipartRequestWithProgress<T>(
+  path: string,
+  formData: FormData,
+  onProgress?: (ratio: number) => void,
+  method: 'POST' | 'PATCH' = 'POST',
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, `${API_BASE}${path}`);
+    xhr.withCredentials = true;
+    const token = getAccessToken();
+    if (token) {
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    }
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && onProgress) {
+        onProgress(event.loaded / event.total);
+      }
+    };
+
+    xhr.onload = () => {
+      let data: Record<string, unknown> = {};
+      try {
+        data = xhr.responseText ? (JSON.parse(xhr.responseText) as Record<string, unknown>) : {};
+      } catch {
+        reject(new ApiError('Ошибка запроса', xhr.status));
+        return;
+      }
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(data as T);
+        return;
+      }
+
+      reject(
+        new ApiError(
+          (data.message as string | undefined) ?? 'Ошибка запроса',
+          xhr.status,
+          data,
+        ),
+      );
+    };
+
+    xhr.onerror = () => reject(new ApiError('Ошибка сети', 0));
+    xhr.send(formData);
+  });
+}
+
 export async function apiUpload<T>(
   path: string,
   fieldName: string,

@@ -18,9 +18,19 @@ function MoreVertIcon() {
   );
 }
 
+function VideoIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="3.5" y="6.5" width="13" height="11" rx="2" stroke="currentColor" strokeWidth="1.75" />
+      <path d="m16.5 10.5 5-3v9l-5-3v-3Z" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function ChatComposerMenu({ disabled, maxFiles, currentCount, onFilesSelected }: Props) {
   const [open, setOpen] = useState(false);
-  const pickerRef = useRef<ChatAttachmentPickerHandle>(null);
+  const photoPickerRef = useRef<ChatAttachmentPickerHandle>(null);
+  const videoPickerRef = useRef<ChatAttachmentPickerHandle>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
   const canAttach = currentCount < maxFiles;
@@ -42,9 +52,14 @@ export function ChatComposerMenu({ disabled, maxFiles, currentCount, onFilesSele
     };
   }, [open]);
 
-  const handleAttach = () => {
+  const handleAttachPhoto = () => {
     setOpen(false);
-    pickerRef.current?.open();
+    photoPickerRef.current?.open();
+  };
+
+  const handleAttachVideo = () => {
+    setOpen(false);
+    videoPickerRef.current?.open();
   };
 
   return (
@@ -68,16 +83,36 @@ export function ChatComposerMenu({ disabled, maxFiles, currentCount, onFilesSele
             role="menuitem"
             className="chat-room__composer-menu-item"
             disabled={disabled || !canAttach}
-            onClick={handleAttach}
+            onClick={handleAttachPhoto}
           >
             <PaperclipIcon />
             <span>Фото</span>
           </button>
+          <button
+            type="button"
+            role="menuitem"
+            className="chat-room__composer-menu-item"
+            disabled={disabled || !canAttach}
+            onClick={handleAttachVideo}
+          >
+            <VideoIcon />
+            <span>Видео</span>
+          </button>
         </div>
       ) : null}
       <ChatAttachmentPicker
-        ref={pickerRef}
+        ref={photoPickerRef}
         hideButton
+        kind="image"
+        disabled={disabled}
+        maxFiles={maxFiles}
+        currentCount={currentCount}
+        onFilesSelected={onFilesSelected}
+      />
+      <ChatAttachmentPicker
+        ref={videoPickerRef}
+        hideButton
+        kind="video"
         disabled={disabled}
         maxFiles={maxFiles}
         currentCount={currentCount}

@@ -377,6 +377,8 @@ export type ChatAttachment = {
   width?: number;
   height?: number;
   url: string;
+  posterUrl?: string;
+  durationMs?: number;
 };
 
 export type ChatMessage = {

@@ -1,4 +1,5 @@
 import type { ChatMessageReplyTo } from '@/shared/api/types';
+import { attachmentPreviewLabel } from './chatAttachmentUtils';
 
 const COMPOSER_PREVIEW_MAX = 100;
 const REPLY_QUOTE_MAX = 120;
@@ -14,7 +15,7 @@ export function truncateReplyPreview(body: string, max = COMPOSER_PREVIEW_MAX): 
 export function replyQuoteBodyFromMessage(message: {
   body: string;
   deleted?: boolean;
-  attachments?: unknown[];
+  attachments?: Array<{ mimeType: string }>;
 }): string {
   if (message.deleted) return DELETED_MESSAGE_BODY;
   const trimmed = message.body.trim();
@@ -23,7 +24,9 @@ export function replyQuoteBodyFromMessage(message: {
       ? trimmed
       : `${trimmed.slice(0, REPLY_QUOTE_MAX - 1)}…`;
   }
-  if (message.attachments && message.attachments.length > 0) return 'Фото';
+  if (message.attachments && message.attachments.length > 0) {
+    return attachmentPreviewLabel(message.attachments);
+  }
   return '';
 }
 

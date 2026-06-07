@@ -32,6 +32,7 @@ import { ChatDeleteMessageModal } from './ChatDeleteMessageModal';
 import { ChatMessageOverlay, type ChatMessageMenuAnchor } from './ChatMessageOverlay';
 import { ChatReplyComposerBar } from './ChatReplyComposerBar';
 import { scrollToChatMessage } from './chatScrollToMessage';
+import { MIXED_MEDIA_ERROR, isVideoFile, wouldMixMediaKinds } from './chatAttachmentUtils';
 import { groupMessagesByDate } from './chatMessageGroups';
 import { getDirectPeerLastReadAt } from './chatMessageMenuActions';
 import { formatTypingLabel } from './formatTypingLabel';
@@ -99,6 +100,7 @@ export function ChatRoomView({ roomId }: Props) {
   const [keptAttachmentIds, setKeptAttachmentIds] = useState<string[]>([]);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [previewItems, setPreviewItems] = useState<{ file: File; url: string }[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [mediaLightboxIndex, setMediaLightboxIndex] = useState<number | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{
     messageId: string;
@@ -234,7 +236,12 @@ export function ChatRoomView({ roomId }: Props) {
     }) => {
       let attachmentIds: string[] | undefined;
       if (files.length > 0) {
-        const uploaded = await uploadChatAttachments(roomId, files);
+        const needsProgress = files.some(isVideoFile);
+        const uploaded = await uploadChatAttachments(
+          roomId,
+          files,
+          needsProgress ? (ratio) => setUploadProgress(ratio) : undefined,
+        );
         attachmentIds = uploaded.attachments.map((a) => a.id);
       }
       return postChatMessage(roomId, body, replyToMessageId, attachmentIds);
@@ -243,6 +250,7 @@ export function ChatRoomView({ roomId }: Props) {
       setDraft('');
       setReplyTo(null);
       clearPendingFiles();
+      setUploadProgress(null);
       setError('');
       if (textareaRef.current) {
         textareaRef.current.style.height = '';
@@ -253,7 +261,10 @@ export function ChatRoomView({ roomId }: Props) {
       );
       queryClient.invalidateQueries({ queryKey: ['chat', 'rooms'] });
     },
-    onError: (e: Error) => setError(e.message),
+    onError: (e: Error) => {
+      setUploadProgress(null);
+      setError(e.message);
+    },
   });
 
   const editMutation = useMutation({
@@ -270,13 +281,19 @@ export function ChatRoomView({ roomId }: Props) {
     }) => {
       let newIds: string[] = [];
       if (files.length > 0) {
-        const uploaded = await uploadChatAttachments(roomId, files);
+        const needsProgress = files.some(isVideoFile);
+        const uploaded = await uploadChatAttachments(
+          roomId,
+          files,
+          needsProgress ? (ratio) => setUploadProgress(ratio) : undefined,
+        );
         newIds = uploaded.attachments.map((a) => a.id);
       }
       return editChatMessage(roomId, messageId, body, [...keptIds, ...newIds]);
     },
     onSuccess: (data) => {
       cancelEdit();
+      setUploadProgress(null);
       queryClient.setQueryData<InfiniteData<ChatMessagesPage>>(
         ['chat', 'messages', roomId],
         (old) => updateMessageInChatPagesWithReplyQuotes(old, data.message) ?? old,
@@ -284,7 +301,10 @@ export function ChatRoomView({ roomId }: Props) {
       queryClient.invalidateQueries({ queryKey: ['chat', 'rooms'] });
       setToast('Сообщение изменено');
     },
-    onError: (e: Error) => setError(e.message),
+    onError: (e: Error) => {
+      setUploadProgress(null);
+      setError(e.message);
+    },
   });
 
   const room = roomQuery.data?.room;
@@ -385,10 +405,19 @@ export function ChatRoomView({ roomId }: Props) {
       setPendingFiles((prev) => {
         const keptCount = editTarget ? keptAttachmentIds.length : 0;
         const maxTotal = MAX_CHAT_ATTACHMENTS - keptCount;
-        return [...prev, ...files].slice(0, maxTotal);
+        const next = [...prev, ...files].slice(0, maxTotal);
+        const keptAttachments =
+          editTarget?.attachments?.filter((attachment) =>
+            keptAttachmentIds.includes(attachment.id),
+          ) ?? [];
+        if (wouldMixMediaKinds({ pendingFiles: next, keptAttachments })) {
+          setToast(MIXED_MEDIA_ERROR);
+          return prev;
+        }
+        return next;
       });
     },
-    [editTarget, keptAttachmentIds.length],
+    [editTarget, keptAttachmentIds],
   );
 
   const handleRemovePendingFile = useCallback((index: number) => {
@@ -612,7 +641,7 @@ export function ChatRoomView({ roomId }: Props) {
     if (editTarget) {
       const attachmentCount = keptAttachmentIds.length + pendingFiles.length;
       if (!body && attachmentCount === 0) {
-        setError('Введите текст или прикрепите изображение');
+        setError('Введите текст или прикрепите фото или видео');
         return;
       }
       editMutation.mutate({
@@ -625,7 +654,7 @@ export function ChatRoomView({ roomId }: Props) {
     }
 
     if (!body && pendingFiles.length === 0) {
-      setError('Введите текст или прикрепите изображение');
+      setError('Введите текст или прикрепите фото или видео');
       return;
     }
     postMutation.mutate({
@@ -822,6 +851,21 @@ export function ChatRoomView({ roomId }: Props) {
           ) : (
             <ChatAttachmentPreviewStrip items={previewItems} onRemove={handleRemovePendingFile} />
           )}
+          {uploadProgress != null ? (
+            <div
+              className="chat-room__upload-progress"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(uploadProgress * 100)}
+              aria-label="Загрузка видео"
+            >
+              <span
+                className="chat-room__upload-progress-bar"
+                style={{ width: `${Math.round(uploadProgress * 100)}%` }}
+              />
+            </div>
+          ) : null}
           <div className="chat-room__composer-row">
             <ChatComposerMenu
               disabled={isBusy}

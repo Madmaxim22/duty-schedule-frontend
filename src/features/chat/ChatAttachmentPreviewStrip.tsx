@@ -1,3 +1,6 @@
+import { ChatAttachmentPreviewThumb } from './ChatAttachmentPreviewThumb';
+import { isVideoFile } from './chatAttachmentUtils';
+
 type PreviewItem = {
   file: File;
   url: string;
@@ -15,7 +18,7 @@ export function ChatAttachmentPreviewStrip({ items, onRemove }: Props) {
     <div className="chat-room__attachment-preview-strip" role="list" aria-label="Вложения перед отправкой">
       {items.map((item, index) => (
         <div key={`${item.file.name}-${item.file.lastModified}-${index}`} className="chat-room__attachment-preview" role="listitem">
-          <img src={item.url} alt="" className="chat-room__attachment-preview-img" />
+          <ChatAttachmentPreviewThumb url={item.url} isVideo={isVideoFile(item.file)} />
           <button
             type="button"
             className="chat-room__attachment-preview-remove"

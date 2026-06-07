@@ -31,6 +31,7 @@ export function ChatMediaLightbox({ open, items, initialIndex, onClose }: Props)
   const [dragging, setDragging] = useState(false);
   const pointerStartX = useRef<number | null>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
+  const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
 
   useEffect(() => {
     if (open) setActiveIndex(initialIndex);
@@ -53,9 +54,22 @@ export function ChatMediaLightbox({ open, items, initialIndex, onClose }: Props)
 
   useEffect(() => {
     if (!open || !item) return;
-    if (hasPrev) preloadImage(items[activeIndex - 1]!.url);
-    if (hasNext) preloadImage(items[activeIndex + 1]!.url);
+    const prevItem = hasPrev ? items[activeIndex - 1] : null;
+    const nextItem = hasNext ? items[activeIndex + 1] : null;
+    if (prevItem?.kind === 'image') preloadImage(prevItem.url);
+    if (nextItem?.kind === 'image') preloadImage(nextItem.url);
   }, [open, activeIndex, item, hasPrev, hasNext, items]);
+
+  useEffect(() => {
+    if (!open) return;
+    for (const [id, video] of videoRefs.current.entries()) {
+      const slide = items.find((entry) => entry.attachmentId === id);
+      if (!slide || slide.attachmentId !== item?.attachmentId) {
+        video.pause();
+        video.currentTime = 0;
+      }
+    }
+  }, [open, activeIndex, item, items]);
 
   useEffect(() => {
     if (!open) return;
@@ -148,7 +162,7 @@ export function ChatMediaLightbox({ open, items, initialIndex, onClose }: Props)
       className="chat-media-lightbox"
       role="dialog"
       aria-modal="true"
-      aria-label="Просмотр фото"
+      aria-label="Просмотр медиа"
     >
       <button
         type="button"
@@ -189,7 +203,7 @@ export function ChatMediaLightbox({ open, items, initialIndex, onClose }: Props)
           <button
             type="button"
             className="chat-media-lightbox__nav chat-media-lightbox__nav--prev"
-            aria-label="Предыдущее фото"
+            aria-label="Предыдущее"
             onClick={(e) => {
               e.stopPropagation();
               goPrev();
@@ -207,13 +221,28 @@ export function ChatMediaLightbox({ open, items, initialIndex, onClose }: Props)
         >
           {items.map((slide) => (
             <div key={slide.attachmentId} className="chat-media-lightbox__slide">
-              <img
-                src={slide.url}
-                alt={slide.fileName}
-                className="chat-media-lightbox__img"
-                decoding="async"
-                draggable={false}
-              />
+              {slide.kind === 'video' ? (
+                <video
+                  ref={(node) => {
+                    if (node) videoRefs.current.set(slide.attachmentId, node);
+                    else videoRefs.current.delete(slide.attachmentId);
+                  }}
+                  src={slide.url}
+                  poster={slide.posterUrl}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="chat-media-lightbox__video"
+                />
+              ) : (
+                <img
+                  src={slide.url}
+                  alt={slide.fileName}
+                  className="chat-media-lightbox__img"
+                  decoding="async"
+                  draggable={false}
+                />
+              )}
             </div>
           ))}
         </div>
@@ -221,7 +250,7 @@ export function ChatMediaLightbox({ open, items, initialIndex, onClose }: Props)
           <button
             type="button"
             className="chat-media-lightbox__nav chat-media-lightbox__nav--next"
-            aria-label="Следующее фото"
+            aria-label="Следующее"
             onClick={(e) => {
               e.stopPropagation();
               goNext();

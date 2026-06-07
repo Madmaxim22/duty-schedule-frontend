@@ -1,4 +1,6 @@
 import type { ChatAttachment } from '@/shared/api/types';
+import { ChatAttachmentPreviewThumb } from './ChatAttachmentPreviewThumb';
+import { isVideoAttachment, isVideoFile } from './chatAttachmentUtils';
 
 type PendingItem = {
   file: File;
@@ -24,10 +26,10 @@ export function ChatEditAttachmentsStrip({
     <div className="chat-room__attachment-preview-strip" role="list" aria-label="Вложения сообщения">
       {keptAttachments.map((attachment) => (
         <div key={attachment.id} className="chat-room__attachment-preview" role="listitem">
-          <img
-            src={attachment.url}
-            alt=""
-            className="chat-room__attachment-preview-img"
+          <ChatAttachmentPreviewThumb
+            url={attachment.url}
+            posterUrl={attachment.posterUrl}
+            isVideo={isVideoAttachment(attachment)}
           />
           <button
             type="button"
@@ -45,7 +47,7 @@ export function ChatEditAttachmentsStrip({
           className="chat-room__attachment-preview"
           role="listitem"
         >
-          <img src={item.url} alt="" className="chat-room__attachment-preview-img" />
+          <ChatAttachmentPreviewThumb url={item.url} isVideo={isVideoFile(item.file)} />
           <button
             type="button"
             className="chat-room__attachment-preview-remove"

@@ -6,6 +6,8 @@ import {
   resolveAlbumPhotoSizes,
   type AlbumPhotoSize,
 } from './chatAlbumLayout';
+import { isImageAttachment, isVideoAttachment } from './chatAttachmentUtils';
+import { ChatMessageVideoBlock } from './ChatMessageVideoBlock';
 
 type Props = {
   attachments: ChatAttachment[];
@@ -29,13 +31,19 @@ async function measureAttachmentSizes(attachments: ChatAttachment[]): Promise<Al
             });
           };
           img.onerror = () => resolve({ width: 4, height: 3 });
-          img.src = att.url;
+          img.src = att.posterUrl ?? att.url;
         }),
     ),
   );
 }
 
-export function ChatMessageAttachments({ attachments, onOpenAttachment }: Props) {
+function ChatMessageImageAttachments({
+  attachments,
+  onOpenAttachment,
+}: {
+  attachments: ChatAttachment[];
+  onOpenAttachment?: (attachmentId: string) => void;
+}) {
   const needsMeasure = attachments.some((a) => !a.width || !a.height);
   const [measuredSizes, setMeasuredSizes] = useState<AlbumPhotoSize[] | null>(null);
 
@@ -120,5 +128,29 @@ export function ChatMessageAttachments({ attachments, onOpenAttachment }: Props)
         );
       })}
     </div>
+  );
+}
+
+export function ChatMessageAttachments({ attachments, onOpenAttachment }: Props) {
+  const imageAttachments = attachments.filter(isImageAttachment);
+  const videoAttachments = attachments.filter(isVideoAttachment);
+
+  if (!attachments.length) return null;
+
+  return (
+    <>
+      {imageAttachments.length > 0 ? (
+        <ChatMessageImageAttachments
+          attachments={imageAttachments}
+          onOpenAttachment={onOpenAttachment}
+        />
+      ) : null}
+      {videoAttachments.length > 0 ? (
+        <ChatMessageVideoBlock
+          attachments={videoAttachments}
+          onOpenAttachment={onOpenAttachment}
+        />
+      ) : null}
+    </>
   );
 }

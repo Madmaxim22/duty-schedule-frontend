@@ -1,4 +1,4 @@
-import { apiMultipartRequest, apiRequest } from '@/shared/api/client';
+import { apiMultipartRequest, apiMultipartRequestWithProgress, apiRequest } from '@/shared/api/client';
 import type {
   ChatAttachment,
   ChatContact,
@@ -72,15 +72,20 @@ export function getChatMessages(roomId: string, before?: string, limit = 50) {
   );
 }
 
-export function uploadChatAttachments(roomId: string, files: File[]) {
+export function uploadChatAttachments(
+  roomId: string,
+  files: File[],
+  onProgress?: (ratio: number) => void,
+) {
   const form = new FormData();
   for (const file of files) {
     form.append('files', file);
   }
-  return apiMultipartRequest<{ attachments: ChatAttachment[] }>(
-    `/chat/rooms/${roomId}/attachments`,
-    form,
-  );
+  const path = `/chat/rooms/${roomId}/attachments`;
+  if (onProgress) {
+    return apiMultipartRequestWithProgress<{ attachments: ChatAttachment[] }>(path, form, onProgress);
+  }
+  return apiMultipartRequest<{ attachments: ChatAttachment[] }>(path, form);
 }
 
 export function postChatMessage(

@@ -4,13 +4,21 @@ export type ChatAttachmentPickerHandle = {
   open: () => void;
 };
 
+export type ChatAttachmentPickerKind = 'image' | 'video';
+
 type Props = {
   disabled?: boolean;
   maxFiles: number;
   currentCount: number;
   onFilesSelected: (files: File[]) => void;
+  kind?: ChatAttachmentPickerKind;
   /** Скрыть кнопку-скрепку (выбор через внешнее меню). */
   hideButton?: boolean;
+};
+
+const ACCEPT_BY_KIND: Record<ChatAttachmentPickerKind, string> = {
+  image: 'image/jpeg,image/png,image/webp,image/gif',
+  video: 'video/mp4,video/webm,video/quicktime',
 };
 
 export function PaperclipIcon() {
@@ -28,7 +36,14 @@ export function PaperclipIcon() {
 
 export const ChatAttachmentPicker = forwardRef<ChatAttachmentPickerHandle, Props>(
   function ChatAttachmentPicker(
-    { disabled, maxFiles, currentCount, onFilesSelected, hideButton = false },
+    {
+      disabled,
+      maxFiles,
+      currentCount,
+      onFilesSelected,
+      kind = 'image',
+      hideButton = false,
+    },
     ref,
   ) {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -47,7 +62,7 @@ export const ChatAttachmentPicker = forwardRef<ChatAttachmentPickerHandle, Props
             type="button"
             className="chat-room__attach"
             disabled={disabled || !canAddMore}
-            aria-label="Прикрепить изображение"
+            aria-label={kind === 'video' ? 'Прикрепить видео' : 'Прикрепить изображение'}
             onClick={() => inputRef.current?.click()}
           >
             <PaperclipIcon />
@@ -57,8 +72,8 @@ export const ChatAttachmentPicker = forwardRef<ChatAttachmentPickerHandle, Props
           ref={inputRef}
           type="file"
           className="visually-hidden"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          multiple
+          accept={ACCEPT_BY_KIND[kind]}
+          multiple={kind === 'image'}
           disabled={disabled || !canAddMore}
           onChange={(e) => {
             const list = e.target.files;
