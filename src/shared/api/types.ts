@@ -127,7 +127,14 @@ export type AbsenceStatsByType = {
 export type AdminStatisticsUser = {
   id: string;
   fullName: string;
-  duties: { month: number; year: number };
+  duties: {
+    month: number;
+    year: number;
+    monthActual: number;
+    monthPlanned: number;
+    yearActual: number;
+    yearPlanned: number;
+  };
   absences: {
     month: number;
     year: number;
@@ -139,6 +146,7 @@ export type AdminStatisticsUser = {
 export type AdminStatisticsResponse = {
   year: number;
   month: number;
+  asOfDate: string;
   users: AdminStatisticsUser[];
 };
 

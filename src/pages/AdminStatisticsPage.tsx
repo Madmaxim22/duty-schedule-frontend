@@ -251,12 +251,20 @@ function UserStatsCard({
 
       <dl className="admin-statistics-page__stats">
         <div className="admin-statistics-page__stat">
-          <dt>Дежурства за месяц</dt>
-          <dd>{user.duties.month}</dd>
+          <dt>Состоялось за месяц</dt>
+          <dd>{user.duties.monthActual}</dd>
+        </div>
+        <div className="admin-statistics-page__stat admin-statistics-page__stat--planned">
+          <dt>Запланировано в месяце</dt>
+          <dd>{user.duties.monthPlanned}</dd>
         </div>
         <div className="admin-statistics-page__stat">
-          <dt>Дежурства за год</dt>
-          <dd>{user.duties.year}</dd>
+          <dt>Состоялось за год</dt>
+          <dd>{user.duties.yearActual}</dd>
+        </div>
+        <div className="admin-statistics-page__stat admin-statistics-page__stat--planned">
+          <dt>Запланировано в году</dt>
+          <dd>{user.duties.yearPlanned}</dd>
         </div>
         <div className="admin-statistics-page__stat admin-statistics-page__stat--absence">
           <dt>Отсутствия за месяц</dt>
@@ -365,7 +373,7 @@ function DutiesTabContent({
   year: number;
   monthNum: number;
 }) {
-  const [sortKey, setSortKey] = useState<StatisticsSortKey>('duties_month');
+  const [sortKey, setSortKey] = useState<StatisticsSortKey>('duties_month_actual');
   const [sortDirection, setSortDirection] =
     useState<StatisticsSortDirection>('desc');
 
@@ -399,8 +407,14 @@ function DutiesTabContent({
   return (
     <>
       <p className="admin-statistics-page__hint">
-        Дежурства — назначенные слоты. Отсутствия — записи из импорта графика с указанной
-        причиной.
+        {data?.asOfDate ? (
+          <>
+            Состоявшиеся дежурства — назначения до{' '}
+            {formatDayLabel(data.asOfDate)} включительно. Запланированные — будущие слоты
+            в выбранном периоде.{' '}
+          </>
+        ) : null}
+        Отсутствия — записи из импорта графика с указанной причиной.
       </p>
 
       {!isLoading && !error && users.length > 0 ? (

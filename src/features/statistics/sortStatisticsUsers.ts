@@ -5,7 +5,11 @@ export type StatisticsSortDirection = 'asc' | 'desc';
 export type StatisticsSortKey =
   | 'name'
   | 'duties_month'
+  | 'duties_month_actual'
+  | 'duties_month_planned'
   | 'duties_year'
+  | 'duties_year_actual'
+  | 'duties_year_planned'
   | 'absences_month'
   | 'absences_year'
   | `absence_type_month:${string}`
@@ -40,8 +44,16 @@ function sortValue(user: AdminStatisticsUser, key: StatisticsSortKey): number | 
       return user.fullName;
     case 'duties_month':
       return user.duties.month;
+    case 'duties_month_actual':
+      return user.duties.monthActual;
+    case 'duties_month_planned':
+      return user.duties.monthPlanned;
     case 'duties_year':
       return user.duties.year;
+    case 'duties_year_actual':
+      return user.duties.yearActual;
+    case 'duties_year_planned':
+      return user.duties.yearPlanned;
     case 'absences_month':
       return user.absences.month;
     case 'absences_year':
@@ -89,8 +101,28 @@ export function buildSortOptions(users: AdminStatisticsUser[]): Array<{
 }> {
   const options: Array<{ value: StatisticsSortKey; label: string; group: string }> = [
     { value: 'name', label: 'По имени', group: 'Общее' },
-    { value: 'duties_month', label: 'Дежурства за месяц', group: 'Дежурства' },
-    { value: 'duties_year', label: 'Дежурства за год', group: 'Дежурства' },
+    { value: 'duties_month', label: 'Дежурства за месяц (всего)', group: 'Дежурства' },
+    {
+      value: 'duties_month_actual',
+      label: 'Состоялось за месяц',
+      group: 'Дежурства',
+    },
+    {
+      value: 'duties_month_planned',
+      label: 'Запланировано в месяце',
+      group: 'Дежурства',
+    },
+    { value: 'duties_year', label: 'Дежурства за год (всего)', group: 'Дежурства' },
+    {
+      value: 'duties_year_actual',
+      label: 'Состоялось за год',
+      group: 'Дежурства',
+    },
+    {
+      value: 'duties_year_planned',
+      label: 'Запланировано в году',
+      group: 'Дежурства',
+    },
     {
       value: 'absences_month',
       label: 'Отсутствия всего за месяц',

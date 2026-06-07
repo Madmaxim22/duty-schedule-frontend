@@ -3119,6 +3119,10 @@ body {
   background: var(--color-status-pending-bg);
 }
 
+.admin-statistics-page__stat--planned {
+  background: color-mix(in srgb, var(--color-secondary-bg) 55%, var(--color-primary) 45%);
+}
+
 .admin-statistics-page__stat dt {
   margin: 0 0 4px;
   font-size: 0.7rem;
