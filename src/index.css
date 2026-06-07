@@ -314,7 +314,7 @@ body {
 
 /* Общая «стеклянная» карточка main: главная (сетка и список) и прочие страницы, кроме чата. */
 .app-shell:not(:has(.chat-page--telegram, .chat-room--telegram)) .app-shell__main {
-  padding: 12px;
+  padding: var(--space-md);
   background: color-mix(in srgb, var(--color-surface) 90%, transparent);
   backdrop-filter: blur(16px) saturate(1.15);
   -webkit-backdrop-filter: blur(16px) saturate(1.15);
@@ -1055,7 +1055,7 @@ body {
 }
 
 .app-shell:has(.home-page) .app-shell__main {
-  padding: 8px;
+  padding: var(--space-md);
 }
 
 .app-shell:has(.home-page--list) .app-shell__main {
