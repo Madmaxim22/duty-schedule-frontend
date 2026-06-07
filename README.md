@@ -110,10 +110,10 @@ npm run dev
 | `/chat` | approved | Список чатов, новый диалог / группа |
 | `/chat/:roomId` | member | Переписка в комнате (WebSocket + REST) |
 | `/notifications` | авторизован | Лента оповещений (в т.ч. ответы админа) |
-| `/settings` | авторизован | Тема, push; в браузере — PWA; в APK — подсказки по Android |
+| `/settings` | авторизован | Тема, push (секция «Уведомления»); в браузере — PWA; в APK — подсказки по Android |
 | `/admin/support` | admin | Обращения пользователей (открытые / закрытые) |
 | `/admin/support/:threadId` | admin | Ответ и закрытие обращения |
-| `/admin/users` | admin | Заявки, список учётных записей, удаление; **Web Push** о новых заявках |
+| `/admin/users` | admin | Заявки, список учётных записей, удаление |
 | `/admin/import` | admin | Импорт графика из JSON |
 | `/admin/changes` | admin | Журнал последних изменений дежурств |
 | `/admin/statistics` | admin | Статистика дежурств и отсутствий по пользователям (месяц / год) |
@@ -132,9 +132,9 @@ npm run dev
 **Секция 1:** 51, 52 (обяз.), 53, 54 (необяз.)  
 **Секция 2:** 31, 32, 33 (обяз.), 34 (необяз.)
 
-## Web Push (админ)
+## Push-уведомления
 
-В меню: **Чаты** — счётчик непрочитанных; **Оповещения** — лента событий (график, лайки, обращения; без дублирования чата); **Настройки** — тема и push (в т.ч. сообщения в чате в системной шторке). Нужны VAPID-ключи в backend `.env` и HTTPS (production). Service worker: `public/sw.js`, manifest: `public/manifest.webmanifest`.
+В меню: **Чаты** — счётчик непрочитанных; **Оповещения** — in-app лента событий (график, лайки, обращения; без дублирования чата); **Настройки → Уведомления** — включение Web Push / FCM (в т.ч. сообщения в чате в системной шторке). Нужны VAPID-ключи в backend `.env` и HTTPS (production). Service worker: `public/sw.js`, manifest: `public/manifest.webmanifest`.
 
 Страница **Настройки** (`/settings`) собирается из секций в `src/features/settings/sections/`:
 
@@ -146,7 +146,7 @@ npm run dev
 | Приложение Android (обновления, системные уведомления) | — | ✓ |
 | Уведомления (Web Push / FCM) | ✓ | ✓ |
 
-Подробнее: [корневой README — Web Push](../README.md#web-push-для-администратора).
+Подробнее: [docs — Web Push](../docs/product/web-push.md).
 
 ## Доступ с телефона
 
