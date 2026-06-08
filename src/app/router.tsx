@@ -24,6 +24,7 @@ import { AdminSupportPage } from '@/pages/AdminSupportPage';
 import { AdminSupportThreadPage } from '@/pages/AdminSupportThreadPage';
 import { ChatPage } from '@/pages/ChatPage';
 import { ChatRoomPage } from '@/pages/ChatRoomPage';
+import { PayrollCalculatorPage } from '@/pages/PayrollCalculatorPage';
 
 export function AppRouter() {
   return (
@@ -40,6 +41,7 @@ export function AppRouter() {
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/updates" element={<UpdatesPage />} />
+              <Route path="/payroll" element={<PayrollCalculatorPage />} />
               <Route path="/duty-swaps" element={<DutySwapsPage />} />
               <Route path="/support" element={<SupportPage />} />
               <Route path="/support/:threadId" element={<SupportThreadPage />} />

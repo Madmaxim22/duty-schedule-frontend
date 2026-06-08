@@ -379,6 +379,11 @@ export function HomePage() {
                 </Link>
               </li>
             ) : null}
+            <li>
+              <Link to="/payroll" className="side-menu__action" onClick={closeMenu}>
+                Калькулятор довольствия
+              </Link>
+            </li>
           </ul>
           {isAdmin ? (
             <ul className="side-menu__actions">

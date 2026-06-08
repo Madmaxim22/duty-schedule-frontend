@@ -111,6 +111,7 @@ npm run dev
 | `/chat/:roomId` | member | Переписка в комнате (WebSocket + REST) |
 | `/notifications` | авторизован | Лента оповещений (в т.ч. ответы админа) |
 | `/settings` | авторизован | Тема, push (секция «Уведомления»); в браузере — PWA; в APK — подсказки по Android |
+| `/payroll` | авторизован | Калькулятор денежного довольствия (приказ Росгвардии №472) |
 | `/admin/support` | admin | Обращения пользователей (открытые / закрытые) |
 | `/admin/support/:threadId` | admin | Ответ и закрытие обращения |
 | `/admin/users` | admin | Заявки, список учётных записей, удаление |
@@ -205,6 +206,15 @@ cd ../duty-schedule-backend
 docker compose up -d --build
 ```
 
+## Калькулятор денежного довольствия
+
+Маршрут **`/payroll`** — встроенный справочный расчёт по приказу Росгвардии №472 (ред. 15.10.2025). Логика и справочники в `src/features/payroll/` (исходный проект: [rosgvardiya-payroll-calculator](https://github.com/madmaxim22/rosgvardiya-payroll-calculator)).
+
+- Доступен всем авторизованным пользователям (пункт **«Калькулятор довольствия»** в боковом меню).
+- Расчёт полностью в браузере, без запросов к API.
+- Введённые данные сохраняются в `localStorage` (`duty-payroll-input`).
+- Стили адаптированы под темы Duty (indigo / teal / …).
+
 ## Структура проекта
 
 ```
@@ -215,8 +225,9 @@ duty-schedule-frontend/
 │   │   ├── auth/         # AuthContext
 │   │   ├── calendar/     # DutyCalendar
 │   │   ├── day-detail/   # модалка дня
+│   │   ├── payroll/      # калькулятор довольствия (engine, data, UI)
 │   │   └── settings/     # тема, PWA; sections/ — секции страницы настроек
-│   ├── pages/            # Login, Register, Home, Admin, EditDay
+│   ├── pages/            # Login, Register, Home, Admin, EditDay, Payroll
 │   └── shared/
 │       ├── api/          # client, types
 │       ├── constants/    # offices.ts
