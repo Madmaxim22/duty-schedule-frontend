@@ -32,7 +32,12 @@ import { ChatDeleteMessageModal } from './ChatDeleteMessageModal';
 import { ChatMessageOverlay, type ChatMessageMenuAnchor } from './ChatMessageOverlay';
 import { ChatReplyComposerBar } from './ChatReplyComposerBar';
 import { scrollToChatMessage } from './chatScrollToMessage';
-import { MIXED_MEDIA_ERROR, isVideoFile, wouldMixMediaKinds } from './chatAttachmentUtils';
+import {
+  getChatAttachmentSizeError,
+  MIXED_MEDIA_ERROR,
+  isVideoFile,
+  wouldMixMediaKinds,
+} from './chatAttachmentUtils';
 import { groupMessagesByDate } from './chatMessageGroups';
 import { getDirectPeerLastReadAt } from './chatMessageMenuActions';
 import { formatTypingLabel } from './formatTypingLabel';
@@ -402,10 +407,24 @@ export function ChatRoomView({ roomId }: Props) {
   const handleFilesSelected = useCallback(
     (files: File[]) => {
       if (files.length === 0) return;
+
+      const accepted: File[] = [];
+      let sizeError: string | null = null;
+      for (const file of files) {
+        const error = getChatAttachmentSizeError(file);
+        if (error) {
+          sizeError ??= error;
+          continue;
+        }
+        accepted.push(file);
+      }
+      if (sizeError) setToast(sizeError);
+      if (accepted.length === 0) return;
+
       setPendingFiles((prev) => {
         const keptCount = editTarget ? keptAttachmentIds.length : 0;
         const maxTotal = MAX_CHAT_ATTACHMENTS - keptCount;
-        const next = [...prev, ...files].slice(0, maxTotal);
+        const next = [...prev, ...accepted].slice(0, maxTotal);
         const keptAttachments =
           editTarget?.attachments?.filter((attachment) =>
             keptAttachmentIds.includes(attachment.id),

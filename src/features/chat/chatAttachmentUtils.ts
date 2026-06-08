@@ -36,7 +36,28 @@ export function formatVideoDuration(durationMs?: number): string | null {
   return `${min}:${sec.toString().padStart(2, '0')}`;
 }
 
+export const MAX_CHAT_IMAGE_ATTACHMENT_SIZE = 8_388_608;
+export const MAX_CHAT_VIDEO_ATTACHMENT_SIZE = 83_886_080;
+
 export const MIXED_MEDIA_ERROR = 'Фото и видео нельзя отправить в одном сообщении';
+
+const CHAT_VIDEO_SIZE_LIMIT_MB = Math.round(MAX_CHAT_VIDEO_ATTACHMENT_SIZE / 1024 / 1024);
+
+export function getChatAttachmentSizeError(file: File): string | null {
+  if (isVideoFile(file)) {
+    if (file.size > MAX_CHAT_VIDEO_ATTACHMENT_SIZE) {
+      return `Видео не должно превышать ${CHAT_VIDEO_SIZE_LIMIT_MB} МБ`;
+    }
+    return null;
+  }
+  if (isImageFile(file)) {
+    if (file.size > MAX_CHAT_IMAGE_ATTACHMENT_SIZE) {
+      return 'Изображение слишком большое';
+    }
+    return null;
+  }
+  return null;
+}
 
 export function wouldMixMediaKinds(input: {
   pendingFiles: File[];
