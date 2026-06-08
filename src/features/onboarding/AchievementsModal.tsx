@@ -37,7 +37,7 @@ export function AchievementsModal({ achievements, onClose, onSeen }: Props) {
       }
     >
       <div className="onboarding-modal">
-        <p className="onboarding-modal__lead">Новые достижения за месяц:</p>
+        <p className="onboarding-modal__lead">За этот месяц:</p>
         <ul className="achievement-list">
           {achievements.unseen.map((item) => (
             <li key={item.id} className="achievement-list__item">
