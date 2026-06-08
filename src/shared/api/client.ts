@@ -1,3 +1,4 @@
+import { resolveApiErrorMessage } from '@/shared/api/errors';
 import type {
   PhotoLikeStatus,
   UpdatePhotoFocusResponse,
@@ -76,11 +77,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
 
   if (!response.ok) {
     const payload = data as Record<string, unknown>;
-    throw new ApiError(
-      (payload.message as string | undefined) ?? 'Ошибка запроса',
-      response.status,
-      payload,
-    );
+    throw new ApiError(resolveApiErrorMessage(response.status, payload), response.status, payload);
   }
 
   return data as T;
@@ -128,7 +125,7 @@ export async function apiMultipartRequestWithProgress<T>(
       try {
         data = xhr.responseText ? (JSON.parse(xhr.responseText) as Record<string, unknown>) : {};
       } catch {
-        reject(new ApiError('Ошибка запроса', xhr.status));
+        reject(new ApiError(resolveApiErrorMessage(xhr.status), xhr.status));
         return;
       }
 
@@ -137,16 +134,10 @@ export async function apiMultipartRequestWithProgress<T>(
         return;
       }
 
-      reject(
-        new ApiError(
-          (data.message as string | undefined) ?? 'Ошибка запроса',
-          xhr.status,
-          data,
-        ),
-      );
+      reject(new ApiError(resolveApiErrorMessage(xhr.status, data), xhr.status, data));
     };
 
-    xhr.onerror = () => reject(new ApiError('Ошибка сети', 0));
+    xhr.onerror = () => reject(new ApiError(resolveApiErrorMessage(0), 0));
     xhr.send(formData);
   });
 }

@@ -41,6 +41,7 @@ export const MAX_CHAT_VIDEO_ATTACHMENT_SIZE = 83_886_080;
 
 export const MIXED_MEDIA_ERROR = 'Фото и видео нельзя отправить в одном сообщении';
 
+const CHAT_IMAGE_SIZE_LIMIT_MB = Math.round(MAX_CHAT_IMAGE_ATTACHMENT_SIZE / 1024 / 1024);
 const CHAT_VIDEO_SIZE_LIMIT_MB = Math.round(MAX_CHAT_VIDEO_ATTACHMENT_SIZE / 1024 / 1024);
 
 export function getChatAttachmentSizeError(file: File): string | null {
@@ -52,7 +53,7 @@ export function getChatAttachmentSizeError(file: File): string | null {
   }
   if (isImageFile(file)) {
     if (file.size > MAX_CHAT_IMAGE_ATTACHMENT_SIZE) {
-      return 'Изображение слишком большое';
+      return `Изображение не больше ${CHAT_IMAGE_SIZE_LIMIT_MB} МБ`;
     }
     return null;
   }

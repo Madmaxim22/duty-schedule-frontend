@@ -13,6 +13,7 @@ import {
   setChatMessageReaction,
   uploadChatAttachments,
 } from '@/shared/api/chat';
+import { getUserFacingApiError } from '@/shared/api/errors';
 import type { ChatDeleteMessageMode, ChatMessage } from '@/shared/api/types';
 import { useAuth } from '@/features/auth/AuthContext';
 import { AvatarPreviewModal } from '@/features/day-detail/AvatarPreviewModal';
@@ -268,7 +269,7 @@ export function ChatRoomView({ roomId }: Props) {
     },
     onError: (e: Error) => {
       setUploadProgress(null);
-      setError(e.message);
+      setToast(getUserFacingApiError(e));
     },
   });
 
@@ -308,7 +309,7 @@ export function ChatRoomView({ roomId }: Props) {
     },
     onError: (e: Error) => {
       setUploadProgress(null);
-      setError(e.message);
+      setToast(getUserFacingApiError(e));
     },
   });
 
