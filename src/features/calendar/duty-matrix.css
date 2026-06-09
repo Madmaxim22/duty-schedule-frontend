@@ -62,14 +62,15 @@
   flex: 1;
   min-width: 0;
   min-height: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
 
 .duty-matrix__table {
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
+  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 0.8125rem;
@@ -88,7 +89,7 @@
   top: 0;
   left: 0;
   z-index: 3;
-  min-width: clamp(7rem, 18vw, 11rem);
+  width: clamp(7rem, 18vw, 11rem);
   background: var(--color-secondary-bg);
   font-weight: 600;
   color: var(--color-muted);
@@ -100,8 +101,8 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  min-width: clamp(2.25rem, 5vw, 3rem);
-  padding: 6px 4px;
+  min-width: 0;
+  padding: var(--space-sm) 4px 6px;
   text-align: center;
   background: var(--color-surface);
   font-weight: 600;
@@ -172,6 +173,7 @@
 }
 
 .duty-matrix__table td {
+  overflow: hidden;
   background: var(--color-surface);
 }
 
@@ -187,8 +189,8 @@
   position: sticky;
   left: 0;
   z-index: 1;
-  min-width: clamp(7rem, 18vw, 11rem);
-  max-width: clamp(7rem, 18vw, 11rem);
+  width: clamp(7rem, 18vw, 11rem);
+  min-width: 0;
   padding: 6px 10px;
   background: var(--color-surface);
   font-weight: 500;
@@ -204,7 +206,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-width: clamp(2.25rem, 5vw, 3rem);
+  min-width: 0;
   min-height: 2.5rem;
   padding: 4px;
   border: none;
@@ -420,9 +422,3 @@
   border: 1px solid var(--color-darkest);
 }
 
-@media (min-width: 48rem) {
-  .duty-matrix__date-head,
-  .duty-matrix__cell-btn {
-    min-width: clamp(2.5rem, 4vw, 3.25rem);
-  }
-}
