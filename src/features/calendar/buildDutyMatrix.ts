@@ -12,6 +12,7 @@ import {
   type MatrixCellData,
   type MatrixColumn,
   type MatrixRow,
+  type MatrixRowSegment,
 } from './types/matrix';
 
 export type SlotValue = {
@@ -142,6 +143,14 @@ function pickPrimaryAssignment(
   return { primary, extra };
 }
 
+function buildAbsenceMap(schedule: MonthSchedule): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const absence of schedule.absences ?? []) {
+    map.set(matrixCellKey(absence.userId, absence.date), absence.absenceType);
+  }
+  return map;
+}
+
 export function buildDutyMatrix(input: {
   columns: MatrixColumn[];
   schedule: MonthSchedule;
@@ -151,6 +160,7 @@ export function buildDutyMatrix(input: {
 }): DutyMatrixModel {
   const { columns, schedule, approvedUsers, currentUserId, isAdmin } = input;
   const daysByDate = new Map(schedule.days.map((d) => [d.date, d]));
+  const absenceMap = buildAbsenceMap(schedule);
   const rows = buildRows(schedule, isAdmin ? approvedUsers : undefined, currentUserId);
 
   const cells = new Map<string, MatrixCellData>();
@@ -158,14 +168,64 @@ export function buildDutyMatrix(input: {
     for (const col of columns) {
       const day = daysByDate.get(col.date);
       const { primary, extra } = pickPrimaryAssignment(day?.duties ?? [], row.userId);
+      const absenceType = absenceMap.get(matrixCellKey(row.userId, col.date));
       cells.set(matrixCellKey(row.userId, col.date), {
         date: col.date,
         userId: row.userId,
-        assignment: primary,
-        extraOffices: extra.length > 0 ? extra : undefined,
+        assignment: absenceType ? null : primary,
+        extraOffices: absenceType ? undefined : extra.length > 0 ? extra : undefined,
+        absenceType,
       });
     }
   }
 
   return { rows, columns, cells };
+}
+
+export function buildMatrixRowSegments(
+  userId: string,
+  columns: MatrixColumn[],
+  cells: Map<string, MatrixCellData>,
+): MatrixRowSegment[] {
+  const segments: MatrixRowSegment[] = [];
+  let index = 0;
+
+  while (index < columns.length) {
+    const column = columns[index];
+    const cell = cells.get(matrixCellKey(userId, column.date));
+    const absenceType = cell?.absenceType;
+
+    if (absenceType) {
+      const run: MatrixColumn[] = [column];
+      let next = index + 1;
+
+      while (next < columns.length) {
+        const nextColumn = columns[next];
+        const nextCell = cells.get(matrixCellKey(userId, nextColumn.date));
+        if (nextCell?.absenceType === absenceType) {
+          run.push(nextColumn);
+          next += 1;
+        } else {
+          break;
+        }
+      }
+
+      segments.push({ type: 'absence', columns: run, absenceType });
+      index = next;
+      continue;
+    }
+
+    segments.push({
+      type: 'duty',
+      column,
+      cell: cell ?? {
+        date: column.date,
+        userId,
+        assignment: null,
+      },
+    });
+    index += 1;
+  }
+
+  return segments;
 }

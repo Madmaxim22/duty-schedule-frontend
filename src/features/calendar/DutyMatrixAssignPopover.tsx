@@ -1,7 +1,14 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/shared/api/client';
 import type { ApprovedUserForAssign } from '@/shared/api/types';
+import {
+  ABSENCE_TYPE_OTHER,
+  ABSENCE_TYPES,
+} from '@/features/absences/constants';
 import { DUTY_SECTIONS } from '@/shared/constants/offices';
+import { Button } from '@/shared/ui/Button';
+import { Input } from '@/shared/ui/Input';
 import type { SlotValue } from './buildDutyMatrix';
 
 type Props = {
@@ -13,6 +20,10 @@ type Props = {
   onClear: () => void;
   onClose: () => void;
   hasAssignment: boolean;
+  absenceType?: string;
+  onMarkAbsent: (absenceType: string) => void;
+  onRemoveAbsent: () => void;
+  isSaving?: boolean;
 };
 
 export function DutyMatrixAssignPopover({
@@ -24,7 +35,14 @@ export function DutyMatrixAssignPopover({
   onClear,
   onClose,
   hasAssignment,
+  absenceType,
+  onMarkAbsent,
+  onRemoveAbsent,
+  isSaving = false,
 }: Props) {
+  const [typePreset, setTypePreset] = useState<string>(ABSENCE_TYPES[0]);
+  const [customType, setCustomType] = useState('');
+
   const { data, isLoading } = useQuery({
     queryKey: ['users', 'approved', date],
     queryFn: () =>
@@ -32,10 +50,14 @@ export function DutyMatrixAssignPopover({
   });
 
   const targetUser = data?.users.find((u) => u.id === userId);
-  const isAbsent = targetUser?.isAbsent ?? false;
+  const isAbsent = Boolean(absenceType ?? targetUser?.isAbsent);
+  const resolvedAbsenceType = absenceType ?? targetUser?.absenceType;
   const freeSlotKeys = new Set(
     freeSlots.map((slot) => `${slot.section}-${slot.office}`),
   );
+
+  const selectedType =
+    typePreset === ABSENCE_TYPE_OTHER ? customType.trim() : typePreset;
 
   const title = new Date(`${date}T12:00:00`).toLocaleDateString('ru-RU', {
     day: 'numeric',
@@ -61,11 +83,21 @@ export function DutyMatrixAssignPopover({
       {isLoading ? <p className="duty-matrix-popover__hint">Загрузка…</p> : null}
 
       {!isLoading && isAbsent ? (
-        <p className="duty-matrix-popover__error">
-          {targetUser?.absenceType
-            ? `${userName} отсутствует (${targetUser.absenceType})`
-            : `${userName} отсутствует в этот день`}
-        </p>
+        <>
+          <p className="duty-matrix-popover__error">
+            {resolvedAbsenceType
+              ? `${userName} отсутствует (${resolvedAbsenceType})`
+              : `${userName} отсутствует в этот день`}
+          </p>
+          <button
+            type="button"
+            className="duty-matrix-popover__clear"
+            disabled={isSaving}
+            onClick={onRemoveAbsent}
+          >
+            {isSaving ? 'Сохранение…' : 'Снять отсутствие'}
+          </button>
+        </>
       ) : null}
 
       {!isLoading && !isAbsent ? (
@@ -81,7 +113,7 @@ export function DutyMatrixAssignPopover({
                       <button
                         type="button"
                         className="duty-matrix-popover__slot-btn"
-                        disabled={!isFree}
+                        disabled={!isFree || isSaving}
                         onClick={() => onAssign(section.id, office.code)}
                       >
                         {office.code}
@@ -98,10 +130,48 @@ export function DutyMatrixAssignPopover({
           ) : null}
 
           {hasAssignment ? (
-            <button type="button" className="duty-matrix-popover__clear" onClick={onClear}>
+            <button
+              type="button"
+              className="duty-matrix-popover__clear"
+              disabled={isSaving}
+              onClick={onClear}
+            >
               Снять дежурство
             </button>
           ) : null}
+
+          <div className="duty-matrix-popover__absence-form">
+            <p className="duty-matrix-popover__hint">Или отметить отсутствие</p>
+            <select
+              className="duty-matrix-popover__select"
+              value={typePreset}
+              disabled={isSaving}
+              onChange={(e) => setTypePreset(e.target.value)}
+            >
+              {ABSENCE_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+              <option value={ABSENCE_TYPE_OTHER}>{ABSENCE_TYPE_OTHER}</option>
+            </select>
+            {typePreset === ABSENCE_TYPE_OTHER ? (
+              <Input
+                label="Тип"
+                value={customType}
+                disabled={isSaving}
+                onChange={(e) => setCustomType(e.target.value)}
+                placeholder="Например: Отгул"
+              />
+            ) : null}
+            <Button
+              variant="secondary"
+              disabled={!selectedType || isSaving}
+              onClick={() => onMarkAbsent(selectedType)}
+            >
+              {isSaving ? 'Сохранение…' : 'Отметить отсутствие'}
+            </Button>
+          </div>
         </>
       ) : null}
     </div>

@@ -12,9 +12,14 @@ import { Modal } from '@/shared/ui/Modal';
 import {
   buildColumnsForRange,
   buildDutyMatrix,
+  buildMatrixRowSegments,
   computeIncompleteDates,
 } from './buildDutyMatrix';
 import { DutyMatrixAssignPopover } from './DutyMatrixAssignPopover';
+import {
+  useDeleteAbsencesMutation,
+  useUpsertAbsencesMutation,
+} from '@/features/absences/useAbsences';
 import { useDutyMatrixEditor } from './useDutyMatrixEditor';
 import { matrixCellKey, type MatrixAssignment, type MatrixColumn } from './types/matrix';
 import { useMatrixDayWindow } from './useMatrixDayWindow';
@@ -36,6 +41,7 @@ function getMonthKeysInRange(windowStart: string, visibleDays: number) {
 
 function mergeSchedules(schedules: MonthSchedule[], isAdmin: boolean): MonthSchedule {
   const days = schedules.flatMap((s) => s.days);
+  const absences = schedules.flatMap((s) => s.absences ?? []);
   const incompleteDates = isAdmin
     ? schedules.flatMap((s) => s.monthCoverage?.incompleteDates ?? [])
     : [];
@@ -45,6 +51,7 @@ function mergeSchedules(schedules: MonthSchedule[], isAdmin: boolean): MonthSche
     year: first?.year ?? 0,
     month: first?.month ?? 0,
     days,
+    absences,
     monthCoverage: isAdmin
       ? { allComplete: incompleteDates.length === 0, incompleteDates }
       : undefined,
@@ -77,6 +84,7 @@ type AssignTarget = {
   userId: string;
   userName: string;
   hasAssignment: boolean;
+  absenceType?: string;
 };
 
 type Props = {
@@ -107,6 +115,8 @@ export function DutyMatrixView({
   });
 
   const editor = useDutyMatrixEditor();
+  const upsertAbsenceMutation = useUpsertAbsencesMutation();
+  const deleteAbsenceMutation = useDeleteAbsencesMutation();
   const { windowStart, visibleDays, goPrev, goNext } = useMatrixDayWindow({ month });
 
   const monthKeys = useMemo(
@@ -196,6 +206,46 @@ export function DutyMatrixView({
     }
   }, [assignTarget, editor]);
 
+  const handleMarkAbsent = useCallback(
+    async (absenceType: string) => {
+      if (!assignTarget) return;
+      setActionError(null);
+      try {
+        await upsertAbsenceMutation.mutateAsync({
+          userId: assignTarget.userId,
+          dateFrom: assignTarget.date,
+          dateTo: assignTarget.date,
+          absenceType,
+        });
+        setAssignTarget(null);
+      } catch (err) {
+        setActionError((err as Error).message);
+      }
+    },
+    [assignTarget, upsertAbsenceMutation],
+  );
+
+  const handleRemoveAbsent = useCallback(async () => {
+    if (!assignTarget) return;
+    setActionError(null);
+    try {
+      await deleteAbsenceMutation.mutateAsync({
+        userId: assignTarget.userId,
+        dateFrom: assignTarget.date,
+        dateTo: assignTarget.date,
+      });
+      setAssignTarget(null);
+    } catch (err) {
+      setActionError((err as Error).message);
+    }
+  }, [assignTarget, deleteAbsenceMutation]);
+
+  const isUserAbsentOnDate = useCallback(
+    (userId: string, date: string) =>
+      Boolean(model.cells.get(matrixCellKey(userId, date))?.absenceType),
+    [model.cells],
+  );
+
   const handleDrop = useCallback(
     async (payload: DragPayload, targetUserId: string, targetDate: string) => {
       setActionError(null);
@@ -204,6 +254,16 @@ export function DutyMatrixView({
 
       if (!isAdmin) return;
       if (payload.userId === targetUserId && payload.date === targetDate) return;
+
+      if (isUserAbsentOnDate(targetUserId, targetDate)) {
+        const absenceType = model.cells.get(matrixCellKey(targetUserId, targetDate))?.absenceType;
+        setActionError(
+          absenceType
+            ? `Сотрудник отсутствует (${absenceType})`
+            : 'Сотрудник отсутствует в этот день',
+        );
+        return;
+      }
 
       try {
         const targetSlot = editor.findSlotForUser(targetDate, targetUserId);
@@ -230,7 +290,7 @@ export function DutyMatrixView({
         setActionError((err as Error).message);
       }
     },
-    [editor, isAdmin],
+    [editor, isAdmin, isUserAbsentOnDate, model.cells],
   );
 
   const onCellClick = (
@@ -239,6 +299,7 @@ export function DutyMatrixView({
     userName: string,
     assignment: MatrixAssignment | null,
     extraOffices?: string[],
+    absenceType?: string,
   ) => {
     if (isAdmin) {
       setAssignTarget({
@@ -246,6 +307,7 @@ export function DutyMatrixView({
         userId,
         userName,
         hasAssignment: Boolean(assignment || extraOffices?.length),
+        absenceType,
       });
       return;
     }
@@ -336,124 +398,172 @@ export function DutyMatrixView({
             </tr>
           </thead>
           <tbody>
-            {model.rows.map((row) => (
-              <tr key={row.userId}>
-                <th className="duty-matrix__user" scope="row" title={row.fullName}>
-                  {formatSurnameWithInitials(row.fullName)}
-                </th>
-                {model.columns.map((col) => {
-                  const cell = model.cells.get(matrixCellKey(row.userId, col.date));
-                  const assignment = cell?.assignment ?? null;
-                  const cellKey = matrixCellKey(row.userId, col.date);
-                  const isMy =
-                    row.userId === currentUserId && Boolean(assignment);
-                  const isSaving = editor.savingDates.has(col.date);
-                  const label = assignment?.officeLabel ?? '';
-                  const extra = cell?.extraOffices;
+            {model.rows.map((row) => {
+              const segments = buildMatrixRowSegments(row.userId, model.columns, model.cells);
 
-                  const btnClass = [
-                    'duty-matrix__cell-btn',
-                    assignment ? 'duty-matrix__cell-btn--filled' : '',
-                    isMy ? 'duty-matrix__cell-btn--my' : '',
-                    isAdmin ? 'duty-matrix__cell-btn--clickable' : '',
-                    dragOverKey === cellKey ? 'duty-matrix__cell-btn--drag-over' : '',
-                    draggingKey === cellKey ? 'duty-matrix__cell-btn--dragging' : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' ');
+              return (
+                <tr key={row.userId}>
+                  <th className="duty-matrix__user" scope="row" title={row.fullName}>
+                    {formatSurnameWithInitials(row.fullName)}
+                  </th>
+                  {segments.map((segment) => {
+                    if (segment.type === 'absence') {
+                      const firstCol = segment.columns[0];
+                      const lastCol = segment.columns[segment.columns.length - 1];
+                      const rangeLabel =
+                        segment.columns.length === 1
+                          ? `${firstCol.dayNum}`
+                          : `${firstCol.dayNum}–${lastCol.dayNum}`;
 
-                  const payload: DragPayload | null = assignment
-                    ? {
-                        date: col.date,
-                        userId: row.userId,
-                        section: assignment.section,
-                        office: assignment.office,
-                      }
-                    : null;
-
-                  return (
-                    <td key={col.date} className={getDateCellClass(col)}>
-                      <button
-                        type="button"
-                        className={btnClass}
-                        disabled={isSaving}
-                        draggable={isAdmin && Boolean(payload)}
-                        title={
-                          extra?.length
-                            ? `Также: ${extra.join(', ')}`
-                            : undefined
-                        }
-                        onClick={() =>
-                          onCellClick(
-                            col.date,
-                            row.userId,
-                            row.fullName,
-                            assignment,
-                            extra,
-                          )
-                        }
-                        onDragStart={(e) => {
-                          if (!payload) return;
-                          e.dataTransfer.setData(
-                            'application/duty-matrix',
-                            JSON.stringify(payload),
-                          );
-                          e.dataTransfer.effectAllowed = 'move';
-                          startDrag(cellKey);
-                        }}
-                        onDragEnd={() => {
-                          setDraggingKey(null);
-                          setDragOverKey(null);
-                        }}
-                        onDragOver={(e) => {
-                          if (!isAdmin) return;
-                          e.preventDefault();
-                          e.dataTransfer.dropEffect = 'move';
-                          setDragOverKey(cellKey);
-                        }}
-                        onDragLeave={() => {
-                          if (dragOverKey === cellKey) setDragOverKey(null);
-                        }}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          const raw = e.dataTransfer.getData('application/duty-matrix');
-                          if (!raw) return;
-                          try {
-                            const data = JSON.parse(raw) as DragPayload;
-                            void handleDrop(data, row.userId, col.date);
-                          } catch {
-                            /* ignore */
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (!isAdmin || !payload) return;
-                          if (e.key === 'Enter' || e.key === ' ') {
+                      return (
+                        <td
+                          key={`${row.userId}-${firstCol.date}-absence`}
+                          colSpan={segment.columns.length}
+                          className="duty-matrix__cell--absent"
+                          onDragOver={(e) => {
+                            if (!isAdmin) return;
                             e.preventDefault();
-                            if (keyboardPick) {
-                              void handleDrop(keyboardPick, row.userId, col.date);
-                              setKeyboardPick(null);
-                            } else {
-                              setKeyboardPick(payload);
+                            e.dataTransfer.dropEffect = 'none';
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            setActionError(`Сотрудник отсутствует (${segment.absenceType})`);
+                          }}
+                        >
+                          <button
+                            type="button"
+                            className={`duty-matrix__absence${isAdmin ? ' duty-matrix__absence--clickable' : ''}`}
+                            title={segment.absenceType}
+                            aria-label={`${row.fullName}, ${rangeLabel}: ${segment.absenceType}`}
+                            disabled={!isAdmin}
+                            onClick={() =>
+                              onCellClick(
+                                firstCol.date,
+                                row.userId,
+                                row.fullName,
+                                null,
+                                undefined,
+                                segment.absenceType,
+                              )
                             }
-                          }
-                          if (e.key === 'Escape') setKeyboardPick(null);
-                        }}
-                        aria-label={
-                          assignment
-                            ? `${row.fullName}, ${col.dayNum}: кабинет ${label}`
-                            : `${row.fullName}, ${col.dayNum}: нет дежурства`
+                          >
+                            <span className="duty-matrix__absence-label">
+                              {segment.absenceType}
+                            </span>
+                          </button>
+                        </td>
+                      );
+                    }
+
+                    const { column: col, cell } = segment;
+                    const assignment = cell.assignment ?? null;
+                    const cellKey = matrixCellKey(row.userId, col.date);
+                    const isMy = row.userId === currentUserId && Boolean(assignment);
+                    const isSaving = editor.savingDates.has(col.date);
+                    const label = assignment?.officeLabel ?? '';
+                    const extra = cell.extraOffices;
+
+                    const btnClass = [
+                      'duty-matrix__cell-btn',
+                      assignment ? 'duty-matrix__cell-btn--filled' : '',
+                      isMy ? 'duty-matrix__cell-btn--my' : '',
+                      isAdmin ? 'duty-matrix__cell-btn--clickable' : '',
+                      dragOverKey === cellKey ? 'duty-matrix__cell-btn--drag-over' : '',
+                      draggingKey === cellKey ? 'duty-matrix__cell-btn--dragging' : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ');
+
+                    const payload: DragPayload | null = assignment
+                      ? {
+                          date: col.date,
+                          userId: row.userId,
+                          section: assignment.section,
+                          office: assignment.office,
                         }
-                      >
-                        {label || '—'}
-                        {extra?.length ? (
-                          <span className="duty-matrix__extra">+{extra.join('+')}</span>
-                        ) : null}
-                      </button>
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
+                      : null;
+
+                    return (
+                      <td key={col.date} className={getDateCellClass(col)}>
+                        <button
+                          type="button"
+                          className={btnClass}
+                          disabled={isSaving}
+                          draggable={isAdmin && Boolean(payload)}
+                          title={extra?.length ? `Также: ${extra.join(', ')}` : undefined}
+                          onClick={() =>
+                            onCellClick(
+                              col.date,
+                              row.userId,
+                              row.fullName,
+                              assignment,
+                              extra,
+                              cell.absenceType,
+                            )
+                          }
+                          onDragStart={(e) => {
+                            if (!payload) return;
+                            e.dataTransfer.setData(
+                              'application/duty-matrix',
+                              JSON.stringify(payload),
+                            );
+                            e.dataTransfer.effectAllowed = 'move';
+                            startDrag(cellKey);
+                          }}
+                          onDragEnd={() => {
+                            setDraggingKey(null);
+                            setDragOverKey(null);
+                          }}
+                          onDragOver={(e) => {
+                            if (!isAdmin) return;
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'move';
+                            setDragOverKey(cellKey);
+                          }}
+                          onDragLeave={() => {
+                            if (dragOverKey === cellKey) setDragOverKey(null);
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const raw = e.dataTransfer.getData('application/duty-matrix');
+                            if (!raw) return;
+                            try {
+                              const data = JSON.parse(raw) as DragPayload;
+                              void handleDrop(data, row.userId, col.date);
+                            } catch {
+                              /* ignore */
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (!isAdmin || !payload) return;
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              if (keyboardPick) {
+                                void handleDrop(keyboardPick, row.userId, col.date);
+                                setKeyboardPick(null);
+                              } else {
+                                setKeyboardPick(payload);
+                              }
+                            }
+                            if (e.key === 'Escape') setKeyboardPick(null);
+                          }}
+                          aria-label={
+                            assignment
+                              ? `${row.fullName}, ${col.dayNum}: кабинет ${label}`
+                              : `${row.fullName}, ${col.dayNum}: нет дежурства`
+                          }
+                        >
+                          {label || '—'}
+                          {extra?.length ? (
+                            <span className="duty-matrix__extra">+{extra.join('+')}</span>
+                          ) : null}
+                        </button>
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
           </tbody>
           </table>
         </div>
@@ -474,8 +584,14 @@ export function DutyMatrixView({
                 userName={assignTarget.userName}
                 freeSlots={freeSlots}
                 hasAssignment={assignTarget.hasAssignment}
+                absenceType={assignTarget.absenceType}
+                isSaving={
+                  upsertAbsenceMutation.isPending || deleteAbsenceMutation.isPending
+                }
                 onAssign={(section, office) => void handleAssign(section, office)}
                 onClear={() => void handleClear()}
+                onMarkAbsent={(type) => void handleMarkAbsent(type)}
+                onRemoveAbsent={() => void handleRemoveAbsent()}
                 onClose={() => setAssignTarget(null)}
               />
             </>,

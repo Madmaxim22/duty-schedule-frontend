@@ -27,7 +27,22 @@ export type MatrixCellData = {
   userId: string;
   assignment: MatrixAssignment | null;
   extraOffices?: string[];
+  absenceType?: string;
 };
+
+export type MatrixDutySegment = {
+  type: 'duty';
+  column: MatrixColumn;
+  cell: MatrixCellData;
+};
+
+export type MatrixAbsenceSegment = {
+  type: 'absence';
+  columns: MatrixColumn[];
+  absenceType: string;
+};
+
+export type MatrixRowSegment = MatrixDutySegment | MatrixAbsenceSegment;
 
 export type DutyMatrixModel = {
   rows: MatrixRow[];

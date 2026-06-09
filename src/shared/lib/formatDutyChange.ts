@@ -31,5 +31,6 @@ export function formatDutyDate(dateStr: string): string {
 export function formatChangeSource(source: DutyAssignmentChangeItem['source']): string {
   if (source === 'import') return 'Импорт';
   if (source === 'swap') return 'Смена';
+  if (source === 'absence') return 'Отсутствие';
   return 'Вручную';
 }

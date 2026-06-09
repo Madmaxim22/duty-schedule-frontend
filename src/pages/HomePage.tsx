@@ -361,6 +361,9 @@ export function HomePage() {
             <span className="home-page__legend-item home-page__legend-item--matrix-holiday">
               Праздник
             </span>
+            <span className="home-page__legend-item home-page__legend-item--absent">
+              Отсутствие
+            </span>
           </>
         ) : (
           <>
@@ -452,6 +455,11 @@ export function HomePage() {
               <li>
                 <Link to="/admin/import" className="side-menu__action" onClick={closeMenu}>
                   Импорт графика
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/absences" className="side-menu__action" onClick={closeMenu}>
+                  Отсутствия
                 </Link>
               </li>
               <li>

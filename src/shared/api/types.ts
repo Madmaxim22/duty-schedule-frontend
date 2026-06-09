@@ -47,10 +47,17 @@ export type MonthCoverage = {
   incompleteDates: string[];
 };
 
+export type MonthAbsence = {
+  userId: string;
+  date: string;
+  absenceType: string;
+};
+
 export type MonthSchedule = {
   year: number;
   month: number;
   days: MonthDay[];
+  absences?: MonthAbsence[];
   monthCoverage?: MonthCoverage;
 };
 
@@ -97,8 +104,26 @@ export type ScheduleImportResult = {
   unknownFio: string[];
 };
 
+export type AbsenceRecord = {
+  userId: string;
+  fullName: string;
+  date: string;
+  absenceType: string;
+};
+
+export type UpsertAbsencesResult = {
+  upserted: number;
+  dutiesRemoved: number;
+  affectedDates: string[];
+  revisionsBumped: string[];
+};
+
+export type DeleteAbsencesResult = {
+  deleted: number;
+};
+
 export type DutyChangeType = 'assigned' | 'removed' | 'replaced';
-export type DutyChangeSource = 'import' | 'manual' | 'swap';
+export type DutyChangeSource = 'import' | 'manual' | 'swap' | 'absence';
 
 export type DutyAssignmentChangeItem = {
   id: string;

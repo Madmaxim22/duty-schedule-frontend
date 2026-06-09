@@ -13,6 +13,7 @@ import { HomePage } from '@/pages/HomePage';
 import { AdminUsersPage } from '@/pages/AdminUsersPage';
 import { EditDayPage } from '@/pages/EditDayPage';
 import { AdminImportPage } from '@/pages/AdminImportPage';
+import { AdminAbsencesPage } from '@/pages/AdminAbsencesPage';
 import { AdminChangesPage } from '@/pages/AdminChangesPage';
 import { AdminStatisticsPage } from '@/pages/AdminStatisticsPage';
 import { NotificationsPage } from '@/pages/NotificationsPage';
@@ -52,6 +53,7 @@ export function AppRouter() {
                 <Route path="/admin/support" element={<AdminSupportPage />} />
                 <Route path="/admin/support/:threadId" element={<AdminSupportThreadPage />} />
                 <Route path="/admin/import" element={<AdminImportPage />} />
+                <Route path="/admin/absences" element={<AdminAbsencesPage />} />
                 <Route path="/admin/changes" element={<AdminChangesPage />} />
                 <Route path="/admin/statistics" element={<AdminStatisticsPage />} />
                 <Route path="/admin/duty-swaps" element={<AdminDutySwapsPage />} />
