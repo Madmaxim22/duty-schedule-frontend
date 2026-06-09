@@ -20,7 +20,7 @@
   order: 2;
 }
 
-@media (min-width: 64rem) {
+@media (min-width: 64rem) { /* --bp-lg */
   .payroll-page__main {
     display: grid;
     grid-template-columns: minmax(0, clamp(18rem, 34vw, 30rem)) minmax(0, 1fr);
@@ -48,7 +48,7 @@
   flex-shrink: 0;
 }
 
-@media (max-width: 63.99rem) {
+@media (max-width: 63.99rem) { /* below --bp-lg */
   .payroll-panel--result {
     margin-top: var(--space-sm);
   }

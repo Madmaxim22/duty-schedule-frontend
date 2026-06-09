@@ -1,0 +1,27 @@
+.layout-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  min-width: 0;
+}
+
+.layout-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: flex-end;
+  min-width: 0;
+}
+
+.layout-auto-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-md);
+  min-width: 0;
+}
+
+.layout-safe {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}

@@ -9,6 +9,7 @@ import { apiRequest } from '@/shared/api/client';
 import type { MonthSchedule } from '@/shared/api/types';
 import { DutyCalendar } from '@/features/calendar/DutyCalendar';
 import { DutyDayList } from '@/features/calendar/DutyDayList';
+import { DutyMatrixView } from '@/features/calendar/DutyMatrixView';
 import {
   loadScheduleView,
   saveScheduleView,
@@ -25,6 +26,7 @@ import { SideMenu } from '@/shared/ui/SideMenu';
 import { Avatar } from '@/shared/ui/Avatar';
 import { ProfileModal } from '@/features/settings/ProfileModal';
 import { AppVersionFooter } from '@/features/onboarding/AppVersionFooter';
+import { useMediaMinMd } from '@/shared/hooks/useMediaMinMd';
 
 function MenuIcon() {
   return (
@@ -171,10 +173,21 @@ export function HomePage() {
     return `Меню, непрочитанных ${parts.join(', ')}`;
   }
 
-  const isListView = scheduleView === 'list';
+  const isMinMd = useMediaMinMd();
+  const matrixAvailable = isMinMd;
+  const effectiveView =
+    scheduleView === 'matrix' && !matrixAvailable ? 'list' : scheduleView;
+  const isListView = effectiveView === 'list';
+  const isMatrixView = effectiveView === 'matrix' && matrixAvailable;
+
+  const homePageClass = isMatrixView
+    ? 'home-page home-page--matrix'
+    : isListView
+      ? 'home-page home-page--list'
+      : 'home-page';
 
   return (
-    <div className={isListView ? 'home-page home-page--list' : 'home-page'}>
+    <div className={homePageClass}>
       <header className="home-page__header">
         <button
           type="button"
@@ -232,12 +245,19 @@ export function HomePage() {
       <div className="home-page__schedule-toolbar">
         <ScheduleViewToggle
           view={scheduleView}
+          matrixDisabled={!matrixAvailable}
           onChange={(view) => {
             setScheduleView(view);
             saveScheduleView(view);
           }}
         />
       </div>
+
+      {!matrixAvailable && scheduleView === 'matrix' ? (
+        <p className="home-page__matrix-fallback" role="status">
+          Вид «Таблица» доступен на экране от 768px. Показан список.
+        </p>
+      ) : null}
 
       <div
         className="home-page__schedule"
@@ -253,7 +273,7 @@ export function HomePage() {
           </p>
         ) : null}
 
-        {!showInitialScheduleLoading && scheduleView === 'grid' ? (
+        {!showInitialScheduleLoading && effectiveView === 'grid' ? (
           <div
             className={
               isScheduleRefreshing
@@ -275,7 +295,7 @@ export function HomePage() {
           </div>
         ) : null}
 
-        {!showInitialScheduleLoading && scheduleView === 'list' ? (
+        {!showInitialScheduleLoading && effectiveView === 'list' ? (
           <div
             className={
               isScheduleRefreshing
@@ -298,6 +318,26 @@ export function HomePage() {
             />
           </div>
         ) : null}
+
+        {!showInitialScheduleLoading && isMatrixView && scheduleData ? (
+          <div
+            className={
+              isScheduleRefreshing
+                ? 'home-page__schedule-view home-page__schedule-view--loading'
+                : 'home-page__schedule-view'
+            }
+          >
+            <DutyMatrixView
+              month={month}
+              onMonthChange={(m) => setMonth(new Date(m.getFullYear(), m.getMonth(), 1))}
+              schedule={scheduleData}
+              isAdmin={isAdmin}
+              currentUserId={user?.id}
+              onSelectDate={setSelectedDate}
+              isRefreshing={isScheduleRefreshing}
+            />
+          </div>
+        ) : null}
       </div>
 
       <p className="home-page__legend">
@@ -308,6 +348,18 @@ export function HomePage() {
             </span>
             <span className="home-page__legend-item home-page__legend-item--absent">
               Отсутствие
+            </span>
+          </>
+        ) : isMatrixView ? (
+          <>
+            <span className="home-page__legend-item home-page__legend-item--matrix-incomplete">
+              Не заполнен
+            </span>
+            <span className="home-page__legend-item home-page__legend-item--matrix-weekend">
+              Выходной
+            </span>
+            <span className="home-page__legend-item home-page__legend-item--matrix-holiday">
+              Праздник
             </span>
           </>
         ) : (

@@ -84,6 +84,7 @@ export type ApprovedUserForAssign = {
   id: string;
   fullName: string;
   email: string;
+  role?: UserRole;
   isAbsent?: boolean;
   absenceType?: string;
 };

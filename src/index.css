@@ -11,6 +11,11 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
+  --bp-sm: 30rem;
+  --bp-md: 48rem;
+  --bp-lg: 64rem;
+  --shell-max: min(100%, 30rem);
+  --content-pad: var(--space-md);
   font-family: 'Fira Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
 }
@@ -237,10 +242,22 @@ body {
 .app-shell {
   display: flex;
   flex-direction: column;
-  max-width: 480px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: var(--shell-max);
+  margin-inline: auto;
   min-height: 100dvh;
   background: var(--color-bg);
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --shell-max: 100%;
+  }
+
+  .app-shell {
+    max-width: 100%;
+    margin-inline: 0;
+  }
 }
 
 .app-shell__main {
@@ -297,6 +314,7 @@ body {
 }
 
 .app-shell:has(.home-page--list) .app-shell__page-wrap,
+.app-shell:has(.home-page--matrix) .app-shell__page-wrap,
 .app-shell:has(.chat-page--telegram) .app-shell__page-wrap,
 .app-shell:has(.chat-room--telegram) .app-shell__page-wrap,
 .app-shell:has(.subpage) .app-shell__page-wrap {
@@ -306,7 +324,7 @@ body {
 
 /* Фиксированная высота shell — иначе scroll-область растягивается по контенту, overflow-y не срабатывает,
    а overscroll-behavior: contain блокирует прокрутку документа. */
-.app-shell:not(:has(.home-page--list, .chat-page--telegram, .chat-room--telegram)) {
+.app-shell:not(:has(.home-page--list, .home-page--matrix, .chat-page--telegram, .chat-room--telegram)) {
   height: 100dvh;
   max-height: 100dvh;
   overflow: hidden;
@@ -333,7 +351,7 @@ body {
 
 /* Прокрутка в inner-scroll: main держит ::before/::after на viewport, контент листается внутри.
    display: block — иначе flex-ребёнок page-wrap не растёт по контенту и footer «липнет» к viewport. */
-.app-shell:not(:has(.home-page--list, .chat-page--telegram, .chat-room--telegram)) .app-shell__main-scroll {
+.app-shell:not(:has(.home-page--list, .home-page--matrix, .chat-page--telegram, .chat-room--telegram)) .app-shell__main-scroll {
   display: block;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -1046,7 +1064,8 @@ body {
   text-align: center;
 }
 
-.app-shell:has(.home-page--list) {
+.app-shell:has(.home-page--list),
+.app-shell:has(.home-page--matrix) {
   display: flex;
   flex-direction: column;
   height: 100dvh;
@@ -1058,25 +1077,30 @@ body {
   padding: var(--space-md);
 }
 
-.app-shell:has(.home-page--list) .app-shell__main {
+.app-shell:has(.home-page--list) .app-shell__main,
+.app-shell:has(.home-page--matrix) .app-shell__main {
   gap: 4px;
 }
 
-.app-shell:has(.home-page--list) .app-shell__main-scroll {
+.app-shell:has(.home-page--list) .app-shell__main-scroll,
+.app-shell:has(.home-page--matrix) .app-shell__main-scroll {
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-.app-shell:has(.home-page--list) .app-shell__page-wrap {
+.app-shell:has(.home-page--list) .app-shell__page-wrap,
+.app-shell:has(.home-page--matrix) .app-shell__page-wrap {
   gap: 4px;
 }
 
-.app-shell:has(.home-page--list) .app-shell__footer {
+.app-shell:has(.home-page--list) .app-shell__footer,
+.app-shell:has(.home-page--matrix) .app-shell__footer {
   padding-top: 8px;
 }
 
-.home-page--list {
+.home-page--list,
+.home-page--matrix {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -1084,24 +1108,37 @@ body {
   overflow: hidden;
 }
 
-.home-page--list .home-page__header {
+.home-page--list .home-page__header,
+.home-page--matrix .home-page__header {
   margin-bottom: 8px;
   flex-shrink: 0;
 }
 
-.home-page--list .home-page__schedule-toolbar {
+.home-page--list .home-page__schedule-toolbar,
+.home-page--matrix .home-page__schedule-toolbar {
   margin-bottom: 6px;
   flex-shrink: 0;
 }
 
-.home-page--list .home-page__legend {
+.home-page--matrix .home-page__matrix-fallback {
+  flex-shrink: 0;
+  margin: 0 0 6px;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  line-height: 1.35;
+}
+
+.home-page--list .home-page__legend,
+.home-page--matrix .home-page__legend {
   flex-shrink: 0;
   margin-top: 0;
   padding: 4px 0 0;
 }
 
 .home-page--list .page-loading,
-.home-page--list .home-page__schedule-placeholder {
+.home-page--list .home-page__schedule-placeholder,
+.home-page--matrix .page-loading,
+.home-page--matrix .home-page__schedule-placeholder {
   flex: 1;
   display: flex;
   align-items: center;
@@ -1109,14 +1146,16 @@ body {
   min-height: 0;
 }
 
-.home-page--list .home-page__schedule {
+.home-page--list .home-page__schedule,
+.home-page--matrix .home-page__schedule {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
 }
 
-.home-page--list .home-page__schedule-view {
+.home-page--list .home-page__schedule-view,
+.home-page--matrix .home-page__schedule-view {
   flex: 1;
   min-height: 0;
   display: flex;
@@ -1169,14 +1208,19 @@ body {
 
 .schedule-view-toggle__btn {
   min-height: 44px;
-  padding: 0 16px;
+  padding: 0 10px;
   border: none;
   border-radius: calc(var(--radius) - 4px);
   background: transparent;
   color: var(--color-primary);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
+}
+
+.schedule-view-toggle__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .schedule-view-toggle__btn:focus-visible {
@@ -1691,7 +1735,7 @@ body {
 .modal__panel {
   position: relative;
   width: 100%;
-  max-width: 480px;
+  max-width: min(100%, var(--shell-max));
   max-height: 85dvh;
   color: var(--color-text);
   background: var(--color-modal-surface);
@@ -2501,7 +2545,7 @@ body {
 
 .photo-gallery {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
   gap: 10px;
   list-style: none;
   margin: 0 0 12px;
@@ -2606,6 +2650,8 @@ body {
 .subpage-main {
   flex: 1;
   min-width: 0;
+  width: 100%;
+  max-width: var(--shell-max);
 }
 
 .subpage-footer {
@@ -2700,6 +2746,12 @@ body {
 
 .admin-page__card-actions .btn {
   flex: 1;
+}
+
+@media (min-width: 48rem) {
+  .admin-page__card-actions .btn {
+    flex: 0 1 auto;
+  }
 }
 
 .admin-page__card-actions--inline {
@@ -2888,9 +2940,21 @@ body {
 
 .admin-statistics-page__summary {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 8px;
   margin-bottom: 12px;
+}
+
+@media (min-width: 48rem) {
+  .admin-statistics-page__summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 64rem) {
+  .admin-statistics-page__summary {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .admin-statistics-page__stat--activity {
@@ -3023,6 +3087,7 @@ body {
 
 .admin-statistics-page__toolbar {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: flex-end;
   margin-bottom: 16px;
@@ -3103,7 +3168,7 @@ body {
 
 .admin-statistics-page__stats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
   gap: 8px;
   margin: 0;
 }

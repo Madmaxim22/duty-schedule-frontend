@@ -6,6 +6,7 @@ import { initThemeFromStorage } from './features/settings/theme';
 import { initPwaIconFromStorage } from './features/settings/pwa-icon';
 import { initNativeAppShell } from './shared/capacitor/initNativeAppShell';
 import './index.css';
+import './styles/layout.css';
 
 initThemeFromStorage();
 initPwaIconFromStorage();

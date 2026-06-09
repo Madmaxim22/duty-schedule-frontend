@@ -1,11 +1,12 @@
-export type ScheduleView = 'grid' | 'list';
+export type ScheduleView = 'grid' | 'list' | 'matrix';
 
 type Props = {
   view: ScheduleView;
   onChange: (view: ScheduleView) => void;
+  matrixDisabled?: boolean;
 };
 
-export function ScheduleViewToggle({ view, onChange }: Props) {
+export function ScheduleViewToggle({ view, onChange, matrixDisabled }: Props) {
   return (
     <div className="schedule-view-toggle" role="group" aria-label="Вид расписания">
       <button
@@ -24,6 +25,16 @@ export function ScheduleViewToggle({ view, onChange }: Props) {
       >
         Список
       </button>
+      <button
+        type="button"
+        className={`schedule-view-toggle__btn${view === 'matrix' ? ' schedule-view-toggle__btn--active' : ''}`}
+        aria-pressed={view === 'matrix'}
+        disabled={matrixDisabled}
+        title={matrixDisabled ? 'Таблица доступна на экране от 768px' : undefined}
+        onClick={() => onChange('matrix')}
+      >
+        Таблица
+      </button>
     </div>
   );
 }
@@ -33,7 +44,7 @@ const STORAGE_KEY = 'duty-schedule-view';
 export function loadScheduleView(): ScheduleView {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'grid' || stored === 'list') return stored;
+    if (stored === 'grid' || stored === 'list' || stored === 'matrix') return stored;
   } catch {
     /* ignore */
   }
