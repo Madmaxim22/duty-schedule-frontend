@@ -203,6 +203,16 @@ export function HomePage() {
             </span>
           ) : null}
         </button>
+        <div className="home-page__schedule-toolbar">
+          <ScheduleViewToggle
+            view={scheduleView}
+            matrixDisabled={!matrixAvailable}
+            onChange={(view) => {
+              setScheduleView(view);
+              saveScheduleView(view);
+            }}
+          />
+        </div>
         {displayName && user?.avatarUrl && user.currentPhotoId && user.id ? (
           <button
             type="button"
@@ -241,17 +251,6 @@ export function HomePage() {
           <span className="avatar avatar--sm avatar--initials">?</span>
         )}
       </header>
-
-      <div className="home-page__schedule-toolbar">
-        <ScheduleViewToggle
-          view={scheduleView}
-          matrixDisabled={!matrixAvailable}
-          onChange={(view) => {
-            setScheduleView(view);
-            saveScheduleView(view);
-          }}
-        />
-      </div>
 
       {!matrixAvailable && scheduleView === 'matrix' ? (
         <p className="home-page__matrix-fallback" role="status">
