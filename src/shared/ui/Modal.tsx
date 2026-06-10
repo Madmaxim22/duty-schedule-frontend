@@ -9,6 +9,8 @@ type Props = {
   footer?: ReactNode;
   closeOnEscape?: boolean;
   titleClassName?: string;
+  panelClassName?: string;
+  align?: 'sheet' | 'center';
 };
 
 export function Modal({
@@ -19,6 +21,8 @@ export function Modal({
   footer,
   closeOnEscape = true,
   titleClassName,
+  panelClassName,
+  align = 'sheet',
 }: Props) {
   useNativeBackHandler(open, onClose);
 
@@ -37,10 +41,12 @@ export function Modal({
 
   if (!open) return null;
 
+  const modalClass = align === 'center' ? 'modal modal--center' : 'modal';
+
   return (
-    <div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div className={modalClass} role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <button type="button" className="modal__overlay" aria-label="Закрыть" onClick={onClose} />
-      <div className="modal__panel">
+      <div className={panelClassName ? `modal__panel ${panelClassName}` : 'modal__panel'}>
         <header className="modal__header">
           <h2 id="modal-title" className={titleClassName ? `modal__title ${titleClassName}` : 'modal__title'}>
             {title}

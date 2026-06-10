@@ -139,6 +139,7 @@ npm run dev
 ### Вёрстка (fluid + adaptive)
 
 - Shell: до 768px — до 480px по центру; от **768px** — на всю ширину экрана (`--shell-max: 100%`).
+- Профиль (свой и чужой): от **768px** — широкое окно с боковой панелью и галереей; просмотр фото — полноэкранный lightbox со свайпом, как в чате.
 - Токены: `--bp-sm` (480px), `--bp-md` (768px), `--bp-lg` (1024px) в `src/index.css`.
 - Утилиты: `src/styles/layout.css` (`.layout-stack`, `.layout-cluster`, …).
 - Стили фич: отдельные `.css` рядом с компонентом (например `features/calendar/duty-matrix.css`).
