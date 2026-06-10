@@ -34,15 +34,21 @@
   user-select: none;
 }
 
+.duty-matrix__scroll--cell-drag-pending,
 .duty-matrix__scroll--cell-dragging {
   touch-action: none;
-  cursor: grabbing;
   user-select: none;
 }
 
+.duty-matrix__scroll--cell-dragging {
+  cursor: grabbing;
+  overflow: hidden;
+}
+
 .duty-matrix__cell-btn[data-matrix-draggable='true'] {
-  touch-action: pan-x pan-y;
+  touch-action: none;
   -webkit-touch-callout: none;
+  user-select: none;
 }
 
 .duty-matrix__table {

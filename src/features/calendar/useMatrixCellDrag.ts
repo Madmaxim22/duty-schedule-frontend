@@ -2,7 +2,7 @@ import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { matrixCellKey } from './types/matrix';
 
 const LONG_PRESS_MS = 400;
-const DRAG_THRESHOLD_PX = 6;
+const DRAG_THRESHOLD_PX = 8;
 
 export type MatrixDragPayload = {
   date: string;
@@ -11,14 +11,17 @@ export type MatrixDragPayload = {
   office: string;
 };
 
+type TouchMode = 'pending' | 'scrolling' | 'dragging';
+
 type DragState = {
   pointerId: number;
   payload: MatrixDragPayload;
   sourceKey: string;
   longPressTimer?: ReturnType<typeof setTimeout>;
-  started: boolean;
+  touchMode?: TouchMode;
   startX: number;
   startY: number;
+  scrollLeftAtStart: number;
 };
 
 function findDutyCellButton(el: Element | null): HTMLButtonElement | null {
@@ -66,13 +69,20 @@ export function useMatrixCellDrag({
   onDropRef.current = onDrop;
   onDropOnAbsenceRef.current = onDropOnAbsence;
 
+  const clearTouchClasses = useCallback((el: HTMLElement) => {
+    el.classList.remove('duty-matrix__scroll--cell-drag-pending');
+    el.classList.remove('duty-matrix__scroll--cell-dragging');
+  }, []);
+
   const clearState = useCallback(() => {
     const state = stateRef.current;
     if (state?.longPressTimer) clearTimeout(state.longPressTimer);
+    const el = containerRef.current;
+    if (el) clearTouchClasses(el);
     stateRef.current = null;
     setDraggingKey(null);
     setDragOverKey(null);
-  }, []);
+  }, [clearTouchClasses, containerRef]);
 
   const resolveHover = useCallback((clientX: number, clientY: number) => {
     const btn = findDutyCellButton(document.elementFromPoint(clientX, clientY));
@@ -101,13 +111,15 @@ export function useMatrixCellDrag({
     if (!el || !enabled) return;
 
     const beginDrag = (state: DragState) => {
-      state.started = true;
+      state.touchMode = 'dragging';
       setDraggingKey(state.sourceKey);
+      el.classList.remove('duty-matrix__scroll--cell-drag-pending');
       el.classList.add('duty-matrix__scroll--cell-dragging');
+      el.scrollLeft = state.scrollLeftAtStart;
       try {
         el.setPointerCapture(state.pointerId);
       } catch {
-        /* already captured */
+        /* ignore */
       }
       navigator.vibrate?.(12);
     };
@@ -128,13 +140,24 @@ export function useMatrixCellDrag({
         pointerId: e.pointerId,
         payload,
         sourceKey,
-        started: false,
         startX: e.clientX,
         startY: e.clientY,
+        scrollLeftAtStart: el.scrollLeft,
       };
 
       if (isTouch) {
-        state.longPressTimer = setTimeout(() => beginDrag(state), LONG_PRESS_MS);
+        state.touchMode = 'pending';
+        el.classList.add('duty-matrix__scroll--cell-drag-pending');
+        e.preventDefault();
+        try {
+          el.setPointerCapture(e.pointerId);
+        } catch {
+          /* ignore */
+        }
+        state.longPressTimer = setTimeout(() => {
+          if (stateRef.current !== state || state.touchMode !== 'pending') return;
+          beginDrag(state);
+        }, LONG_PRESS_MS);
       }
 
       stateRef.current = state;
@@ -146,21 +169,39 @@ export function useMatrixCellDrag({
 
       const dx = e.clientX - state.startX;
       const dy = e.clientY - state.startY;
+      const moved = Math.abs(dx) > DRAG_THRESHOLD_PX || Math.abs(dy) > DRAG_THRESHOLD_PX;
 
-      if (!state.started) {
-        const moved = Math.abs(dx) > DRAG_THRESHOLD_PX || Math.abs(dy) > DRAG_THRESHOLD_PX;
+      if (state.touchMode === 'pending') {
         if (!moved) return;
 
         if (state.longPressTimer) {
           clearTimeout(state.longPressTimer);
           state.longPressTimer = undefined;
-          clearState();
-          return;
+          state.touchMode = 'scrolling';
+          el.classList.remove('duty-matrix__scroll--cell-drag-pending');
         }
 
-        beginDrag(state);
+        e.preventDefault();
+        el.scrollLeft = state.scrollLeftAtStart - dx;
+        return;
       }
 
+      if (state.touchMode === 'scrolling') {
+        e.preventDefault();
+        el.scrollLeft = state.scrollLeftAtStart - dx;
+        return;
+      }
+
+      if (state.touchMode === 'dragging') {
+        e.preventDefault();
+        el.scrollLeft = state.scrollLeftAtStart;
+        resolveHover(e.clientX, e.clientY);
+        return;
+      }
+
+      if (!moved) return;
+
+      beginDrag(state);
       e.preventDefault();
       resolveHover(e.clientX, e.clientY);
     };
@@ -171,11 +212,14 @@ export function useMatrixCellDrag({
 
       if (state.longPressTimer) {
         clearTimeout(state.longPressTimer);
-        stateRef.current = null;
-        return;
       }
 
-      if (state.started) {
+      if (state.touchMode === 'scrolling') {
+        suppressClickRef.current = true;
+        window.setTimeout(() => {
+          suppressClickRef.current = false;
+        }, 0);
+      } else if (state.touchMode === 'dragging') {
         e.preventDefault();
         suppressClickRef.current = true;
         window.setTimeout(() => {
@@ -188,19 +232,20 @@ export function useMatrixCellDrag({
         } else if (hover && 'userId' in hover && hover.userId && hover.date) {
           onDropRef.current(state.payload, hover.userId, hover.date);
         }
+      }
 
-        el.classList.remove('duty-matrix__scroll--cell-dragging');
-        try {
+      try {
+        if (el.hasPointerCapture(e.pointerId)) {
           el.releasePointerCapture(e.pointerId);
-        } catch {
-          /* already released */
         }
+      } catch {
+        /* already released */
       }
 
       clearState();
     };
 
-    el.addEventListener('pointerdown', onPointerDown);
+    el.addEventListener('pointerdown', onPointerDown, { passive: false });
     el.addEventListener('pointermove', onPointerMove, { passive: false });
     el.addEventListener('pointerup', finishDrag);
     el.addEventListener('pointercancel', finishDrag);
@@ -213,9 +258,9 @@ export function useMatrixCellDrag({
       const active = stateRef.current;
       if (active?.longPressTimer) clearTimeout(active.longPressTimer);
       stateRef.current = null;
-      el.classList.remove('duty-matrix__scroll--cell-dragging');
+      clearTouchClasses(el);
     };
-  }, [enabled, containerRef, clearState, resolveHover]);
+  }, [enabled, containerRef, clearState, clearTouchClasses, resolveHover]);
 
   const shouldSuppressClick = useCallback(() => suppressClickRef.current, []);
 
