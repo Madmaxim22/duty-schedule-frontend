@@ -87,7 +87,6 @@
   font-weight: 700;
 }
 
-.duty-matrix__date-head--weekend .duty-matrix__date-wd,
 .duty-matrix__date-head--weekend .duty-matrix__date-month {
   color: var(--color-muted);
 }
@@ -101,7 +100,6 @@
   font-weight: 700;
 }
 
-.duty-matrix__date-head--holiday .duty-matrix__date-wd,
 .duty-matrix__date-head--holiday .duty-matrix__date-month {
   color: var(--color-incomplete);
 }
@@ -121,14 +119,6 @@
   display: block;
   font-size: 0.875rem;
   line-height: 1.2;
-}
-
-.duty-matrix__date-wd {
-  display: block;
-  font-size: 0.65rem;
-  font-weight: 500;
-  color: var(--color-muted);
-  text-transform: lowercase;
 }
 
 .duty-matrix__date-month {

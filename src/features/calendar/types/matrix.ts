@@ -15,7 +15,6 @@ export type MatrixRow = {
 export type MatrixColumn = {
   date: string;
   dayNum: number;
-  weekday: string;
   monthLabel: string;
   isIncomplete?: boolean;
   isWeekend?: boolean;

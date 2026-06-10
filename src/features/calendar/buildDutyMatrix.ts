@@ -74,7 +74,6 @@ export function buildMatrixColumn(
   return {
     date,
     dayNum: d.getDate(),
-    weekday: d.toLocaleDateString('ru-RU', { weekday: 'short' }),
     monthLabel: format(d, 'LLL', { locale: ru }).replace('.', ''),
     isIncomplete: incompleteSet?.has(date),
     isWeekend: isWeekend(date),

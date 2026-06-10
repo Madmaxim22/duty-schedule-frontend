@@ -383,7 +383,6 @@ export function DutyMatrixView({
                 <th key={col.date} scope="col" className={getDateHeadClass(col)}>
                   <span className="duty-matrix__date-num">{col.dayNum}</span>
                   <span className="duty-matrix__date-month">{col.monthLabel}</span>
-                  <span className="duty-matrix__date-wd">{col.weekday}</span>
                 </th>
               ))}
             </tr>
