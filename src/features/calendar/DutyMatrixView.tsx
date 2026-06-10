@@ -6,8 +6,8 @@ import { apiRequest } from '@/shared/api/client';
 import type { ApprovedUserForAssign, MonthSchedule } from '@/shared/api/types';
 import { parseDateKey, toDateKey } from '@/shared/lib/dateKey';
 import { formatSurnameWithInitials } from '@/shared/lib/formatName';
-import { MonthNavChevron } from '@/features/calendar/MonthNavChevron';
 import { Button } from '@/shared/ui/Button';
+import { useDragScroll } from '@/shared/hooks/useDragScroll';
 import { Modal } from '@/shared/ui/Modal';
 import {
   buildColumnsForRange,
@@ -23,6 +23,7 @@ import {
 import { useDutyMatrixEditor } from './useDutyMatrixEditor';
 import { matrixCellKey, type MatrixAssignment, type MatrixColumn } from './types/matrix';
 import { useMatrixDayWindow } from './useMatrixDayWindow';
+import { useMatrixMonthScroll } from './useMatrixMonthScroll';
 import './duty-matrix.css';
 
 function getMonthKeysInRange(windowStart: string, visibleDays: number) {
@@ -99,6 +100,7 @@ type Props = {
 
 export function DutyMatrixView({
   month,
+  onMonthChange,
   schedule,
   isAdmin,
   currentUserId,
@@ -117,7 +119,15 @@ export function DutyMatrixView({
   const editor = useDutyMatrixEditor();
   const upsertAbsenceMutation = useUpsertAbsencesMutation();
   const deleteAbsenceMutation = useDeleteAbsencesMutation();
-  const { windowStart, visibleDays, goPrev, goNext } = useMatrixDayWindow({ month });
+  const { windowStart, visibleDays, currentMonthStartIndex, currentMonthDayCount } =
+    useMatrixDayWindow({ month });
+  const monthScrollRef = useMatrixMonthScroll({
+    month,
+    onMonthChange,
+    currentMonthStartIndex,
+    currentMonthDayCount,
+  });
+  const scrollRef = useDragScroll<HTMLDivElement>(monthScrollRef);
 
   const monthKeys = useMemo(
     () => getMonthKeysInRange(windowStart, visibleDays),
@@ -361,27 +371,8 @@ export function DutyMatrixView({
         <p className="form-message form-message--error">{actionError}</p>
       ) : null}
 
-      <div className="duty-matrix__nav">
-        <button
-          type="button"
-          className="duty-matrix__nav-btn"
-          aria-label="Предыдущие дни"
-          onClick={goPrev}
-        >
-          <MonthNavChevron orientation="left" className="duty-matrix__nav-chevron" />
-        </button>
-        <button
-          type="button"
-          className="duty-matrix__nav-btn"
-          aria-label="Следующие дни"
-          onClick={goNext}
-        >
-          <MonthNavChevron orientation="right" className="duty-matrix__nav-chevron" />
-        </button>
-      </div>
-
       <div className="duty-matrix__frame">
-        <div className="duty-matrix__scroll">
+        <div ref={scrollRef} className="duty-matrix__scroll">
           <table className="duty-matrix__table">
           <thead>
             <tr>

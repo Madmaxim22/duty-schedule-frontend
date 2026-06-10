@@ -339,42 +339,29 @@ export function HomePage() {
         ) : null}
       </div>
 
-      <p className="home-page__legend">
-        {!isAdmin ? (
-          <>
-            <span className="home-page__legend-item home-page__legend-item--my">
-              Мои дежурства
-            </span>
-            <span className="home-page__legend-item home-page__legend-item--absent">
-              Отсутствие
-            </span>
-          </>
-        ) : isMatrixView ? (
-          <>
-            <span className="home-page__legend-item home-page__legend-item--matrix-incomplete">
-              Не заполнен
-            </span>
-            <span className="home-page__legend-item home-page__legend-item--matrix-weekend">
-              Выходной
-            </span>
-            <span className="home-page__legend-item home-page__legend-item--matrix-holiday">
-              Праздник
-            </span>
-            <span className="home-page__legend-item home-page__legend-item--absent">
-              Отсутствие
-            </span>
-          </>
-        ) : (
-          <>
-            <span className="home-page__legend-item home-page__legend-item--incomplete">
-              Не заполнен
-            </span>
-            <span className="home-page__legend-item home-page__legend-item--absent">
-              Отсутствие
-            </span>
-          </>
-        )}
-      </p>
+      {!isMatrixView ? (
+        <p className="home-page__legend">
+          {!isAdmin ? (
+            <>
+              <span className="home-page__legend-item home-page__legend-item--my">
+                Мои дежурства
+              </span>
+              <span className="home-page__legend-item home-page__legend-item--absent">
+                Отсутствие
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="home-page__legend-item home-page__legend-item--incomplete">
+                Не заполнен
+              </span>
+              <span className="home-page__legend-item home-page__legend-item--absent">
+                Отсутствие
+              </span>
+            </>
+          )}
+        </p>
+      ) : null}
 
       <SideMenu open={menuOpen} onClose={closeMenu}>
         <button type="button" className="side-menu__user" onClick={openProfile}>

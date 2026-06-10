@@ -18,58 +18,26 @@
   overflow: hidden;
 }
 
-.duty-matrix__nav {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-sm);
-  min-height: 2.75rem;
-}
-
-.duty-matrix__nav-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border: none;
-  border-radius: var(--radius);
-  background: transparent;
-  padding: 0;
-  color: var(--color-primary);
-  cursor: pointer;
-  font: inherit;
-  appearance: none;
-  -webkit-appearance: none;
-}
-
-.duty-matrix__nav-btn:hover {
-  background: var(--color-secondary-bg);
-}
-
-.duty-matrix__nav-btn:focus-visible {
-  outline: 2px solid var(--color-darkest);
-  outline-offset: 2px;
-}
-
-.duty-matrix__nav-chevron {
-  display: inline-block;
-  fill: var(--color-darkest);
-}
-
 .duty-matrix__scroll {
   flex: 1;
   min-width: 0;
   min-height: 0;
-  overflow-x: hidden;
+  overflow-x: auto;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  cursor: grab;
+}
+
+.duty-matrix__scroll.is-drag-scrolling {
+  cursor: grabbing;
+  user-select: none;
 }
 
 .duty-matrix__table {
-  width: 100%;
+  --duty-matrix-day-col: clamp(2.25rem, 4vw, 3.25rem);
+  width: max-content;
+  min-width: 100%;
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
@@ -101,7 +69,8 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  min-width: 0;
+  width: var(--duty-matrix-day-col);
+  min-width: var(--duty-matrix-day-col);
   padding: var(--space-sm) 4px 6px;
   text-align: center;
   background: var(--color-surface);
@@ -173,6 +142,8 @@
 }
 
 .duty-matrix__table td {
+  width: var(--duty-matrix-day-col);
+  min-width: var(--duty-matrix-day-col);
   overflow: hidden;
   background: var(--color-surface);
 }
@@ -275,6 +246,8 @@
 }
 
 .duty-matrix__table td.duty-matrix__cell--absent {
+  width: auto;
+  min-width: 0;
   background: var(--color-muted-bg, #e8e8e8);
   border-left: 3px solid var(--color-muted);
 }
@@ -450,38 +423,3 @@
   background: var(--color-modal-overlay);
   cursor: pointer;
 }
-
-.home-page--matrix .home-page__legend-item--matrix-incomplete {
-  color: var(--color-incomplete);
-}
-
-.home-page--matrix .home-page__legend-item--matrix-incomplete::before {
-  background: var(--color-surface);
-  border: 2px solid var(--color-incomplete);
-  border-radius: 2px;
-}
-
-.home-page--matrix .home-page__legend-item--matrix-weekend {
-  color: var(--color-muted);
-}
-
-.home-page--matrix .home-page__legend-item--matrix-weekend::before {
-  background: var(--color-muted-bg);
-  border: 1px solid var(--color-border);
-}
-
-.home-page--matrix .home-page__legend-item--matrix-holiday {
-  color: var(--color-darkest);
-}
-
-.home-page--matrix .home-page__legend-item--matrix-holiday::before {
-  background: var(--color-incomplete-bg);
-  border: 1px solid var(--color-darkest);
-}
-
-.home-page--matrix .home-page__legend-item--absent::before {
-  background: var(--color-muted-bg, #e8e8e8);
-  border: 1px solid var(--color-muted);
-  border-radius: 2px;
-}
-

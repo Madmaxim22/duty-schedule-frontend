@@ -1184,8 +1184,7 @@ body {
   line-height: 1.35;
 }
 
-.home-page--list .home-page__legend,
-.home-page--matrix .home-page__legend {
+.home-page--list .home-page__legend {
   flex-shrink: 0;
   margin-top: 0;
   padding: 4px 0 0;
