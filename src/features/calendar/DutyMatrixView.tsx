@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { keepPreviousData, useQueries, useQuery } from '@tanstack/react-query';
 import { addDays } from 'date-fns';
 import { createPortal } from 'react-dom';
@@ -22,6 +22,7 @@ import {
 } from '@/features/absences/useAbsences';
 import { useDutyMatrixEditor } from './useDutyMatrixEditor';
 import { matrixCellKey, type MatrixAssignment, type MatrixColumn } from './types/matrix';
+import { useMatrixCellDrag } from './useMatrixCellDrag';
 import { useMatrixDayWindow } from './useMatrixDayWindow';
 import { useMatrixMonthScroll } from './useMatrixMonthScroll';
 import './duty-matrix.css';
@@ -127,7 +128,15 @@ export function DutyMatrixView({
     currentMonthStartIndex,
     currentMonthDayCount,
   });
-  const scrollRef = useDragScroll<HTMLDivElement>(monthScrollRef);
+  const dragScrollRef = useDragScroll<HTMLDivElement>(monthScrollRef);
+  const matrixScrollElRef = useRef<HTMLDivElement | null>(null);
+  const setMatrixScrollRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      matrixScrollElRef.current = node;
+      dragScrollRef(node);
+    },
+    [dragScrollRef],
+  );
 
   const monthKeys = useMemo(
     () => getMonthKeysInRange(windowStart, visibleDays),
@@ -184,8 +193,6 @@ export function DutyMatrixView({
   );
 
   const [assignTarget, setAssignTarget] = useState<AssignTarget | null>(null);
-  const [dragOverKey, setDragOverKey] = useState<string | null>(null);
-  const [draggingKey, setDraggingKey] = useState<string | null>(null);
   const [keyboardPick, setKeyboardPick] = useState<DragPayload | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -259,8 +266,6 @@ export function DutyMatrixView({
   const handleDrop = useCallback(
     async (payload: DragPayload, targetUserId: string, targetDate: string) => {
       setActionError(null);
-      setDragOverKey(null);
-      setDraggingKey(null);
 
       if (!isAdmin) return;
       if (payload.userId === targetUserId && payload.date === targetDate) return;
@@ -303,6 +308,17 @@ export function DutyMatrixView({
     [editor, isAdmin, isUserAbsentOnDate, model.cells],
   );
 
+  const { draggingKey, dragOverKey, shouldSuppressClick } = useMatrixCellDrag({
+    enabled: isAdmin,
+    containerRef: matrixScrollElRef,
+    onDrop: (payload, targetUserId, targetDate) => {
+      void handleDrop(payload, targetUserId, targetDate);
+    },
+    onDropOnAbsence: (absenceType) => {
+      setActionError(`Сотрудник отсутствует (${absenceType})`);
+    },
+  });
+
   const onCellClick = (
     date: string,
     userId: string,
@@ -311,6 +327,8 @@ export function DutyMatrixView({
     extraOffices?: string[],
     absenceType?: string,
   ) => {
+    if (shouldSuppressClick()) return;
+
     if (isAdmin) {
       setAssignTarget({
         date,
@@ -322,11 +340,6 @@ export function DutyMatrixView({
       return;
     }
     onSelectDate(date);
-  };
-
-  const startDrag = (cellKey: string) => {
-    if (!isAdmin) return;
-    setDraggingKey(cellKey);
   };
 
   const conflictModal = editor.conflict ? (
@@ -372,7 +385,7 @@ export function DutyMatrixView({
       ) : null}
 
       <div className="duty-matrix__frame">
-        <div ref={scrollRef} className="duty-matrix__scroll">
+        <div ref={setMatrixScrollRef} className="duty-matrix__scroll">
           <table className="duty-matrix__table">
           <thead>
             <tr>
@@ -410,19 +423,12 @@ export function DutyMatrixView({
                           key={`${row.userId}-${firstCol.date}-absence`}
                           colSpan={segment.columns.length}
                           className="duty-matrix__cell--absent"
-                          onDragOver={(e) => {
-                            if (!isAdmin) return;
-                            e.preventDefault();
-                            e.dataTransfer.dropEffect = 'none';
-                          }}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            setActionError(`Сотрудник отсутствует (${segment.absenceType})`);
-                          }}
                         >
                           <button
                             type="button"
                             className={`duty-matrix__absence${isAdmin ? ' duty-matrix__absence--clickable' : ''}`}
+                            data-user-id={row.userId}
+                            data-date={firstCol.date}
                             title={segment.absenceType}
                             aria-label={`${row.fullName}, ${rangeLabel}: ${segment.absenceType}`}
                             disabled={!isAdmin}
@@ -479,7 +485,10 @@ export function DutyMatrixView({
                           type="button"
                           className={btnClass}
                           disabled={isSaving}
-                          draggable={isAdmin && Boolean(payload)}
+                          data-matrix-draggable={payload ? 'true' : undefined}
+                          data-user-id={row.userId}
+                          data-date={col.date}
+                          data-drag-payload={payload ? JSON.stringify(payload) : undefined}
                           title={extra?.length ? `Также: ${extra.join(', ')}` : undefined}
                           onClick={() =>
                             onCellClick(
@@ -491,39 +500,6 @@ export function DutyMatrixView({
                               cell.absenceType,
                             )
                           }
-                          onDragStart={(e) => {
-                            if (!payload) return;
-                            e.dataTransfer.setData(
-                              'application/duty-matrix',
-                              JSON.stringify(payload),
-                            );
-                            e.dataTransfer.effectAllowed = 'move';
-                            startDrag(cellKey);
-                          }}
-                          onDragEnd={() => {
-                            setDraggingKey(null);
-                            setDragOverKey(null);
-                          }}
-                          onDragOver={(e) => {
-                            if (!isAdmin) return;
-                            e.preventDefault();
-                            e.dataTransfer.dropEffect = 'move';
-                            setDragOverKey(cellKey);
-                          }}
-                          onDragLeave={() => {
-                            if (dragOverKey === cellKey) setDragOverKey(null);
-                          }}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            const raw = e.dataTransfer.getData('application/duty-matrix');
-                            if (!raw) return;
-                            try {
-                              const data = JSON.parse(raw) as DragPayload;
-                              void handleDrop(data, row.userId, col.date);
-                            } catch {
-                              /* ignore */
-                            }
-                          }}
                           onKeyDown={(e) => {
                             if (!isAdmin || !payload) return;
                             if (e.key === 'Enter' || e.key === ' ') {

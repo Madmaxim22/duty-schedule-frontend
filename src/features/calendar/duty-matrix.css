@@ -34,6 +34,17 @@
   user-select: none;
 }
 
+.duty-matrix__scroll--cell-dragging {
+  touch-action: none;
+  cursor: grabbing;
+  user-select: none;
+}
+
+.duty-matrix__cell-btn[data-matrix-draggable='true'] {
+  touch-action: pan-x pan-y;
+  -webkit-touch-callout: none;
+}
+
 .duty-matrix__table {
   --duty-matrix-day-col: clamp(2.25rem, 4vw, 3.25rem);
   width: max-content;

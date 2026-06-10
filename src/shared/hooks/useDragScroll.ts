@@ -39,7 +39,7 @@ export function useDragScroll<T extends HTMLElement>(externalRef?: Ref<T | null>
       if (e.pointerType !== 'mouse' || e.button !== 0) return;
 
       const target = e.target instanceof Element ? e.target : null;
-      if (target?.closest('[draggable="true"]')) return;
+      if (target?.closest('[data-matrix-draggable="true"]')) return;
 
       stateRef.current = {
         pointerId: e.pointerId,
