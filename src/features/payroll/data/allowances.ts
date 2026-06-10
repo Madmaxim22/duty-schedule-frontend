@@ -42,7 +42,8 @@ export const OUS_OPTIONS: OusOption[] = [
   { id: 'ous_special_env', label: 'Особые условия в особых условиях (до 50%)', percent: 50, maxPercent: 50, group: 'special_max50', variable: true, appendix: 'Прил. №7' },
   { id: 'ous_cus_moscow', label: 'ЦУС войск Росгвардии, подразделения в г. Москве (50%)', percent: 50, group: 'special_max50', appendix: 'Прил. №7, п. 1' },
   { id: 'ous_aviation_ground', label: 'Наземные авиационные специалисты (20%)', percent: 20, group: 'standard', appendix: 'Прил. №8' },
-  { id: 'ous_leadership', label: 'Руководящие должности (до 30%)', percent: 30, maxPercent: 30, group: 'leadership30', variable: true, appendix: 'Прил. №9' },
+  /** Выбирается отдельным списком Прил. № 9, не показывается в чекбоксах */
+  { id: 'ous_leadership', label: 'Руководящие должности', percent: 30, maxPercent: 30, group: 'leadership30', appendix: 'Прил. №9' },
   { id: 'ous_foreign', label: 'Применение иностранных языков (до 20%)', percent: 20, maxPercent: 20, group: 'foreign20', variable: true, appendix: 'Прил. №10' },
   { id: 'ous_moscow_spb', label: 'Москва/МО, СПб/ЛО (10%)', percent: 10, group: 'standard', appendix: 'п. 52 п. 18' },
   { id: 'ous_armored_crew', label: 'Экипажи БТ на гус./кол. шасси (20%)', percent: 20, group: 'standard' },
@@ -103,7 +104,7 @@ export const ACHIEVEMENT_OPTIONS: AchievementOption[] = [
   { id: 'ach_sniper', label: 'Снайперское подразделение спецназа (60%)', percent: 60 },
   { id: 'ach_alpinism', label: 'Инструктор-методист по альпинизму (до 60%)', percent: 60, pickOneGroup: 'alpinism' },
   { id: 'ach_maroon_beret', label: 'Право на ношение крапового beret / спецназ (30%)', percent: 30, pickOneGroup: 'beret' },
-  { id: 'ach_own_security_60', label: 'Подразделения собственной безопасности (60%)', percent: 60 },
+  { id: 'ach_own_security_60', label: 'Подразделения собственной безопасности (60%)', percent: 60, pickOneGroup: 'own_sec' },
   { id: 'ach_own_security_100', label: 'ГУ собственной безопасности (100%)', percent: 100, pickOneGroup: 'own_sec' },
   { id: 'ach_tariff_1_4', label: 'Должности 1–4 тарифные разряды (50%)', percent: 50 },
   { id: 'ach_driver_cde', label: 'Водитель кат. C/D/CE (30%)', percent: 30, pickOneGroup: 'driver' },

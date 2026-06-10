@@ -1,7 +1,9 @@
 import { ACHIEVEMENT_OPTIONS, CIPHER_STAZH_OPTIONS, CLASS_QUAL_OPTIONS, DEFAULT_RISK_INPUT, LEGAL_ALLOWANCE_OPTIONS, OUS_OPTIONS, RISK_MAX_PERCENT, STATE_SECRET_OPTIONS, ZGT_STAZH_OPTIONS, type OusSummationGroup } from '../data/allowances';
+import { getLeadershipPosition } from '../data/leadershipPositions';
 import { effectiveRegionalCoeff, REGIONAL_ZONES } from '../data/regionalCoeffs';
 import { getSeniorityPercent, RANKS } from '../data/ranks';
-import { getTariffSalary, PLATOON_COMMANDER_SALARY } from '../data/tariffGrades';
+import { getTariffSalary, hasAutoTariffGradeAllowance, PLATOON_COMMANDER_SALARY, TARIFF_GRADE_ACHIEVEMENT_ID } from '../data/tariffGrades';
+import { getEffectiveAchievementIds } from '../utils/achievementSelection';
 import { NDFL_PERCENT } from '../data/taxes';
 import type { AllowanceContext, PayrollInput, PayrollLineItem, PayrollResult } from '../types/payroll';
 
@@ -64,45 +66,66 @@ function calcOusPercent(selectedIds: string[], custom: Record<string, number>): 
   return { percent: total, notes };
 }
 
-function calcAchievements(selectedIds: string[]): { percent: number; lines: PayrollLineItem[] } {
-  const lines: PayrollLineItem[] = [];
-  const pickOneGroups = new Map<string, number>();
-  let sumPercent = 0;
+function calcAchievements(selectedIds: string[]): {
+  monthlyPercent: number;
+  monthlyLines: PayrollLineItem[];
+  oneTimeLines: PayrollLineItem[];
+} {
+  const monthlyLines: PayrollLineItem[] = [];
+  const oneTimeLines: PayrollLineItem[] = [];
+  const pickOneGroups = new Map<string, { percent: number; label: string; id: string }>();
+  let monthlyPercent = 0;
 
   for (const id of selectedIds) {
     const opt = ACHIEVEMENT_OPTIONS.find((a) => a.id === id);
     if (!opt) continue;
 
-    if (opt.pickOneGroup) {
-      const current = pickOneGroups.get(opt.pickOneGroup) ?? 0;
-      if (opt.percent > current) pickOneGroups.set(opt.pickOneGroup, opt.percent);
-    } else if (opt.oneMonth) {
-      lines.push({
-        id: `ach_${id}`,
+    if (opt.oneMonth) {
+      oneTimeLines.push({
+        id: `ach_onetime_${id}`,
         label: opt.label,
         base: 0,
         percent: opt.percent,
         amount: 0,
-        note: 'Выплата за один месяц (п. 71)',
+        note: 'Разовая выплата за месяц события (п. 71)',
         legalRef: 'п. 64, 71',
       });
-      sumPercent += opt.percent;
-    } else {
-      sumPercent += opt.percent;
-      lines.push({
-        id: `ach_${id}`,
-        label: opt.label,
-        base: 0,
-        percent: opt.percent,
-        amount: 0,
-        legalRef: 'п. 64',
-      });
+      continue;
     }
+
+    if (opt.pickOneGroup) {
+      const current = pickOneGroups.get(opt.pickOneGroup);
+      if (!current || opt.percent > current.percent) {
+        pickOneGroups.set(opt.pickOneGroup, { percent: opt.percent, label: opt.label, id });
+      }
+      continue;
+    }
+
+    monthlyPercent += opt.percent;
+    monthlyLines.push({
+      id: `ach_${id}`,
+      label: opt.label,
+      base: 0,
+      percent: opt.percent,
+      amount: 0,
+      note: id === TARIFF_GRADE_ACHIEVEMENT_ID ? 'Включено автоматически (п. 64 п. 14)' : undefined,
+      legalRef: 'п. 64',
+    });
   }
 
-  for (const [, p] of pickOneGroups) sumPercent += p;
+  for (const [, entry] of pickOneGroups) {
+    monthlyPercent += entry.percent;
+    monthlyLines.push({
+      id: `ach_${entry.id}`,
+      label: entry.label,
+      base: 0,
+      percent: entry.percent,
+      amount: 0,
+      legalRef: 'п. 64',
+    });
+  }
 
-  return { percent: sumPercent, lines };
+  return { monthlyPercent, monthlyLines, oneTimeLines };
 }
 
 function calcParachuteRiskPercent(input: PayrollInput['risk']): number {
@@ -245,10 +268,44 @@ export function calculatePayroll(input: PayrollInput): PayrollResult {
 
   const gradeSalary = getTariffSalary(input.tariffGrade);
   const actingSalary = input.actingTariffGrade ? getTariffSalary(input.actingTariffGrade) : 0;
-  let positionSalary = Math.max(gradeSalary, actingSalary);
-  if (input.savedPositionSalary && input.savedPositionSalary > positionSalary) {
-    positionSalary = input.savedPositionSalary;
-    warnings.push('Применён сохранённый оклад по должности (п. 25)');
+  const savedSalary = input.savedTariffGrade ? getTariffSalary(input.savedTariffGrade) : undefined;
+
+  let positionSalary = gradeSalary;
+  if (savedSalary != null && savedSalary > gradeSalary) {
+    positionSalary = savedSalary;
+  }
+  positionSalary = Math.max(positionSalary, actingSalary);
+
+  const baselineSalary = Math.max(gradeSalary, actingSalary);
+  if (input.savedTariffGrade != null && savedSalary != null && savedSalary > 0) {
+    if (savedSalary > baselineSalary) {
+      warnings.push(
+        `Применён сохранённый оклад по должности (п. 25): ${input.savedTariffGrade} разр.`,
+      );
+    } else {
+      warnings.push(
+        `Сохранённый ${input.savedTariffGrade} разр. (${savedSalary.toLocaleString('ru-RU')} ₽) не применён: не выше оклада по должности (${baselineSalary.toLocaleString('ru-RU')} ₽)`,
+      );
+    }
+  }
+
+  if (hasAutoTariffGradeAllowance(input.tariffGrade)) {
+    warnings.push(
+      `Надбавка 50% за должность ${input.tariffGrade} тарифного разряда (п. 64 п. 14) учтена автоматически`,
+    );
+  }
+
+  const savedApplied =
+    input.savedTariffGrade != null &&
+    savedSalary != null &&
+    positionSalary === savedSalary &&
+    savedSalary > gradeSalary;
+  const actingApplied = actingSalary > 0 && positionSalary === actingSalary;
+  let positionNote = `Тарифный разряд ${input.tariffGrade}`;
+  if (savedApplied) {
+    positionNote = `Сохранённый оклад (п. 25): ${input.savedTariffGrade} разр. — ${savedSalary!.toLocaleString('ru-RU')} ₽`;
+  } else if (actingApplied) {
+    positionNote = `Временно исполняет ${input.actingTariffGrade} разр.`;
   }
 
   const rankSalary = rank.salary;
@@ -281,8 +338,8 @@ export function calculatePayroll(input: PayrollInput): PayrollResult {
     label: 'Оклад по воинской должности',
     base: positionSalary,
     amount: applyRegional(positionSalary, ctx),
-    note: `Тарифный разряд ${input.tariffGrade}`,
-    legalRef: 'п. 20, III',
+    note: positionNote,
+    legalRef: savedApplied ? 'п. 25, III' : 'п. 20, III',
   });
 
   const seniorityPct = getSeniorityPercent(input.seniorityYears);
@@ -351,9 +408,10 @@ export function calculatePayroll(input: PayrollInput): PayrollResult {
       if (!o) continue;
       const p = input.ousCustomPercents[id] ?? o.percent;
       const effective = o.maxPercent ? Math.min(p, o.maxPercent) : p;
+      const leadership = id === 'ous_leadership' ? getLeadershipPosition(input.leadershipPositionId) : undefined;
       lines.push({
         id: `ous_detail_${id}`,
-        label: `  ↳ ${o.label}`,
+        label: leadership ? `  ↳ ${leadership.label}` : `  ↳ ${o.label}`,
         base: 0,
         percent: effective,
         amount: 0,
@@ -362,7 +420,8 @@ export function calculatePayroll(input: PayrollInput): PayrollResult {
     }
   }
 
-  const { percent: achPct, lines: achLines } = calcAchievements(input.selectedAchievementIds);
+  const { monthlyPercent: achPct, monthlyLines: achMonthlyLines, oneTimeLines: achOneTimeLines } =
+    calcAchievements(getEffectiveAchievementIds(input));
   if (achPct > 0) {
     lines.push({
       id: 'achievements',
@@ -370,9 +429,16 @@ export function calculatePayroll(input: PayrollInput): PayrollResult {
       base: positionSalary,
       percent: achPct,
       amount: pct(positionSalary, achPct),
-      legalRef: 'п. 64, 71',
+      legalRef: 'п. 64',
     });
-    lines.push(...achLines.map((l) => ({ ...l, amount: pct(positionSalary, l.percent ?? 0) })));
+    lines.push(...achMonthlyLines.map((l) => ({ ...l, amount: pct(positionSalary, l.percent ?? 0) })));
+  }
+  for (const ot of achOneTimeLines) {
+    lines.push({
+      ...ot,
+      base: positionSalary,
+      amount: pct(positionSalary, ot.percent ?? 0),
+    });
   }
 
   const zgt = ZGT_STAZH_OPTIONS.find((z) => z.id === input.zgtStazhId);

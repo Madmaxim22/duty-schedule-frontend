@@ -64,3 +64,11 @@ export const PLATOON_COMMANDER_SALARY = TARIFF_GRADES.find((g) => g.grade === 10
 export function getTariffSalary(grade: number): number {
   return TARIFF_GRADES.find((g) => g.grade === grade)?.salary ?? 0;
 }
+
+/** п. 64 п. 14 — надбавка 50% включается автоматически для должностей 1–4 разряда */
+export const TARIFF_GRADE_ACHIEVEMENT_ID = 'ach_tariff_1_4';
+export const AUTO_TARIFF_GRADE_MAX = 4;
+
+export function hasAutoTariffGradeAllowance(grade: number): boolean {
+  return grade >= 1 && grade <= AUTO_TARIFF_GRADE_MAX;
+}

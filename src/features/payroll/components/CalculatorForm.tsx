@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import {
-  ACHIEVEMENT_OPTIONS,
   CIPHER_STAZH_OPTIONS,
   CLASS_QUAL_OPTIONS,
   LEGAL_ALLOWANCE_OPTIONS,
@@ -8,11 +7,23 @@ import {
   STATE_SECRET_OPTIONS,
   ZGT_STAZH_OPTIONS,
 } from '../data/allowances';
+import {
+  getLeadershipP2Hint,
+  getLeadershipPosition,
+  LEADERSHIP_GROUP_LABELS,
+  LEADERSHIP_OUS_ID,
+  LEADERSHIP_POSITIONS,
+  type LeadershipGroup,
+} from '../data/leadershipPositions';
 import { REGIONAL_ZONES } from '../data/regionalCoeffs';
 import { RANKS, SENIORITY_RATES } from '../data/ranks';
-import { TARIFF_GRADES } from '../data/tariffGrades';
+import { hasAutoTariffGradeAllowance, TARIFF_GRADES } from '../data/tariffGrades';
+import { getVisibleAchievementOptions, toggleAchievementSelection } from '../utils/achievementSelection';
 import type { PayrollInput } from '../types/payroll';
 import {
+  leadershipSelectHint,
+  leadershipSelectOption,
+  ousCheckboxLabel,
   rankSelectHint,
   rankSelectOption,
   regionalSelectHint,
@@ -20,6 +31,7 @@ import {
   stateSecretSelectHint,
   stateSecretSelectOption,
 } from '../utils/selectLabels';
+import { applyLeadershipPosition } from '../utils/leadershipSync';
 
 interface Props {
   input: PayrollInput;
@@ -59,6 +71,12 @@ export function CalculatorForm({ input, onChange }: Props) {
   const rankHint = rankSelectHint(rank);
   const regionalHint = regionalSelectHint(regionalZone);
   const stateSecretHint = stateSecretSelectHint(stateSecret);
+  const leadershipPosition = getLeadershipPosition(input.leadershipPositionId);
+  const leadershipHint = leadershipSelectHint(leadershipPosition);
+  const leadershipP2Hint =
+    !input.leadershipPositionId ? getLeadershipP2Hint(input.rankId) : null;
+  const ousCheckboxOptions = OUS_OPTIONS.filter((o) => o.id !== LEADERSHIP_OUS_ID);
+  const leadershipGroups: LeadershipGroup[] = ['p1', 'p2', 'p3'];
 
   return (
     <form className="calculator-form" onSubmit={(e) => e.preventDefault()}>
@@ -93,19 +111,34 @@ export function CalculatorForm({ input, onChange }: Props) {
           </FieldControl>
         </label>
         {grade && <p className="hint">{grade.examples}</p>}
+        {hasAutoTariffGradeAllowance(input.tariffGrade) && (
+          <p className="hint">
+            П. 64 п. 14: надбавка 50% за должности 1–4 тарифные разряды включается автоматически.
+          </p>
+        )}
 
         <label>
-          Сохранённый оклад по должности (п. 25), ₽
-          <input
-            type="number"
-            min={0}
-            placeholder="Не применяется"
-            value={input.savedPositionSalary ?? ''}
-            onChange={(e) =>
-              set('savedPositionSalary', e.target.value ? Number(e.target.value) : undefined)
-            }
-          />
+          Сохранённый разряд по прежней должности (п. 25)
+          <FieldControl>
+            <select
+              value={input.savedTariffGrade ?? ''}
+              onChange={(e) =>
+                set('savedTariffGrade', e.target.value ? Number(e.target.value) : undefined)
+              }
+            >
+              <option value="">— не сохранён —</option>
+              {TARIFF_GRADES.map((g) => (
+                <option key={g.grade} value={g.grade}>
+                  {g.grade} разр. — {g.salary.toLocaleString('ru-RU')} ₽
+                </option>
+              ))}
+            </select>
+          </FieldControl>
         </label>
+        <p className="hint">
+          При переводе на более низкооплачиваемую должность — тарифный разряд, с которого сохраняется
+          оклад. Применяется, если выше текущего разряда и исполняемой должности.
+        </p>
 
         <label>
           Временно исполняемая должность (тарифный разряд)
@@ -264,10 +297,33 @@ export function CalculatorForm({ input, onChange }: Props) {
           </label>
         )}
 
+        <label>
+          Руководящие должности — Прил. № 9
+          <FieldControl>
+            <select
+              value={input.leadershipPositionId ?? ''}
+              onChange={(e) => onChange(applyLeadershipPosition(input, e.target.value))}
+            >
+              <option value="">— не применяется —</option>
+              {leadershipGroups.map((group) => (
+                <optgroup key={group} label={LEADERSHIP_GROUP_LABELS[group]}>
+                  {LEADERSHIP_POSITIONS.filter((p) => p.group === group).map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {leadershipSelectOption(p)}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </FieldControl>
+        </label>
+        {leadershipHint && <p className="hint">{leadershipHint}</p>}
+        {leadershipP2Hint && <p className="hint hint--recommend">{leadershipP2Hint}</p>}
+
         <fieldset>
           <legend>Особые условия службы (п. 52–53, приложения № 2–10)</legend>
           <div className="checkbox-grid">
-            {OUS_OPTIONS.map((o) => (
+            {ousCheckboxOptions.map((o) => (
               <label key={o.id} className="checkbox-item">
                 <input
                   type="checkbox"
@@ -277,7 +333,7 @@ export function CalculatorForm({ input, onChange }: Props) {
                   }
                 />
                 <span>
-                  {o.label} ({o.variable ? 'до ' : ''}{o.maxPercent ?? o.percent}%)
+                  {ousCheckboxLabel(o)}
                   {o.appendix && <em> {o.appendix}</em>}
                 </span>
               </label>
@@ -288,13 +344,16 @@ export function CalculatorForm({ input, onChange }: Props) {
         <fieldset>
           <legend>Особые достижения (п. 64, 71)</legend>
           <div className="checkbox-grid">
-            {ACHIEVEMENT_OPTIONS.map((a) => (
+            {getVisibleAchievementOptions().map((a) => (
               <label key={a.id} className="checkbox-item">
                 <input
                   type="checkbox"
                   checked={input.selectedAchievementIds.includes(a.id)}
                   onChange={() =>
-                    set('selectedAchievementIds', toggleArray(input.selectedAchievementIds, a.id))
+                    set(
+                      'selectedAchievementIds',
+                      toggleAchievementSelection(input.selectedAchievementIds, a.id),
+                    )
                   }
                 />
                 <span>{a.label}</span>

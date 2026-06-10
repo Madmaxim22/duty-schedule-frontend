@@ -153,6 +153,10 @@
   font-size: 0.8rem;
 }
 
+.payroll-page .hint--recommend {
+  color: var(--color-primary, var(--color-accent));
+}
+
 .payroll-page fieldset {
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-sm);

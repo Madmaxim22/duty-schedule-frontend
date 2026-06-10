@@ -4,8 +4,8 @@ import type { RegionalZone } from '../data/regionalCoeffs';
 export interface PayrollInput {
   rankId: string;
   tariffGrade: number;
-  /** Сохранённый оклад по должности (п. 25) — если выше текущего */
-  savedPositionSalary?: number;
+  /** Тарифный разряд прежней должности — сохранённый оклад (п. 25), если выше текущего */
+  savedTariffGrade?: number;
   /** Временно исполняемая вакантная должность — другой тарифный разряд */
   actingTariffGrade?: number;
   seniorityYears: number;
@@ -15,6 +15,8 @@ export interface PayrollInput {
   stateSecretCustomPercent?: number;
   selectedOusIds: string[];
   ousCustomPercents: Record<string, number>;
+  /** Руководящая должность по Прил. № 9 */
+  leadershipPositionId?: string;
   selectedAchievementIds: string[];
   zgtStazhId: string;
   cipherStazhId: string;
